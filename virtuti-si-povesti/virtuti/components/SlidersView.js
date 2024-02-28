@@ -43,9 +43,11 @@ const SlidersView = () => {
     setSelectedDetailItem(null);
   };
 
-  const openDetailModal = (item) => {
-    setSelectedDetailItem(item);
-    setDetailModalVisible(true);
+  const openDetailLink = (url) => {
+    Linking.openURL(url).catch((err) => {
+      console.error("Failed opening page because: ", err);
+      Alert.alert("Failed to open link");
+    });
   };
 
   const handlePressItem = (title) => {
@@ -136,7 +138,7 @@ const SlidersView = () => {
                   data={selectedItem?.recommendations}
                   renderItem={({ item }) => (
                     <TouchableOpacity
-                      onPress={() => openDetailModal(item)}
+                      onPress={() => openDetailLink(item.link)}
                       style={{ width: "50%", aspectRatio: 1, padding: 20 }}
                     >
                       <Image
@@ -158,7 +160,6 @@ const SlidersView = () => {
           </View>
         </Modal>
       )}
-
       {detailModalVisible && selectedDetailItem && (
         <Modal
           visible={detailModalVisible}
@@ -166,10 +167,16 @@ const SlidersView = () => {
           onRequestClose={closeModal}
         >
           <View style={styles.modalView}>
-            <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
-              <Icon name="chevron-left" size={24} color="#000" />
-              <Text>Close</Text>
-            </TouchableOpacity>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                <Icon name="chevron-left" size={24} color="#000" />
+                <Text>Închide</Text>
+              </TouchableOpacity>
+              <Image
+                source={require("../assets/FadedLogo.png")}
+                style={styles.logoStyle}
+              />
+            </View>
             <Image
               source={{ uri: selectedDetailItem.image }}
               style={styles.detailImageStyle}
@@ -178,8 +185,11 @@ const SlidersView = () => {
             {/* Description and Link can be added here */}
             <TouchableOpacity
               onPress={() => Linking.openURL(selectedDetailItem.link)}
+              style={styles.descoperaBtn}
             >
-              <Text>Descoperă mai multe...</Text>
+              <Text style={styles.descoperaBtnText}>
+                Descoperă mai multe...
+              </Text>
             </TouchableOpacity>
           </View>
         </Modal>
@@ -279,6 +289,16 @@ const styles = StyleSheet.create({
     height: width / 2 - 10, // Adjust as necessary to maintain aspect ratio
     resizeMode: "cover", // Ensure images cover the area
     margin: 5, // Add some space between images
+  },
+  descoperaBtn: {
+    backgroundColor: "#0D2B33",
+    padding: 30,
+    marginTop: 30,
+    borderRadius: 24,
+  },
+  descoperaBtnText: {
+    color: "#fff",
+    fontSize: 24,
   },
 });
 
