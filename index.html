@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>European States on Character Education</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #f6f7fb;
+        font-family: "Alexandria", "Inter", "Segoe UI", sans-serif;
+        color: #243843;
+      }
+
+      .desktop-map {
+        height: 100vh;
+        animation: desktopMapFadeIn 0.55s ease 0s both;
+      }
+
+      .desktop-map iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      @keyframes desktopMapFadeIn {
+        0% {
+          opacity: 0;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      .mobile-accordion {
+        display: none;
+      }
+
+      @media (max-width: 785px) {
+        .desktop-map {
+          display: none;
+        }
+
+        .mobile-accordion {
+          display: block;
+          padding: 14px 12px 24px;
+        }
+
+        .mobile-legend {
+          margin: 2px 2px 12px;
+          padding: 10px 12px;
+          border: 1px solid #afc1ca;
+          border-radius: 14px;
+          background: #fff;
+          box-shadow: 0 8px 18px rgba(42, 65, 76, 0.08);
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+        }
+
+        .mobile-legend .legend-logo {
+          width: 100%;
+          height: 34px;
+          object-fit: contain;
+          flex: 0 0 auto;
+        }
+
+        .mobile-legend .legend-row {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          width: 100%;
+          flex-wrap: wrap;
+        }
+
+        .mobile-legend .legend-item {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          width: auto;
+          flex: 0 0 auto;
+          font-size: 12px;
+          font-weight: 700;
+          color: #2a414c;
+          white-space: nowrap;
+        }
+
+        @media (max-width: 500px) {
+          .mobile-legend .legend-row {
+            justify-content: center;
+            gap: 6px;
+            flex-wrap: wrap;
+          }
+        }
+
+        .mobile-legend .legend-swatch {
+          width: 18px;
+          height: 18px;
+          border-radius: 999px;
+          border: 1px solid rgba(42, 65, 76, 0.35);
+          box-sizing: border-box;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 10px;
+          font-weight: 800;
+          color: #fff;
+          line-height: 1;
+        }
+
+        .mobile-legend .legend-leading {
+          background: #1d2f39;
+        }
+
+        .mobile-legend .legend-momentum {
+          background: #304a57;
+        }
+
+        .mobile-legend .legend-development {
+          background: #55798a;
+        }
+
+        .mobile-header-fallback {
+          margin: 0;
+          font-size: 12px;
+          color: #506672;
+        }
+
+        details {
+          border: 1px solid #afc1ca;
+          border-radius: 12px;
+          background: #fff;
+          margin: 0 2px 10px;
+          overflow: hidden;
+        }
+
+        summary {
+          list-style: none;
+          cursor: pointer;
+          padding: 10px 12px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          font-size: 14px;
+          font-weight: 700;
+        }
+
+        summary::-webkit-details-marker {
+          display: none;
+        }
+
+        .summary-left {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          min-width: 0;
+        }
+
+        .summary-flag {
+          flex: 0 0 auto;
+          line-height: 1;
+        }
+
+        .summary-name {
+          min-width: 0;
+        }
+
+        .status {
+          font-size: 11px;
+          font-weight: 700;
+          border-radius: 999px;
+          padding: 4px 8px;
+          white-space: nowrap;
+        }
+
+        .status.leading {
+          background: #1d2f39;
+          color: #fff;
+        }
+
+        .status.momentum {
+          background: #304a57;
+          color: #fff;
+        }
+
+        .status.dev {
+          background: #55798a;
+          color: #fff;
+        }
+
+        .accordion-body {
+          max-height: 0;
+          overflow: hidden;
+          opacity: 0;
+          transform: translateY(-6px);
+          padding: 0 12px;
+          border-top: 1px solid transparent;
+          transition:
+            max-height 0.32s ease,
+            opacity 0.24s ease,
+            transform 0.24s ease,
+            padding 0.24s ease,
+            border-top-color 0.24s ease;
+          will-change: max-height, opacity, transform;
+        }
+
+        details.is-open .accordion-body {
+          max-height: 70vh;
+          opacity: 1;
+          transform: translateY(0);
+          padding: 10px 12px 12px;
+          border-top: 1px solid #d0dade;
+        }
+
+        .accordion-body h4 {
+          margin: 0 0 5px;
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.03em;
+          color: #385564;
+        }
+
+        .accordion-body ul {
+          margin: 0 0 8px;
+          padding-left: 17px;
+          font-size: 12px;
+          line-height: 1.45;
+        }
+
+        .accordion-body li {
+          margin-bottom: 4px;
+        }
+
+        .accordion-body-section.outlook {
+          margin-top: 8px;
+          padding: 8px 10px 6px;
+          border-radius: 10px;
+          background: linear-gradient(
+            135deg,
+            rgba(83, 118, 134, 0.14),
+            rgba(83, 118, 134, 0.05)
+          );
+          border: 1px solid rgba(83, 118, 134, 0.35);
+          border-left: 4px solid #527686;
+          box-shadow: 0 1px 6px rgba(42, 65, 76, 0.12);
+        }
+
+        .accordion-body-section.outlook h4 {
+          color: #2a414c;
+          font-size: 14px;
+          margin-bottom: 6px;
+        }
+
+        .accordion-body-section.outlook ul {
+          margin-bottom: 0;
+          font-size: 12.5px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="desktop-map">
+      <iframe src="Europe-svg.html" title="Europe Map"></iframe>
+    </main>
+
+    <main class="mobile-accordion" id="mobile-accordion">
+      <section class="mobile-legend">
+        <img class="legend-logo" src="ECVA_LOGO.png" alt="ECVA Logo" />
+        <div class="legend-row">
+          <span class="legend-item">
+            <span class="legend-swatch legend-leading">1</span>
+            <span>Leading</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-momentum">4</span>
+            <span>High Momentum</span>
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch legend-development">8</span>
+            <span>In Development</span>
+          </span>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const countries = [
+        {
+          code: "GB",
+          flag: "🇬🇧",
+          name: "United Kingdom",
+          status: "Leading",
+          statusClass: "leading",
+          sections: {
+            Academic: [
+              "Jubilee Centre is internationally recognized as a leading research hub."
+            ],
+            Policy: [
+              "Character education is embedded in guidance and inspection culture."
+            ],
+            Practice: [
+              "Strong uptake in schools and professional networks (e.g., ACE)."
+            ],
+            Outlook: [
+              "Most mature ecosystem in Europe with sustained influence."
+            ]
+          }
+        },
+        {
+          code: "ES",
+          flag: "🇪🇸",
+          name: "Spain",
+          status: "High Momentum",
+          statusClass: "momentum",
+          sections: {
+            Academic: [
+              "CEV is a major hub, with UNIR and Navarra also active."
+            ],
+            Policy: [
+              "Institutional links with leaders and policymakers continue to grow."
+            ],
+            Practice: [
+              "Projects and frameworks are active across Spain and Latin America."
+            ],
+            Outlook: [
+              "One of Europe’s fastest-developing ecosystems."
+            ]
+          }
+        },
+        {
+          code: "AT",
+          flag: "🇦🇹",
+          name: "Austria",
+          status: "High Momentum",
+          statusClass: "momentum",
+          sections: {
+            Academic: [
+              "University of Salzburg established a dedicated Chair in character education."
+            ],
+            Policy: [
+              "Hosting ECVA conference (2025) increased visibility and policy attention."
+            ],
+            Practice: [
+              "TEPACE involvement and university initiatives are scaling."
+            ],
+            Outlook: [
+              "Institutionally anchored and accelerating."
+            ]
+          }
+        },
+        {
+          code: "CZ",
+          flag: "🇨🇿",
+          name: "Czech Republic",
+          status: "High Momentum",
+          statusClass: "momentum",
+          sections: {
+            Academic: [
+              "CERC leads dedicated research and comparative studies."
+            ],
+            Policy: [
+              "OSV entered national framework with a virtue-based interpretation."
+            ],
+            Practice: [
+              "Academy of Character launches for educators and teacher training."
+            ],
+            Outlook: [
+              "Transitioning from research to structured implementation."
+            ]
+          }
+        },
+        {
+          code: "DK",
+          flag: "🇩🇰",
+          name: "Denmark",
+          status: "High Momentum",
+          statusClass: "momentum",
+          sections: {
+            Academic: [
+              "National centre links researchers, schools, and municipalities."
+            ],
+            Policy: [
+              "Wellbeing commission recommended stronger character focus in education."
+            ],
+            Practice: [
+              "Partner schools integrate character through whole-school models."
+            ],
+            Outlook: [
+              "System-level expansion is actively underway."
+            ]
+          }
+        },
+        {
+          code: "EE",
+          flag: "🇪🇪",
+          name: "Estonia",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Tartu Centre for Ethics remains a key anchor."],
+            Policy: ["AI ethics and language-transition support continue despite funding shifts."],
+            Practice: ["Values-based whole-school initiatives remain active."],
+            Outlook: ["Strong culture of values education with adaptive continuity."]
+          }
+        },
+        {
+          code: "FI",
+          flag: "🇫🇮",
+          name: "Finland",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Large university-led wellbeing and moral formation projects (incl. RCTs)."],
+            Policy: ["Progress is mainly research-driven."],
+            Practice: ["Interventions involve students, staff, and families."],
+            Outlook: ["Evidence base is strong and still expanding."]
+          }
+        },
+        {
+          code: "FR",
+          flag: "🇫🇷",
+          name: "France",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["EMC remains central to moral/civic instruction."],
+            Policy: ["Compulsory EMC with sustained government attention."],
+            Practice: ["Implementation is broad, but virtue framing remains limited."],
+            Outlook: ["Need for a clearer character-focused architecture is increasingly recognized."]
+          }
+        },
+        {
+          code: "DE",
+          flag: "🇩🇪",
+          name: "Germany",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Growing university and institutional initiatives."],
+            Policy: ["No broad national framework yet."],
+            Practice: ["School-level interest exists but develops unevenly."],
+            Outlook: ["Progress is real, but context-sensitive and gradual."]
+          }
+        },
+        {
+          code: "GR",
+          flag: "🇬🇷",
+          name: "Greece",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Deree Centre is a major new institutional step."],
+            Policy: ["Ethics module proposals exist without full character-policy adoption."],
+            Practice: ["Conference, master’s pathway, and collaborations are emerging."],
+            Outlook: ["High potential with policy alignment still forming."]
+          }
+        },
+        {
+          code: "IS",
+          flag: "🇮🇸",
+          name: "Iceland",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Led mainly by individual scholars and small initiatives."],
+            Policy: ["General references to virtues/flourishing, limited dedicated policy."],
+            Practice: ["University electives and local projects continue."],
+            Outlook: ["Interest is rising, infrastructure remains light."]
+          }
+        },
+        {
+          code: "RO",
+          flag: "🇷🇴",
+          name: "Romania",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["Practice-led growth informed by virtue ethics and positive psychology."],
+            Policy: ["Development remains mostly grassroots."],
+            Practice: [
+              "Gritty Education runs camps, workshops, consultancy, podcast, and journal.",
+              "EVP (Education through Virtues and Stories) combines narrative pedagogy, virtues literacy, restorative practices, and teacher training."
+            ],
+            Outlook: ["Strong community-driven momentum across education settings."]
+          }
+        },
+        {
+          code: "SE",
+          flag: "🇸🇪",
+          name: "Sweden",
+          status: "In Development",
+          statusClass: "dev",
+          sections: {
+            Academic: ["University and network activity is increasing."],
+            Policy: ["National policy focus is still elsewhere."],
+            Practice: ["School groups integrate character and wellbeing priorities."],
+            Outlook: ["Institutional practice is expanding steadily."]
+          }
+        }
+      ];
+
+      const host = document.getElementById("mobile-accordion");
+      countries.forEach((c) => {
+        const sectionsHtml = Object.entries(c.sections)
+          .map(([title, bullets]) => {
+            const list = bullets.map((b) => `<li>${b}</li>`).join("");
+            const sectionClass =
+              title === "Outlook"
+                ? "accordion-body-section outlook"
+                : "accordion-body-section";
+            return `<section class="${sectionClass}"><h4>${title}</h4><ul>${list}</ul></section>`;
+          })
+          .join("");
+
+        const item = document.createElement("details");
+        item.innerHTML = `
+          <summary>
+            <span class="summary-left">
+              <span class="summary-flag">${c.flag}</span>
+              <span class="summary-name">${c.name}</span>
+            </span>
+            <span class="status ${c.statusClass}">${c.status}</span>
+          </summary>
+          <div class="accordion-body">${sectionsHtml}</div>
+        `;
+        host.appendChild(item);
+      });
+
+      const detailItems = Array.from(host.querySelectorAll("details"));
+      const DURATION_MS = 320;
+
+      function animateOpen(item) {
+        const body = item.querySelector(".accordion-body");
+        if (!body || item.dataset.animating === "1") return;
+        item.dataset.animating = "1";
+        item.open = true;
+        body.style.maxHeight = "0px";
+        body.style.opacity = "0";
+        body.style.transform = "translateY(-6px)";
+        requestAnimationFrame(() => {
+          body.style.maxHeight = body.scrollHeight + "px";
+          body.style.opacity = "1";
+          body.style.transform = "translateY(0)";
+        });
+        window.setTimeout(() => {
+          body.style.maxHeight = "none";
+          item.classList.add("is-open");
+          item.dataset.animating = "0";
+        }, DURATION_MS);
+      }
+
+      function animateClose(item) {
+        const body = item.querySelector(".accordion-body");
+        if (!body || item.dataset.animating === "1") return;
+        item.dataset.animating = "1";
+        item.classList.remove("is-open");
+        const currentHeight = body.scrollHeight;
+        body.style.maxHeight = currentHeight + "px";
+        requestAnimationFrame(() => {
+          body.style.maxHeight = "0px";
+          body.style.opacity = "0";
+          body.style.transform = "translateY(-6px)";
+        });
+        window.setTimeout(() => {
+          item.open = false;
+          item.dataset.animating = "0";
+        }, DURATION_MS);
+      }
+
+      detailItems.forEach((item) => {
+        const summary = item.querySelector("summary");
+        if (!summary) return;
+        summary.addEventListener("click", (e) => {
+          e.preventDefault();
+          const isOpen = item.open && item.classList.contains("is-open");
+          detailItems.forEach((other) => {
+            if (other !== item && other.open) animateClose(other);
+          });
+          if (isOpen) {
+            animateClose(item);
+          } else {
+            animateOpen(item);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
