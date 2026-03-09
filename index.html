@@ -54,7 +54,12 @@
           padding: 10px 12px;
           border: 1px solid #afc1ca;
           border-radius: 14px;
-          background: #fff;
+          background: linear-gradient(
+            180deg,
+            rgba(250, 251, 246, 0.98) 0%,
+            rgba(246, 248, 242, 0.98) 100%
+          );
+
           box-shadow: 0 8px 18px rgba(42, 65, 76, 0.08);
           display: flex;
           flex-direction: column;
@@ -64,7 +69,9 @@
 
         .mobile-legend .legend-logo {
           width: 100%;
-          height: 34px;
+          height: 40px;
+          margin-top: 14px;
+          margin-bottom: 12px;
           object-fit: contain;
           flex: 0 0 auto;
         }
@@ -73,9 +80,10 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 10px;
+          gap: 16px;
           width: 100%;
           flex-wrap: wrap;
+          margin-bottom: 12px;
         }
 
         .mobile-legend .legend-item {
@@ -93,9 +101,15 @@
 
         @media (max-width: 500px) {
           .mobile-legend .legend-row {
-            justify-content: center;
-            gap: 6px;
+            justify-content: space-around;
+            gap: 16px;
             flex-wrap: wrap;
+          }
+        }
+
+        @media (max-width: 410px) {
+          .mobile-legend .legend-row {
+            justify-content: center;
           }
         }
 
@@ -301,18 +315,18 @@
           statusClass: "leading",
           sections: {
             Academic: [
-              "Jubilee Centre is internationally recognized as a leading research hub."
+              "Jubilee Centre is internationally recognized as a leading research hub.",
             ],
             Policy: [
-              "Character education is embedded in guidance and inspection culture."
+              "Character education is embedded in guidance and inspection culture.",
             ],
             Practice: [
-              "Strong uptake in schools and professional networks (e.g., ACE)."
+              "Strong uptake in schools and professional networks (e.g., ACE).",
             ],
             Outlook: [
-              "Most mature ecosystem in Europe with sustained influence."
-            ]
-          }
+              "Most mature ecosystem in Europe with sustained influence.",
+            ],
+          },
         },
         {
           code: "ES",
@@ -322,18 +336,16 @@
           statusClass: "momentum",
           sections: {
             Academic: [
-              "CEV is a major hub, with UNIR and Navarra also active."
+              "CEV is a major hub, with UNIR and Navarra also active.",
             ],
             Policy: [
-              "Institutional links with leaders and policymakers continue to grow."
+              "Institutional links with leaders and policymakers continue to grow.",
             ],
             Practice: [
-              "Projects and frameworks are active across Spain and Latin America."
+              "Projects and frameworks are active across Spain and Latin America.",
             ],
-            Outlook: [
-              "One of Europe’s fastest-developing ecosystems."
-            ]
-          }
+            Outlook: ["One of Europe’s fastest-developing ecosystems."],
+          },
         },
         {
           code: "AT",
@@ -343,18 +355,16 @@
           statusClass: "momentum",
           sections: {
             Academic: [
-              "University of Salzburg established a dedicated Chair in character education."
+              "University of Salzburg established a dedicated Chair in character education.",
             ],
             Policy: [
-              "Hosting ECVA conference (2025) increased visibility and policy attention."
+              "Hosting ECVA conference (2025) increased visibility and policy attention.",
             ],
             Practice: [
-              "TEPACE involvement and university initiatives are scaling."
+              "TEPACE involvement and university initiatives are scaling.",
             ],
-            Outlook: [
-              "Institutionally anchored and accelerating."
-            ]
-          }
+            Outlook: ["Institutionally anchored and accelerating."],
+          },
         },
         {
           code: "CZ",
@@ -364,18 +374,18 @@
           statusClass: "momentum",
           sections: {
             Academic: [
-              "CERC leads dedicated research and comparative studies."
+              "CERC leads dedicated research and comparative studies.",
             ],
             Policy: [
-              "OSV entered national framework with a virtue-based interpretation."
+              "OSV entered national framework with a virtue-based interpretation.",
             ],
             Practice: [
-              "Academy of Character launches for educators and teacher training."
+              "Academy of Character launches for educators and teacher training.",
             ],
             Outlook: [
-              "Transitioning from research to structured implementation."
-            ]
-          }
+              "Transitioning from research to structured implementation.",
+            ],
+          },
         },
         {
           code: "DK",
@@ -385,18 +395,16 @@
           statusClass: "momentum",
           sections: {
             Academic: [
-              "National centre links researchers, schools, and municipalities."
+              "National centre links researchers, schools, and municipalities.",
             ],
             Policy: [
-              "Wellbeing commission recommended stronger character focus in education."
+              "Wellbeing commission recommended stronger character focus in education.",
             ],
             Practice: [
-              "Partner schools integrate character through whole-school models."
+              "Partner schools integrate character through whole-school models.",
             ],
-            Outlook: [
-              "System-level expansion is actively underway."
-            ]
-          }
+            Outlook: ["System-level expansion is actively underway."],
+          },
         },
         {
           code: "EE",
@@ -406,10 +414,14 @@
           statusClass: "dev",
           sections: {
             Academic: ["Tartu Centre for Ethics remains a key anchor."],
-            Policy: ["AI ethics and language-transition support continue despite funding shifts."],
+            Policy: [
+              "AI ethics and language-transition support continue despite funding shifts.",
+            ],
             Practice: ["Values-based whole-school initiatives remain active."],
-            Outlook: ["Strong culture of values education with adaptive continuity."]
-          }
+            Outlook: [
+              "Strong culture of values education with adaptive continuity.",
+            ],
+          },
         },
         {
           code: "FI",
@@ -418,11 +430,13 @@
           status: "In Development",
           statusClass: "dev",
           sections: {
-            Academic: ["Large university-led wellbeing and moral formation projects (incl. RCTs)."],
+            Academic: [
+              "Large university-led wellbeing and moral formation projects (incl. RCTs).",
+            ],
             Policy: ["Progress is mainly research-driven."],
             Practice: ["Interventions involve students, staff, and families."],
-            Outlook: ["Evidence base is strong and still expanding."]
-          }
+            Outlook: ["Evidence base is strong and still expanding."],
+          },
         },
         {
           code: "FR",
@@ -433,9 +447,13 @@
           sections: {
             Academic: ["EMC remains central to moral/civic instruction."],
             Policy: ["Compulsory EMC with sustained government attention."],
-            Practice: ["Implementation is broad, but virtue framing remains limited."],
-            Outlook: ["Need for a clearer character-focused architecture is increasingly recognized."]
-          }
+            Practice: [
+              "Implementation is broad, but virtue framing remains limited.",
+            ],
+            Outlook: [
+              "Need for a clearer character-focused architecture is increasingly recognized.",
+            ],
+          },
         },
         {
           code: "DE",
@@ -447,8 +465,8 @@
             Academic: ["Growing university and institutional initiatives."],
             Policy: ["No broad national framework yet."],
             Practice: ["School-level interest exists but develops unevenly."],
-            Outlook: ["Progress is real, but context-sensitive and gradual."]
-          }
+            Outlook: ["Progress is real, but context-sensitive and gradual."],
+          },
         },
         {
           code: "GR",
@@ -458,10 +476,14 @@
           statusClass: "dev",
           sections: {
             Academic: ["Deree Centre is a major new institutional step."],
-            Policy: ["Ethics module proposals exist without full character-policy adoption."],
-            Practice: ["Conference, master’s pathway, and collaborations are emerging."],
-            Outlook: ["High potential with policy alignment still forming."]
-          }
+            Policy: [
+              "Ethics module proposals exist without full character-policy adoption.",
+            ],
+            Practice: [
+              "Conference, master’s pathway, and collaborations are emerging.",
+            ],
+            Outlook: ["High potential with policy alignment still forming."],
+          },
         },
         {
           code: "IS",
@@ -470,11 +492,15 @@
           status: "In Development",
           statusClass: "dev",
           sections: {
-            Academic: ["Led mainly by individual scholars and small initiatives."],
-            Policy: ["General references to virtues/flourishing, limited dedicated policy."],
+            Academic: [
+              "Led mainly by individual scholars and small initiatives.",
+            ],
+            Policy: [
+              "General references to virtues/flourishing, limited dedicated policy.",
+            ],
             Practice: ["University electives and local projects continue."],
-            Outlook: ["Interest is rising, infrastructure remains light."]
-          }
+            Outlook: ["Interest is rising, infrastructure remains light."],
+          },
         },
         {
           code: "RO",
@@ -483,14 +509,18 @@
           status: "In Development",
           statusClass: "dev",
           sections: {
-            Academic: ["Practice-led growth informed by virtue ethics and positive psychology."],
+            Academic: [
+              "Practice-led growth informed by virtue ethics and positive psychology.",
+            ],
             Policy: ["Development remains mostly grassroots."],
             Practice: [
               "Gritty Education runs camps, workshops, consultancy, podcast, and journal.",
-              "EVP (Education through Virtues and Stories) combines narrative pedagogy, virtues literacy, restorative practices, and teacher training."
+              "EVP (Education through Virtues and Stories) combines narrative pedagogy, virtues literacy, restorative practices, and teacher training.",
             ],
-            Outlook: ["Strong community-driven momentum across education settings."]
-          }
+            Outlook: [
+              "Strong community-driven momentum across education settings.",
+            ],
+          },
         },
         {
           code: "SE",
@@ -501,17 +531,41 @@
           sections: {
             Academic: ["University and network activity is increasing."],
             Policy: ["National policy focus is still elsewhere."],
-            Practice: ["School groups integrate character and wellbeing priorities."],
-            Outlook: ["Institutional practice is expanding steadily."]
-          }
-        }
+            Practice: [
+              "School groups integrate character and wellbeing priorities.",
+            ],
+            Outlook: ["Institutional practice is expanding steadily."],
+          },
+        },
       ];
 
       const host = document.getElementById("mobile-accordion");
+      function formatItem(item) {
+        if (!item) return "";
+        const text = String(item).trim();
+
+        if (text.includes(":")) {
+          const idx = text.indexOf(":");
+          const head = text.slice(0, idx).trim();
+          const tail = text.slice(idx + 1).trim();
+          if (head.length > 0 && tail.length > 0) {
+            return `<strong>${head}:</strong> ${tail}`;
+          }
+        }
+
+        const words = text.split(/\s+/);
+        if (words.length <= 3) return `<strong>${text}</strong>`;
+        const lead = words.slice(0, 3).join(" ");
+        const rest = words.slice(3).join(" ");
+        return `<strong>${lead}</strong> ${rest}`;
+      }
+
       countries.forEach((c) => {
         const sectionsHtml = Object.entries(c.sections)
           .map(([title, bullets]) => {
-            const list = bullets.map((b) => `<li>${b}</li>`).join("");
+            const list = bullets
+              .map((b) => `<li>${formatItem(b)}</li>`)
+              .join("");
             const sectionClass =
               title === "Outlook"
                 ? "accordion-body-section outlook"

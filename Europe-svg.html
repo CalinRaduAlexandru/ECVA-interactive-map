@@ -289,7 +289,8 @@
       pointer-events: none;
       opacity: 0;
       transform: translateY(-42px);
-      animation: legendDropIn 0.98s cubic-bezier(0.22, 0.72, 0.2, 1) 0.78s forwards;
+      animation: legendDropIn 0.98s cubic-bezier(0.22, 0.72, 0.2, 1) 0.78s
+        forwards;
     }
 
     .legend-card {
@@ -299,7 +300,11 @@
       padding: 1px 24px;
       border-radius: 14px;
       border: 1px solid rgba(123, 147, 158, 0.6);
-      background: #f9faf5;
+      background: linear-gradient(
+        180deg,
+        rgba(250, 251, 246, 0.98) 0%,
+        rgba(246, 248, 242, 0.98) 100%
+      );
       box-shadow: 0 10px 22px rgba(42, 65, 76, 0.08);
       backdrop-filter: blur(2px);
       font-family: "Alexandria", sans-serif;
@@ -310,9 +315,12 @@
     }
 
     .legend-logo {
+      margin-top: 6px;
       width: 184px;
       height: 56px;
+      display: block;
       object-fit: contain;
+      transform: translateY(-1px);
     }
 
     .legend-meta {
