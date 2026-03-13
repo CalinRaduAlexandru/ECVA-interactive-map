@@ -29,11 +29,30 @@
         display: block;
       }
 
-      .embed-launch-btn {
+      .map-ui-overlay {
         position: absolute;
-        right: clamp(18px, 2.8vw, 36px);
-        top: clamp(18px, 2.8vw, 34px);
-        z-index: 40;
+        left: 50%;
+        top: clamp(16px, 2.2vw, 28px);
+        transform: translateX(-50%);
+        width: min(1080px, calc(100% - 44px));
+        z-index: 56;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        pointer-events: none;
+      }
+
+      .map-ui-left,
+      .map-ui-right {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        pointer-events: none;
+      }
+
+      .embed-launch-btn {
+        position: static;
+        z-index: 1;
         min-height: 34px;
         padding: 0 12px;
         border-radius: 10px;
@@ -49,6 +68,7 @@
         align-items: center;
         justify-content: center;
         box-shadow: 0 6px 16px rgba(24, 42, 52, 0.18);
+        pointer-events: auto;
       }
 
       .embed-launch-btn:hover {
@@ -57,14 +77,13 @@
       }
 
       .language-switch {
-        position: absolute;
-        left: clamp(18px, 2.8vw, 36px);
-        top: clamp(18px, 2.8vw, 34px);
-        z-index: 55;
+        position: static;
+        z-index: 1;
         display: flex;
         align-items: flex-end;
         gap: 8px;
         user-select: none;
+        pointer-events: auto;
       }
 
       .language-flag-btn {
@@ -109,10 +128,8 @@
       }
 
       .language-switch-toast {
-        position: absolute;
-        left: clamp(18px, 2.8vw, 36px);
-        top: clamp(72px, 10vw, 106px);
-        z-index: 56;
+        position: static;
+        z-index: 1;
         padding: 8px 12px;
         border-radius: 10px;
         border: 1px solid rgba(89, 170, 124, 0.58);
@@ -3072,9 +3089,15 @@
   </head>
   <body>
     <main class="desktop-map">
-      <button id="embed-launch-btn" class="embed-launch-btn" type="button">Copy code</button>
-      <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
-      <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
+      <div class="map-ui-overlay">
+        <div class="map-ui-left">
+          <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
+          <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
+        </div>
+        <div class="map-ui-right">
+          <button id="embed-launch-btn" class="embed-launch-btn" type="button">Copy code</button>
+        </div>
+      </div>
       <iframe src="Europe-svg.html" title="Europe Map" scrolling="no" style="overflow:hidden"></iframe>
     </main>
 
@@ -4252,14 +4275,11 @@
             const target = modalContent.querySelector(
               `[data-pillar-card="${pillarId}"]`,
             );
-            const shell = document.querySelector(".country-modal-shell");
-            if (!target || !shell) return;
+            if (!target) return;
 
-            const shellRect = shell.getBoundingClientRect();
             const targetRect = target.getBoundingClientRect();
-            const top =
-              shell.scrollTop + (targetRect.top - shellRect.top) - 14;
-            shell.scrollTo({ top, behavior: "smooth" });
+            const top = window.scrollY + targetRect.top - 18;
+            window.scrollTo({ top, behavior: "smooth" });
 
             target.classList.remove("is-focus-target");
             requestAnimationFrame(() => {
