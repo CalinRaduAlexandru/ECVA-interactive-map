@@ -915,24 +915,11 @@
       }
 
       .country-modal-pillar-dot {
-        --glow-rgb: 66, 141, 179;
         width: clamp(102px, 10.8vw, 172px);
         height: clamp(102px, 10.8vw, 172px);
         border-radius: 999px;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.28) 0%,
-            rgba(255, 255, 255, 0.08) 32%,
-            rgba(255, 255, 255, 0) 56%
-          ),
-          radial-gradient(
-            circle at 70% 78%,
-            rgba(9, 21, 27, 0.22) 0%,
-            rgba(9, 21, 27, 0) 48%
-          ),
-          linear-gradient(155deg, #3a6072 0%, #234552 58%, #1a3440 100%);
-        border: 1px solid rgba(124, 157, 172, 0.35);
+        background: transparent;
+        border: none;
         margin-bottom: 10px;
         flex: 0 0 auto;
         display: inline-flex;
@@ -941,71 +928,19 @@
         position: relative;
         overflow: visible;
         isolation: isolate;
-        box-shadow:
-          inset 0 1px 1px rgba(255, 255, 255, 0.24),
-          inset 0 -14px 24px rgba(10, 22, 30, 0.2),
-          0 16px 30px rgba(25, 48, 59, 0.2),
-          0 3px 10px rgba(25, 48, 59, 0.1);
-      }
-
-      .country-modal-pillar-dot::before {
-        content: "";
-        position: absolute;
-        inset: 9% 14% auto 14%;
-        height: 38%;
-        border-radius: 999px;
-        background: radial-gradient(
-          ellipse at center,
-          rgba(255, 255, 255, 0.36) 0%,
-          rgba(255, 255, 255, 0.16) 46%,
-          rgba(255, 255, 255, 0) 100%
-        );
-        z-index: 0;
-        pointer-events: none;
-      }
-
-      .country-modal-pillar-dot::after {
-        content: "";
-        position: absolute;
-        inset: -15%;
-        border-radius: 999px;
-        background: radial-gradient(
-          circle,
-          rgba(var(--glow-rgb), 0.42) 0%,
-          rgba(var(--glow-rgb), 0.24) 34%,
-          rgba(var(--glow-rgb), 0.08) 56%,
-          rgba(var(--glow-rgb), 0) 76%
-        );
-        filter: blur(10px);
-        opacity: 0.82;
-        z-index: -1;
-        pointer-events: none;
-      }
-
-      .country-modal-pillar.is-unavailable .country-modal-pillar-dot {
-        background: linear-gradient(145deg, #dce2e6 0%, #cfd8dd 100%);
         box-shadow: none;
       }
 
-      .country-modal-pillar.is-unavailable .country-modal-pillar-dot::before {
-        opacity: 0;
-      }
-
-      .country-modal-pillar.is-unavailable .country-modal-pillar-dot::after {
-        opacity: 0;
+      .country-modal-pillar.is-unavailable .country-modal-pillar-dot {
+        box-shadow: none;
       }
 
       .country-modal-pillar-symbol {
         position: absolute;
-        top: 40%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        inset: 0;
         z-index: 1;
-        width: clamp(58px, 6.2vw, 94px);
-        height: clamp(58px, 6.2vw, 94px);
-        color: rgba(239, 251, 255, 0.94);
-        filter: drop-shadow(0 0 10px rgba(234, 249, 255, 0.42))
-          drop-shadow(0 7px 14px rgba(8, 23, 31, 0.22));
+        width: 100%;
+        height: 100%;
         pointer-events: none;
       }
 
@@ -1018,74 +953,18 @@
       .country-modal-pillar-symbol img {
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        object-fit: cover;
+        border-radius: 999px;
         display: block;
-        filter: drop-shadow(0 0 10px rgba(234, 249, 255, 0.35))
-          drop-shadow(0 7px 14px rgba(8, 23, 31, 0.2));
+        filter: drop-shadow(0 14px 22px rgba(14, 28, 35, 0.22));
       }
 
       .country-modal-pillar.is-unavailable .country-modal-pillar-symbol {
-        display: none;
+        display: block;
       }
 
-      .country-modal-pillar.is-resources .country-modal-pillar-dot {
-        --glow-rgb: 63, 124, 216;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.1) 34%,
-            rgba(255, 255, 255, 0) 58%
-          ),
-          linear-gradient(155deg, #4d87de 0%, #2d66c5 62%, #244fab 100%);
-      }
-
-      .country-modal-pillar.is-events .country-modal-pillar-dot {
-        --glow-rgb: 47, 191, 154;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.1) 34%,
-            rgba(255, 255, 255, 0) 58%
-          ),
-          linear-gradient(155deg, #33c7a0 0%, #21a68a 62%, #1b8876 100%);
-      }
-
-      .country-modal-pillar.is-research .country-modal-pillar-dot {
-        --glow-rgb: 140, 117, 255;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.1) 34%,
-            rgba(255, 255, 255, 0) 58%
-          ),
-          linear-gradient(155deg, #967fff 0%, #7560e0 60%, #5f4dca 100%);
-      }
-
-      .country-modal-pillar.is-organisations .country-modal-pillar-dot {
-        --glow-rgb: 255, 157, 102;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.1) 34%,
-            rgba(255, 255, 255, 0) 58%
-          ),
-          linear-gradient(155deg, #ffa776 0%, #f58563 60%, #ea6e54 100%);
-      }
-
-      .country-modal-pillar.is-government .country-modal-pillar-dot {
-        --glow-rgb: 103, 152, 255;
-        background:
-          radial-gradient(
-            circle at 28% 20%,
-            rgba(255, 255, 255, 0.3) 0%,
-            rgba(255, 255, 255, 0.1) 34%,
-            rgba(255, 255, 255, 0) 58%
-          ),
-          linear-gradient(155deg, #75a3ff 0%, #5885ea 60%, #4671db 100%);
+      .country-modal-pillar.is-unavailable .country-modal-pillar-symbol img {
+        opacity: 0.2;
       }
 
       .country-modal-pillar-dot-text {
@@ -3249,9 +3128,10 @@
           Choose the language and copy the embed code.
         </p>
         <p id="embed-code-hint" class="embed-code-hint">
-          Copy this code to disseminate Character Education and give wider
-          access to existing resources and research, increasing the likelihood
-          of national policy impact and large-scale initiatives.
+          Copy this code into a relevant webpage to disseminate Character
+          Education and give wider access to existing resources and research,
+          increasing the likelihood of national policy impact and large-scale
+          initiatives.
         </p>
         <div class="embed-code-row">
           <label id="embed-language-label" for="embed-language-select"
@@ -4491,7 +4371,7 @@
         const base = [
           "Copy code",
           "Choose the language and copy the embed code.",
-          "Copy this code to disseminate Character Education and give wider access to existing resources and research, increasing the likelihood of national policy impact and large-scale initiatives.",
+          "Copy this code into a relevant webpage to disseminate Character Education and give wider access to existing resources and research, increasing the likelihood of national policy impact and large-scale initiatives.",
           "Language",
           "Copy code",
         ];
