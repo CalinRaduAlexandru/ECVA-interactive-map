@@ -2838,14 +2838,16 @@
       }
 
       .ecva-manage-root {
-        position: fixed;
-        inset: 0;
+        position: absolute;
+        inset: 0 0 auto 0;
+        width: 100vw;
+        min-height: 100%;
         z-index: 2800;
-        background: rgba(20, 33, 40, 0.5);
+        background: transparent;
         display: none;
-        align-items: stretch;
+        align-items: flex-start;
         justify-content: center;
-        padding: 14px;
+        padding: 0;
       }
 
       .ecva-manage-root.is-visible {
@@ -2853,16 +2855,16 @@
       }
 
       .ecva-manage-shell {
-        width: calc(100vw - 20px);
-        height: calc(100vh - 20px);
-        height: calc(100dvh - 20px);
-        border-radius: 20px;
-        border: 1px solid rgba(142, 161, 171, 0.42);
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        border-radius: 0;
+        border: 0;
         background: rgba(244, 250, 252, 0.98);
-        box-shadow: 0 22px 62px rgba(33, 49, 59, 0.24);
+        box-shadow: none;
         display: flex;
         flex-direction: column;
-        overflow: hidden;
+        overflow: visible;
       }
 
       .ecva-manage-topbar {
@@ -2917,8 +2919,8 @@
 
       .ecva-manage-body {
         flex: 1;
-        overflow: auto;
-        padding: 12px;
+        overflow: visible;
+        padding: 16px;
       }
 
       .ecva-manage-body .country-modal-close {
@@ -3092,10 +3094,9 @@
 
       @media (max-width: 860px) {
         .ecva-manage-shell {
-          width: calc(100vw - 10px);
-          height: calc(100vh - 10px);
-          height: calc(100dvh - 10px);
-          border-radius: 14px;
+          width: 100%;
+          height: auto;
+          border-radius: 0;
         }
       }
 

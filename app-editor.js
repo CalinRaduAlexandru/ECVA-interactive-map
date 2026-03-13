@@ -106,9 +106,9 @@
   function openManage() {
     if (!manageRoot) return;
     closeHub();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     manageRoot.classList.add('is-visible');
     manageRoot.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
     if (!canEditContent()) {
@@ -124,7 +124,6 @@
     manageRoot.classList.remove('is-visible');
     manageRoot.setAttribute('aria-hidden', 'true');
     if (manageBody) manageBody.innerHTML = '';
-    document.body.style.overflow = '';
   }
 
   function openEditorModal() {
@@ -642,10 +641,9 @@
         if (!pillarId || !manageBody) return;
         const target = manageBody.querySelector(`[data-pillar-card="${pillarId}"]`);
         if (!target) return;
-        const hostRect = manageBody.getBoundingClientRect();
         const targetRect = target.getBoundingClientRect();
-        const top = manageBody.scrollTop + (targetRect.top - hostRect.top) - 14;
-        manageBody.scrollTo({ top, behavior: 'smooth' });
+        const top = window.scrollY + (targetRect.top - 14);
+        window.scrollTo({ top, behavior: 'smooth' });
       });
     });
   }
