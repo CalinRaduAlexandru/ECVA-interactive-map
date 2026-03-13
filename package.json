@@ -1,0 +1,13 @@
+{
+  "name": "ecva-map",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ECVA interactive map embed app",
+  "main": "dev-server.js",
+  "scripts": {
+    "start": "node dev-server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
