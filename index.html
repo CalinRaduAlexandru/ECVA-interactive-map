@@ -137,16 +137,16 @@
       }
 
       .country-modal-root {
-        position: fixed;
-        inset: 0;
+        position: absolute;
+        inset: 0 0 auto 0;
         width: 100vw;
-        height: 100vh;
-        height: 100dvh;
+        height: auto;
+        min-height: 100%;
         z-index: 1000;
         box-sizing: border-box;
         padding: 0;
         display: flex;
-        align-items: stretch;
+        align-items: flex-start;
         justify-content: center;
         background: rgba(21, 35, 45, 0.5);
         opacity: 0;
@@ -169,12 +169,10 @@
 
       .country-modal-shell {
         width: 100%;
-        height: 100%;
-        max-height: 100dvh;
-        min-height: 0;
-        overflow-y: auto;
-        overflow-x: hidden;
-        overscroll-behavior-y: contain;
+        height: auto;
+        max-height: none;
+        min-height: 100dvh;
+        overflow: visible;
         position: relative;
         border-radius: 0;
         border: 0;
@@ -4297,7 +4295,6 @@
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
         scheduleEmbedHeightPost();
       }
 
@@ -4315,7 +4312,6 @@
           if (modalContent) {
             modalContent.innerHTML = "";
           }
-          document.body.style.overflow = "";
           scheduleEmbedHeightPost();
           modalCloseTimer = null;
         }, MODAL_CLOSE_MS);
