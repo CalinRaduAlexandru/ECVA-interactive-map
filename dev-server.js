@@ -417,6 +417,8 @@ const server = http.createServer(async (req, res) => {
           provider: 'local',
         });
       } catch (writeError) {
+        // eslint-disable-next-line no-console
+        console.error('Upload failed:', writeError);
         return sendJson(res, 500, {
           ok: false,
           error: 'write_failed',

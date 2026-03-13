@@ -297,8 +297,17 @@
         dataUrl: String(dataUrl || ''),
       }),
     });
-    if (!response.ok) throw new Error('upload_failed');
-    const payload = await response.json();
+    let payload = null;
+    try {
+      payload = await response.json();
+    } catch (error) {
+      payload = null;
+    }
+    if (!response.ok || (payload && payload.ok === false)) {
+      const details = payload && payload.details ? String(payload.details) : '';
+      const code = payload && payload.error ? String(payload.error) : `http_${response.status}`;
+      throw new Error(details ? `${code}: ${details}` : code);
+    }
     const imagePath = payload && payload.path ? String(payload.path) : '';
     if (!imagePath) throw new Error('upload_no_path');
     return imagePath;
@@ -838,7 +847,8 @@
               representativeCropFileName,
             );
           } catch (error) {
-            showToast('Image upload failed. Start dev-server.js.', true);
+            const reason = error && error.message ? ` (${error.message})` : '';
+            showToast(`Image upload failed${reason}`, true);
             return;
           }
         } else if (sourceImage && representativeCropSource) {
