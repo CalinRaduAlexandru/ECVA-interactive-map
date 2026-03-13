@@ -3870,6 +3870,14 @@
         de: "Text kopiert",
         es: "Texto copiado",
       };
+      const PILLAR_ICON_PATHS = [
+        "/assets/Resources.png",
+        "/assets/Events.png",
+        "/assets/Research.png",
+        "/assets/Organisations.png",
+        "/assets/Government.png",
+      ];
+      let pillarIconsPreloaded = false;
 
       const frame = document.querySelector(".desktop-map iframe");
       if (frame) {
@@ -3933,6 +3941,23 @@
           postEmbedHeightToParent();
           heightPostTimer = null;
         }, 80);
+      }
+
+      function preloadPillarIcons() {
+        if (pillarIconsPreloaded) return;
+        pillarIconsPreloaded = true;
+        const startPreload = () => {
+          PILLAR_ICON_PATHS.forEach((src) => {
+            const img = new Image();
+            img.decoding = "async";
+            img.src = src;
+          });
+        };
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(startPreload, { timeout: 1800 });
+        } else {
+          window.setTimeout(startPreload, 260);
+        }
       }
 
       const translationCache = new Map();
@@ -4946,7 +4971,10 @@
       );
       renderLanguageSwitch();
       scheduleEmbedHeightPost();
-      window.addEventListener("load", scheduleEmbedHeightPost);
+      window.addEventListener("load", () => {
+        scheduleEmbedHeightPost();
+        preloadPillarIcons();
+      });
       window.addEventListener("resize", scheduleEmbedHeightPost);
       if (document.body && window.MutationObserver) {
         const mo = new MutationObserver(() => {
