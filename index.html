@@ -32,7 +32,7 @@
       .embed-launch-btn {
         position: absolute;
         right: clamp(18px, 2.8vw, 36px);
-        bottom: clamp(18px, 2.8vw, 34px);
+        top: clamp(18px, 2.8vw, 34px);
         z-index: 40;
         min-height: 34px;
         padding: 0 12px;
@@ -59,7 +59,7 @@
       .language-switch {
         position: absolute;
         left: clamp(18px, 2.8vw, 36px);
-        bottom: clamp(18px, 2.8vw, 34px);
+        top: clamp(18px, 2.8vw, 34px);
         z-index: 55;
         display: flex;
         align-items: flex-end;
@@ -111,7 +111,7 @@
       .language-switch-toast {
         position: absolute;
         left: clamp(18px, 2.8vw, 36px);
-        bottom: clamp(74px, 8.5vw, 104px);
+        top: clamp(72px, 10vw, 106px);
         z-index: 56;
         padding: 8px 12px;
         border-radius: 10px;
@@ -147,12 +147,57 @@
         display: flex;
         align-items: flex-start;
         justify-content: center;
-        background: rgba(21, 35, 45, 0.5);
+        background: transparent;
         opacity: 0;
         pointer-events: none;
         visibility: hidden;
         transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
-        backdrop-filter: blur(3px);
+        backdrop-filter: none;
+      }
+
+      .country-open-loader {
+        position: absolute;
+        left: 50%;
+        top: clamp(20px, 3vw, 40px);
+        transform: translateX(-50%);
+        z-index: 70;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(126, 145, 156, 0.6);
+        background: rgba(241, 248, 252, 0.93);
+        color: #27404c;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        box-shadow: 0 10px 22px rgba(18, 34, 44, 0.2);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 200ms ease, transform 200ms ease;
+        user-select: none;
+      }
+
+      .country-open-loader.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      .country-open-loader::before {
+        content: "";
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        border: 2px solid rgba(55, 87, 101, 0.28);
+        border-top-color: #355765;
+        animation: ecvaSpin 0.85s linear infinite;
+      }
+
+      @keyframes ecvaSpin {
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       .country-modal-root.is-visible {
@@ -3075,6 +3120,7 @@
       <button id="embed-launch-btn" class="embed-launch-btn" type="button">Insert this iframe into your page</button>
       <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
       <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
+      <div id="country-open-loader" class="country-open-loader" aria-live="polite">Opening country details...</div>
       <iframe src="Europe-svg.html" title="Europe Map" scrolling="no" style="overflow:hidden"></iframe>
     </main>
 
@@ -3316,7 +3362,7 @@
     <script>
       const countries = [
         {
-          code: "GB",
+          code: "UK",
           flag: "🇬🇧",
           name: "United Kingdom",
           status: "Leading",
@@ -3838,6 +3884,7 @@
       const embedLaunchBtn = document.getElementById("embed-launch-btn");
       const languageSwitch = document.getElementById("language-switch");
       const languageSwitchToast = document.getElementById("language-switch-toast");
+      const countryOpenLoader = document.getElementById("country-open-loader");
       const embedCodeModal = document.getElementById("embed-code-modal");
       const embedCodeClose = document.getElementById("embed-code-close");
       const embedLanguageSelect = document.getElementById("embed-language-select");
@@ -3906,6 +3953,7 @@
       };
       let modalCloseTimer = null;
       const MODAL_CLOSE_MS = 320;
+      let countryOpenLoaderTimer = null;
 
       function buildEmbedCode(langCode) {
         const target = SUPPORTED_LANGUAGES.some((item) => item.code === langCode) ? langCode : "en";
@@ -4020,6 +4068,29 @@
       function refreshEmbedCodePreview() {
         if (!embedCodePreview || !embedLanguageSelect) return;
         embedCodePreview.value = buildEmbedCode(embedLanguageSelect.value);
+      }
+
+      function showCountryOpenLoader(countryId) {
+        if (!countryOpenLoader) return;
+        const code = String(countryId || "").trim().toUpperCase() || "country";
+        const displayCode = code === "GB" ? "UK" : code;
+        countryOpenLoader.textContent = `Opening ${displayCode}...`;
+        countryOpenLoader.classList.add("is-visible");
+        if (countryOpenLoaderTimer) {
+          window.clearTimeout(countryOpenLoaderTimer);
+        }
+        countryOpenLoaderTimer = window.setTimeout(() => {
+          hideCountryOpenLoader();
+        }, 6000);
+      }
+
+      function hideCountryOpenLoader() {
+        if (!countryOpenLoader) return;
+        if (countryOpenLoaderTimer) {
+          window.clearTimeout(countryOpenLoaderTimer);
+          countryOpenLoaderTimer = null;
+        }
+        countryOpenLoader.classList.remove("is-visible");
       }
 
       function openEmbedCodeModal() {
@@ -4303,6 +4374,7 @@
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
+        hideCountryOpenLoader();
         scheduleEmbedHeightPost();
       }
 
@@ -4315,6 +4387,7 @@
         }
         modalRoot.classList.add("is-closing");
         modalRoot.setAttribute("aria-hidden", "true");
+        hideCountryOpenLoader();
         modalCloseTimer = window.setTimeout(() => {
           modalRoot.classList.remove("is-visible", "is-closing");
           if (modalContent) {
@@ -4327,6 +4400,11 @@
 
       window.addEventListener("message", (event) => {
         if (!event || !event.data) return;
+        if (event.data.type === "ecva-country-open-start") {
+          const countryId = event.data.payload && event.data.payload.countryId;
+          showCountryOpenLoader(countryId);
+          return;
+        }
         if (event.data.type === "ecva-open-country-modal") {
           openDesktopModal(event.data.payload && event.data.payload.html);
         }

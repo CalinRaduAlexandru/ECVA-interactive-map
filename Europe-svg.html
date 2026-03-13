@@ -692,7 +692,7 @@
       <rect class="pill-bg"></rect>
       <text class="pill-text" x="0" y="0">
         <tspan class="flag">🇬🇧</tspan>
-        <tspan class="code" dx="0">GB</tspan>
+        <tspan class="code" dx="0">UK</tspan>
       </text>
     </g>
   </g>
@@ -2035,6 +2035,13 @@
 
             function openParentModal(countryId) {
               if (!countryInfo[countryId]) return;
+              window.parent.postMessage(
+                {
+                  type: "ecva-country-open-start",
+                  payload: { countryId },
+                },
+                "*",
+              );
               window.parent.postMessage(
                 {
                   type: "ecva-open-country-modal",

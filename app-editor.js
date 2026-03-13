@@ -571,7 +571,8 @@
       if (country.code === selectedCountryId) {
         btn.classList.add('is-active');
       }
-      btn.textContent = `${country.flag || ''} ${country.code}`.trim();
+      const displayCode = String(country.code || '').toUpperCase() === 'GB' ? 'UK' : String(country.code || '').toUpperCase();
+      btn.textContent = `${country.flag || ''} ${displayCode}`.trim();
       btn.title = country.name || country.code;
       btn.addEventListener('click', () => {
         selectCountry(country.code);
