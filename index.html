@@ -53,7 +53,7 @@
       }
 
       .map-ui-left {
-        transform: translate(80px, -24px);
+        transform: translate(60px, -12px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
@@ -3958,16 +3958,37 @@
       function postEmbedHeightToParent() {
         if (window.parent === window) return;
         const main = document.querySelector(".desktop-map");
+        const manageRoot = document.getElementById("ecva-manage-root");
+        const manageShell = manageRoot
+          ? manageRoot.querySelector(".ecva-manage-shell")
+          : null;
+        const isManageOpen =
+          manageRoot && manageRoot.classList.contains("is-visible");
         const isCountryModalOpen =
           modalRoot && modalRoot.classList.contains("is-visible");
+        const docHeight = Math.max(
+          document.documentElement
+            ? document.documentElement.scrollHeight || 0
+            : 0,
+          document.documentElement
+            ? document.documentElement.offsetHeight || 0
+            : 0,
+          document.body ? document.body.scrollHeight || 0 : 0,
+          document.body ? document.body.offsetHeight || 0 : 0,
+        );
         let height = 0;
-        if (isCountryModalOpen) {
+        if (isManageOpen) {
+          const shellHeight = manageShell ? manageShell.scrollHeight : 0;
+          height = Math.max(520, Math.ceil(shellHeight + 24), Math.ceil(docHeight));
+        } else if (isCountryModalOpen) {
           const shell = document.querySelector(".country-modal-shell");
           const shellHeight = shell ? shell.scrollHeight : 0;
-          height = Math.max(520, Math.ceil(shellHeight + 24));
+          height = Math.max(520, Math.ceil(shellHeight + 24), Math.ceil(docHeight));
         } else {
-          const mainHeight = main ? main.getBoundingClientRect().height || 0 : 0;
-          height = Math.max(520, Math.ceil(mainHeight));
+          const mainHeight = main
+            ? main.getBoundingClientRect().height || 0
+            : 0;
+          height = Math.max(520, Math.ceil(mainHeight), Math.ceil(docHeight));
         }
         if (!Number.isFinite(height) || height < 320) return;
         window.parent.postMessage(
@@ -4968,7 +4989,12 @@
         const mo = new MutationObserver(() => {
           scheduleEmbedHeightPost();
         });
-        mo.observe(document.body, { childList: true, subtree: true });
+        mo.observe(document.body, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ["class", "style"],
+        });
       }
 
       document.addEventListener("keydown", (event) => {
