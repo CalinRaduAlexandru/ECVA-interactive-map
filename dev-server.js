@@ -186,7 +186,13 @@ async function ensurePostgresReady() {
         )
       `)
       .then(() => true)
-      .catch(() => false);
+      .catch((error) => {
+        // eslint-disable-next-line no-console
+        console.error('Postgres init failed:', error);
+        // Allow retry on next call; do not lock app forever in file fallback.
+        pgReadyPromise = null;
+        return false;
+      });
   }
   return pgReadyPromise;
 }
@@ -239,6 +245,8 @@ async function writeEditorData(data) {
   try {
     persistedToDb = await writeEditorDataToPostgres(payload);
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Postgres write failed:', error);
     persistedToDb = false;
   }
   // Keep local backup for development and recovery even when DB is enabled.

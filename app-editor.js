@@ -686,9 +686,15 @@
         body: JSON.stringify({ state }),
       });
       if (!response.ok) throw new Error('persist failed');
+      const payload = await response.json().catch(() => null);
+      const store = payload && payload.store ? String(payload.store) : '';
+      if (store && store !== 'postgres') {
+        showToast('Saved on temporary storage only. Check Postgres.', true);
+        return;
+      }
       showToast('Saved permanently.');
     } catch (error) {
-      showToast('Could not save permanently. Start dev-server.js.', true);
+      showToast('Could not save permanently.', true);
     }
   }
 
