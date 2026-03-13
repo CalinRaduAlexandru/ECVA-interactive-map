@@ -1975,19 +1975,15 @@
                     : `
                     <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="lazy" decoding="async" /></span>
                     `;
-                  const ctaHtml = `
-                    <div class="country-modal-pillar-cta-row">
-                      <button class="country-modal-see-more-btn${config.active ? "" : " is-hidden"}" type="button" data-pillar-target="${escapeHtml(pillar.id)}">See More</button>
-                    </div>
-                  `;
                   return `
                   <article class="country-modal-pillar ${config.active ? "is-active" : "is-unavailable"} ${escapeHtml(pillarThemeClass)}">
                     <span class="country-modal-pillar-dot">${dotTextHtml}</span>
-                    <strong class="country-modal-pillar-bottom">${escapeHtml(pillar.bottom)}</strong>
-                    <div class="country-modal-pillar-actions">
-                      <button class="country-modal-contribute-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Contribute</button>
+                    <div class="country-modal-pillar-row">
+                      <strong class="country-modal-pillar-title-pill">${escapeHtml(pillar.bottom)}</strong>
+                      <div class="country-modal-pillar-actions">
+                        <button class="country-modal-contribute-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Upload</button>
+                      </div>
                     </div>
-                    ${ctaHtml}
                   </article>
                 `;
                 })

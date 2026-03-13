@@ -901,6 +901,8 @@
       }
 
       .country-modal-pillar {
+        --pillar-color-a: #4d87de;
+        --pillar-color-b: #2d66c5;
         flex: 1 1 0;
         min-width: 0;
         max-width: 220px;
@@ -910,6 +912,31 @@
         justify-content: center;
         text-align: center;
         gap: 10px;
+      }
+
+      .country-modal-pillar.is-resources {
+        --pillar-color-a: #4d87de;
+        --pillar-color-b: #2d66c5;
+      }
+
+      .country-modal-pillar.is-events {
+        --pillar-color-a: #33c7a0;
+        --pillar-color-b: #21a68a;
+      }
+
+      .country-modal-pillar.is-organisations {
+        --pillar-color-a: #ffa776;
+        --pillar-color-b: #f58563;
+      }
+
+      .country-modal-pillar.is-research {
+        --pillar-color-a: #967fff;
+        --pillar-color-b: #7560e0;
+      }
+
+      .country-modal-pillar.is-government {
+        --pillar-color-a: #75a3ff;
+        --pillar-color-b: #5885ea;
       }
 
       .country-modal-pillar-dot {
@@ -1035,29 +1062,48 @@
         font-weight: 800;
       }
 
-      .country-modal-pillar-top {
-        font-size: clamp(11px, 1vw, 14px);
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        color: #293b45;
-      }
-
-      .country-modal-pillar-bottom {
-        font-size: clamp(13px, 1.25vw, 19px);
-        line-height: 1.1;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: #121b20;
-        margin-top: 2px;
-      }
-
-      .country-modal-pillar-actions {
-        margin-top: 8px;
+      .country-modal-pillar-row {
         width: 100%;
         display: flex;
         align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 4px;
+      }
+
+      .country-modal-pillar-title-pill {
+        margin: 0;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
         justify-content: center;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.52);
+        background: linear-gradient(
+          135deg,
+          var(--pillar-color-a),
+          var(--pillar-color-b)
+        );
+        box-shadow:
+          0 7px 16px rgba(26, 50, 64, 0.2),
+          inset 0 1px 0 rgba(255, 255, 255, 0.28);
+        color: #f9fdff;
+        font-size: clamp(12px, 1.05vw, 15px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        padding: 12px 18px;
+      }
+
+      .country-modal-pillar-actions {
+        width: auto;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
         gap: 0;
+        flex: 0 0 auto;
       }
 
       .country-modal-info-wrap {
@@ -1079,15 +1125,15 @@
       }
 
       .country-modal-contribute-btn {
-        width: 96%;
-        min-height: 48px;
-        border-radius: 14px;
+        min-width: 114px;
+        min-height: 40px;
+        border-radius: 12px;
         border: 1px solid rgba(37, 59, 70, 0.48);
         background: linear-gradient(180deg, #f4f8fa, #e8f0f4);
         color: #213943;
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 800;
-        padding: 0 30px;
+        padding: 0 20px;
         letter-spacing: 0.04em;
         line-height: 1;
         text-align: center;
@@ -1102,58 +1148,6 @@
 
       .country-modal-contribute-btn:hover {
         background: linear-gradient(180deg, #eef5f8, #dbe8ee);
-      }
-
-      .country-modal-pillar-cta-row {
-        margin-top: 3px;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        min-height: 48px;
-      }
-
-      .country-modal-pillar.is-unavailable .country-modal-pillar-cta-row {
-        display: flex;
-        visibility: visible;
-        opacity: 1;
-      }
-
-      .country-modal-see-more-btn {
-        width: 96%;
-        min-height: 48px;
-        border-radius: 14px;
-        border: 1px solid #1e3844;
-        background: linear-gradient(180deg, #2e4a57, #223c48);
-        color: #f4f8fa;
-        font-size: 14px;
-        font-weight: 800;
-        padding: 0 30px;
-        letter-spacing: 0.04em;
-        line-height: 1;
-        text-align: center;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        white-space: nowrap;
-        text-transform: uppercase;
-        cursor: pointer;
-        box-shadow: 0 8px 16px rgba(18, 35, 43, 0.24);
-      }
-
-      .country-modal-pillar.is-unavailable .country-modal-see-more-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .country-modal-see-more-btn:hover {
-        background: linear-gradient(180deg, #355462, #284452);
-      }
-
-      .country-modal-see-more-btn.is-hidden {
-        visibility: hidden;
-        pointer-events: none;
       }
 
       .country-modal-info-tooltip {
@@ -1746,32 +1740,39 @@
         animation: pillarTargetPulse 780ms cubic-bezier(0.22, 1, 0.36, 1);
       }
 
-      .country-modal-detail-card:nth-child(2n) {
+      .country-modal-detail-card[data-pillar-card="resources"] {
+        --card-a: rgba(245, 250, 253, 0.9);
+        --card-b: rgba(239, 246, 250, 0.9);
+        --pill-a: #4d87de;
+        --pill-b: #2d66c5;
+      }
+
+      .country-modal-detail-card[data-pillar-card="events"] {
         --card-a: rgba(240, 250, 246, 0.9);
         --card-b: rgba(233, 245, 241, 0.9);
-        --pill-a: #31bf8e;
-        --pill-b: #1f9f75;
+        --pill-a: #33c7a0;
+        --pill-b: #21a68a;
       }
 
-      .country-modal-detail-card:nth-child(3n) {
-        --card-a: rgba(247, 244, 252, 0.9);
-        --card-b: rgba(239, 234, 249, 0.9);
-        --pill-a: #a56dff;
-        --pill-b: #7b4bdb;
-      }
-
-      .country-modal-detail-card:nth-child(4n) {
+      .country-modal-detail-card[data-pillar-card="organisations"] {
         --card-a: rgba(255, 245, 238, 0.9);
         --card-b: rgba(248, 236, 226, 0.9);
-        --pill-a: #ff9966;
-        --pill-b: #ff6f61;
+        --pill-a: #ffa776;
+        --pill-b: #f58563;
       }
 
-      .country-modal-detail-card:nth-child(5n) {
+      .country-modal-detail-card[data-pillar-card="research"] {
+        --card-a: rgba(247, 244, 252, 0.9);
+        --card-b: rgba(239, 234, 249, 0.9);
+        --pill-a: #967fff;
+        --pill-b: #7560e0;
+      }
+
+      .country-modal-detail-card[data-pillar-card="government"] {
         --card-a: rgba(242, 247, 255, 0.9);
         --card-b: rgba(229, 238, 252, 0.9);
-        --pill-a: #4f8dff;
-        --pill-b: #3f65ff;
+        --pill-a: #75a3ff;
+        --pill-b: #5885ea;
       }
 
       .country-modal-detail-card:last-child:nth-child(odd) {
@@ -2314,37 +2315,22 @@
           font-size: clamp(22px, 5.4vw, 30px);
         }
 
-        .country-modal-pillar-top {
+        .country-modal-pillar-row {
+          gap: 12px;
+          margin-top: 8px;
+        }
+
+        .country-modal-pillar-title-pill {
+          min-height: 50px;
           font-size: clamp(18px, 4.4vw, 24px);
-        }
-
-        .country-modal-pillar-bottom {
-          font-size: clamp(30px, 7.8vw, 42px);
-          line-height: 1.02;
-        }
-
-        .country-modal-pillar-actions {
-          margin-top: 12px;
-          gap: 0;
+          padding: 16px 20px;
         }
 
         .country-modal-contribute-btn {
-          width: 96%;
+          min-width: 132px;
           min-height: 52px;
           font-size: 15px;
-          padding: 0 28px;
-        }
-
-        .country-modal-pillar-cta-row {
-          margin-top: 4px;
-          min-height: 52px;
-        }
-
-        .country-modal-see-more-btn {
-          width: 96%;
-          min-height: 52px;
-          font-size: 15px;
-          padding: 0 28px;
+          padding: 0 24px;
         }
 
         .country-modal-close {
@@ -4690,32 +4676,6 @@
                 panel.style.height = "auto";
               }
             }, 340);
-          });
-        });
-
-        const seeMoreButtons = modalContent.querySelectorAll(
-          ".country-modal-see-more-btn[data-pillar-target]",
-        );
-        seeMoreButtons.forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const pillarId = btn.getAttribute("data-pillar-target");
-            if (!pillarId || !modalContent) return;
-            const target = modalContent.querySelector(
-              `[data-pillar-card="${pillarId}"]`,
-            );
-            if (!target) return;
-
-            const targetRect = target.getBoundingClientRect();
-            const top = window.scrollY + targetRect.top - 18;
-            window.scrollTo({ top, behavior: "smooth" });
-
-            target.classList.remove("is-focus-target");
-            requestAnimationFrame(() => {
-              target.classList.add("is-focus-target");
-            });
-            window.setTimeout(() => {
-              target.classList.remove("is-focus-target");
-            }, 900);
           });
         });
 
