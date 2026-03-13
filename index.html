@@ -57,6 +57,85 @@
         transform: scale(1.03);
       }
 
+      .language-switch {
+        position: absolute;
+        left: 16px;
+        bottom: 16px;
+        z-index: 55;
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        user-select: none;
+      }
+
+      .language-flag-btn {
+        min-width: 44px;
+        height: 44px;
+        border: 1px solid rgba(126, 145, 156, 0.62);
+        border-radius: 12px;
+        background: rgba(241, 248, 252, 0.9);
+        box-shadow: 0 8px 18px rgba(18, 34, 44, 0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        cursor: pointer;
+        transition:
+          transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+          opacity 220ms ease,
+          filter 220ms ease,
+          box-shadow 240ms ease;
+      }
+
+      .language-flag-btn[data-active="true"] {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: saturate(1.02);
+      }
+
+      .language-flag-btn[data-active="false"] {
+        opacity: 0.58;
+        transform: translateY(1px) scale(0.9);
+        filter: saturate(0.92);
+      }
+
+      .language-flag-btn[data-active="false"]:hover {
+        opacity: 0.86;
+        transform: translateY(0) scale(0.95);
+      }
+
+      .language-flag-emoji {
+        font-size: 24px;
+        line-height: 1;
+      }
+
+      .language-switch-toast {
+        position: absolute;
+        left: 16px;
+        bottom: 68px;
+        z-index: 56;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(89, 170, 124, 0.58);
+        background: rgba(233, 250, 239, 0.94);
+        color: #198043;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        opacity: 0;
+        transform: translateY(7px);
+        transition:
+          opacity 220ms ease,
+          transform 220ms ease;
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .language-switch-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
       .country-modal-root {
         position: fixed;
         inset: 0;
@@ -2992,6 +3071,8 @@
   <body>
     <main class="desktop-map">
       <button id="embed-launch-btn" class="embed-launch-btn" type="button">Insert this iframe into your page</button>
+      <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
+      <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
       <iframe src="Europe-svg.html" title="Europe Map"></iframe>
     </main>
 
@@ -3479,7 +3560,28 @@
       const activeLang = SUPPORTED_LANGUAGES.some((item) => item.code === languageQuery)
         ? languageQuery
         : "en";
+      const baseLangQuery = String(queryParams.get("baseLang") || "").trim().toLowerCase();
+      const baseLang = SUPPORTED_LANGUAGES.some((item) => item.code === baseLangQuery) && baseLangQuery !== "en"
+        ? baseLangQuery
+        : "";
+      const fallbackLocalLang = activeLang !== "en" ? activeLang : baseLang;
       document.documentElement.lang = activeLang;
+
+      const LANGUAGE_FLAGS = {
+        en: "🇬🇧",
+        ro: "🇷🇴",
+        fr: "🇫🇷",
+        de: "🇩🇪",
+        es: "🇪🇸",
+      };
+
+      const LANGUAGE_CHANGED_TEXT = {
+        en: "Language has been changed",
+        ro: "Limba a fost schimbată",
+        fr: "La langue a été changée",
+        de: "Die Sprache wurde geändert",
+        es: "El idioma ha sido cambiado",
+      };
 
       const frame = document.querySelector(".desktop-map iframe");
       if (frame) {
@@ -3697,6 +3799,8 @@
       const modalContent = document.getElementById("country-modal-content");
       const modalClose = document.getElementById("country-modal-close");
       const embedLaunchBtn = document.getElementById("embed-launch-btn");
+      const languageSwitch = document.getElementById("language-switch");
+      const languageSwitchToast = document.getElementById("language-switch-toast");
       const embedCodeModal = document.getElementById("embed-code-modal");
       const embedCodeClose = document.getElementById("embed-code-close");
       const embedLanguageSelect = document.getElementById("embed-language-select");
@@ -3770,6 +3874,11 @@
         const target = SUPPORTED_LANGUAGES.some((item) => item.code === langCode) ? langCode : "en";
         const url = new URL(window.location.href);
         url.searchParams.set("lang", target);
+        if (target !== "en") {
+          url.searchParams.set("baseLang", target);
+        } else {
+          url.searchParams.delete("baseLang");
+        }
         return `<iframe
   src="${url.toString()}"
   width="100%"
@@ -3779,6 +3888,58 @@
   referrerpolicy="strict-origin-when-cross-origin"
   allowfullscreen
 ></iframe>`;
+      }
+
+      function getLanguageChangedMessage(langCode) {
+        return LANGUAGE_CHANGED_TEXT[langCode] || LANGUAGE_CHANGED_TEXT.en;
+      }
+
+      function openWithLanguage(nextLang) {
+        const target = SUPPORTED_LANGUAGES.some((item) => item.code === nextLang) ? nextLang : "en";
+        if (target === activeLang) return;
+        if (languageSwitchToast) {
+          languageSwitchToast.textContent = getLanguageChangedMessage(target);
+          languageSwitchToast.classList.add("is-visible");
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", target);
+        if (target !== "en") {
+          url.searchParams.set("baseLang", target);
+        } else if (fallbackLocalLang) {
+          url.searchParams.set("baseLang", fallbackLocalLang);
+        } else {
+          url.searchParams.delete("baseLang");
+        }
+        window.setTimeout(() => {
+          window.location.href = url.toString();
+        }, 260);
+      }
+
+      function renderLanguageSwitch() {
+        if (!languageSwitch) return;
+        languageSwitch.innerHTML = "";
+
+        const localLang = fallbackLocalLang;
+        const langsToShow = [];
+        if (activeLang === "en" && !localLang) {
+          langsToShow.push("en");
+        } else {
+          if (localLang) langsToShow.push(localLang);
+          langsToShow.push("en");
+        }
+
+        const dedup = [...new Set(langsToShow)];
+        dedup.forEach((langCode) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "language-flag-btn";
+          btn.setAttribute("aria-label", `Switch language to ${langCode.toUpperCase()}`);
+          btn.setAttribute("data-active", langCode === activeLang ? "true" : "false");
+          btn.title = langCode.toUpperCase();
+          btn.innerHTML = `<span class="language-flag-emoji">${LANGUAGE_FLAGS[langCode] || "🏳️"}</span>`;
+          btn.addEventListener("click", () => openWithLanguage(langCode));
+          languageSwitch.appendChild(btn);
+        });
       }
 
       async function initEmbedUiText() {
@@ -4236,6 +4397,7 @@
 
       initEmbedUiText();
       translateElementText(document.querySelector(".mobile-legend"), activeLang);
+      renderLanguageSwitch();
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
