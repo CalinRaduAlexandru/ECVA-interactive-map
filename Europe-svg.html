@@ -239,6 +239,36 @@
       font-size: 13.5px;
     }
 
+    .country-label-loader {
+      display: none;
+      pointer-events: none;
+    }
+
+    .country-label.is-loading .country-label-loader {
+      display: inline;
+    }
+
+    .country-label-loader .loader-bg {
+      fill: rgba(243, 247, 248, 0.96);
+      stroke: #6f8894;
+      stroke-width: 1.2;
+    }
+
+    .country-label-loader .loader-ring {
+      fill: none;
+      stroke: #2f4a58;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-dasharray: 14 10;
+      animation: countryPillLoaderDash 0.82s linear infinite;
+    }
+
+    @keyframes countryPillLoaderDash {
+      to {
+        stroke-dashoffset: -24;
+      }
+    }
+
     #map-legend {
       pointer-events: auto;
       opacity: 0;
@@ -2037,13 +2067,6 @@
               if (!countryInfo[countryId]) return;
               window.parent.postMessage(
                 {
-                  type: "ecva-country-open-start",
-                  payload: { countryId },
-                },
-                "*",
-              );
-              window.parent.postMessage(
-                {
                   type: "ecva-open-country-modal",
                   payload: {
                     countryId,
@@ -2242,6 +2265,7 @@
             const labelByCountry = new Map();
             let hoveredCountryPath = null;
             let activeTrail = null;
+            let loadingCountryCode = "";
 
             function bringCountryAbove(pathEl) {
               if (!pathEl || !pathEl.parentNode) return;
@@ -2305,6 +2329,30 @@
               pathNode.classList.add("is-lifted");
             }
 
+            function clearLoadingCountry() {
+              if (!loadingCountryCode) return;
+              const currentLabel = labelByCountry.get(loadingCountryCode);
+              if (currentLabel) {
+                currentLabel.classList.remove("is-loading");
+              }
+              loadingCountryCode = "";
+            }
+
+            function setLoadingCountry(countryId) {
+              const code = String(countryId || "").trim();
+              if (!code) return;
+              clearLoadingCountry();
+              const labelNode = labelByCountry.get(code);
+              if (!labelNode) return;
+              labelNode.classList.add("is-loading");
+              loadingCountryCode = code;
+              window.setTimeout(() => {
+                if (loadingCountryCode === code) {
+                  clearLoadingCountry();
+                }
+              }, 4500);
+            }
+
             ["RO", "AT", "CZ", "SE", "EE"].forEach((countryCode) => {
               const priorityPath = document.getElementById(countryCode);
               if (priorityPath) {
@@ -2354,10 +2402,31 @@
                 pillBg.setAttribute("height", height.toFixed(1));
                 pillBg.setAttribute("rx", (height / 2).toFixed(1));
                 pillBg.setAttribute("ry", (height / 2).toFixed(1));
+
+                const loaderGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                loaderGroup.setAttribute("class", "country-label-loader");
+                loaderGroup.setAttribute(
+                  "transform",
+                  `translate(${(width / 2 + 16).toFixed(1)} 0)`,
+                );
+                const loaderBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                loaderBg.setAttribute("class", "loader-bg");
+                loaderBg.setAttribute("cx", "0");
+                loaderBg.setAttribute("cy", "0");
+                loaderBg.setAttribute("r", "7.5");
+                const loaderRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                loaderRing.setAttribute("class", "loader-ring");
+                loaderRing.setAttribute("cx", "0");
+                loaderRing.setAttribute("cy", "0");
+                loaderRing.setAttribute("r", "5.2");
+                loaderGroup.appendChild(loaderBg);
+                loaderGroup.appendChild(loaderRing);
+                label.appendChild(loaderGroup);
               }
 
               countryPath.addEventListener("click", (event) => {
                 event.stopPropagation();
+                setLoadingCountry(countryId);
                 setHoveredCountry(null);
                 openParentModal(countryId);
               });
@@ -2415,6 +2484,11 @@
                   { type: "ecva-country-modal-html", payload: { countryId, html: renderModalHtml(countryId) } },
                   "*",
                 );
+                return;
+              }
+
+              if (type === "ecva-country-open-complete") {
+                clearLoadingCountry();
                 return;
               }
 
