@@ -2274,7 +2274,7 @@
         }
       }
 
-      .mobile-accordion {
+      .mobile-explorer {
         display: none;
       }
 
@@ -2492,14 +2492,14 @@
           margin-right: 0;
         }
 
-        .mobile-accordion {
+        .mobile-explorer {
           display: block;
-          padding: 14px 12px 24px;
+          padding: 16px 12px 28px;
         }
 
         .mobile-legend {
-          margin: 2px 2px 12px;
-          padding: 10px 12px;
+          margin: 2px 2px 14px;
+          padding: 12px 12px;
           border: 1px solid #afc1ca;
           border-radius: 14px;
           background: linear-gradient(
@@ -2512,7 +2512,7 @@
           display: flex;
           flex-direction: column;
           align-items: stretch;
-          gap: 10px;
+          gap: 12px;
         }
 
         .mobile-legend .legend-logo {
@@ -2594,136 +2594,160 @@
           color: #506672;
         }
 
-        details {
-          border: 1px solid #afc1ca;
-          border-radius: 12px;
-          background: #fff;
-          margin: 0 2px 10px;
-          overflow: hidden;
+        .mobile-explorer-intro {
+          margin: 0 2px 14px;
+          padding: 14px 14px 15px;
+          border-radius: 14px;
+          border: 1px solid rgba(110, 136, 149, 0.36);
+          background: linear-gradient(
+            140deg,
+            rgba(249, 252, 253, 0.95),
+            rgba(237, 244, 248, 0.92)
+          );
+          box-shadow: 0 10px 24px rgba(37, 60, 71, 0.08);
         }
 
-        summary {
-          list-style: none;
-          cursor: pointer;
-          padding: 10px 12px;
+        .mobile-explorer-intro h2 {
+          margin: 0 0 6px;
+          font-size: 18px;
+          line-height: 1.2;
+          color: #233c4a;
+        }
+
+        .mobile-explorer-intro p {
+          margin: 0;
+          font-size: 13px;
+          line-height: 1.45;
+          color: #406070;
+        }
+
+        .mobile-country-chips {
           display: flex;
-          align-items: center;
-          justify-content: space-between;
+          gap: 8px;
+          overflow-x: auto;
+          padding: 2px 2px 8px;
+          margin: 0 0 10px;
+          scroll-snap-type: x proximity;
+          -webkit-overflow-scrolling: touch;
+        }
+
+        .mobile-country-chip {
+          flex: 0 0 auto;
+          height: 36px;
+          padding: 0 14px;
+          border-radius: 10px;
+          border: 1px solid #9cb0bb;
+          background: rgba(238, 245, 248, 0.88);
+          color: #274353;
+          font-size: 13px;
+          font-weight: 800;
+          letter-spacing: 0.01em;
+          cursor: pointer;
+          scroll-snap-align: start;
+          transition:
+            transform 0.2s ease,
+            filter 0.2s ease,
+            background-color 0.2s ease;
+        }
+
+        .mobile-country-chip:active {
+          transform: scale(0.98);
+        }
+
+        .mobile-country-grid {
+          display: grid;
+          grid-template-columns: 1fr;
           gap: 10px;
-          font-size: 14px;
+          margin: 0 2px;
+        }
+
+        .mobile-country-card {
+          border: 1px solid #afc1ca;
+          border-radius: 14px;
+          background: linear-gradient(
+            140deg,
+            rgba(255, 255, 255, 0.97),
+            rgba(245, 250, 252, 0.9)
+          );
+          box-shadow: 0 8px 22px rgba(36, 58, 69, 0.08);
+          padding: 12px;
+          display: grid;
+          grid-template-columns: 1fr auto;
+          gap: 10px 12px;
+          align-items: center;
+        }
+
+        .mobile-country-meta {
+          min-width: 0;
+        }
+
+        .mobile-country-name {
+          margin: 0 0 4px;
+          font-size: 16px;
+          line-height: 1.2;
+          color: #1e3542;
+          font-weight: 900;
+        }
+
+        .mobile-country-subline {
+          margin: 0;
+          font-size: 12px;
+          color: #4a6876;
           font-weight: 700;
         }
 
-        summary::-webkit-details-marker {
-          display: none;
-        }
-
-        .summary-left {
+        .mobile-country-badge {
           display: inline-flex;
           align-items: center;
-          gap: 10px;
-          min-width: 0;
-        }
-
-        .summary-flag {
-          flex: 0 0 auto;
-          line-height: 1;
-        }
-
-        .summary-name {
-          min-width: 0;
-        }
-
-        .status {
+          justify-content: center;
+          min-width: 98px;
+          height: 30px;
+          padding: 0 10px;
+          border-radius: 10px;
+          color: #fff;
           font-size: 11px;
-          font-weight: 700;
-          border-radius: 999px;
-          padding: 4px 8px;
+          font-weight: 900;
+          letter-spacing: 0.02em;
           white-space: nowrap;
         }
 
-        .status.leading {
+        .mobile-country-badge.leading {
           background: #1d2f39;
-          color: #fff;
         }
 
-        .status.momentum {
+        .mobile-country-badge.momentum {
           background: #304a57;
-          color: #fff;
         }
 
-        .status.dev {
+        .mobile-country-badge.dev {
           background: #55798a;
-          color: #fff;
         }
 
-        .accordion-body {
-          max-height: 0;
-          overflow: hidden;
-          opacity: 0;
-          transform: translateY(-6px);
-          padding: 0 12px;
-          border-top: 1px solid transparent;
-          transition:
-            max-height 0.32s ease,
-            opacity 0.24s ease,
-            transform 0.24s ease,
-            padding 0.24s ease,
-            border-top-color 0.24s ease;
-          will-change: max-height, opacity, transform;
-        }
-
-        details.is-open .accordion-body {
-          max-height: 70vh;
-          opacity: 1;
-          transform: translateY(0);
-          padding: 10px 12px 12px;
-          border-top: 1px solid #d0dade;
-        }
-
-        .accordion-body h4 {
-          margin: 0 0 5px;
-          font-size: 12px;
-          font-weight: 800;
-          text-transform: uppercase;
+        .mobile-country-open-btn {
+          grid-column: 1 / -1;
+          width: 100%;
+          min-height: 42px;
+          border: 1px solid #8ea4b0;
+          border-radius: 12px;
+          background: #eff4f7;
+          color: #244152;
+          font-size: 13px;
+          font-weight: 900;
           letter-spacing: 0.03em;
-          color: #385564;
+          cursor: pointer;
+          transition:
+            transform 0.2s ease,
+            filter 0.2s ease,
+            background-color 0.2s ease;
         }
 
-        .accordion-body ul {
-          margin: 0 0 8px;
-          padding-left: 17px;
-          font-size: 12px;
-          line-height: 1.45;
+        .mobile-country-open-btn.is-loading {
+          pointer-events: none;
+          opacity: 0.7;
         }
 
-        .accordion-body li {
-          margin-bottom: 4px;
-        }
-
-        .accordion-body-section.outlook {
-          margin-top: 8px;
-          padding: 8px 10px 6px;
-          border-radius: 10px;
-          background: linear-gradient(
-            135deg,
-            rgba(83, 118, 134, 0.14),
-            rgba(83, 118, 134, 0.05)
-          );
-          border: 1px solid rgba(83, 118, 134, 0.35);
-          border-left: 4px solid #527686;
-          box-shadow: 0 1px 6px rgba(42, 65, 76, 0.12);
-        }
-
-        .accordion-body-section.outlook h4 {
-          color: #2a414c;
-          font-size: 14px;
-          margin-bottom: 6px;
-        }
-
-        .accordion-body-section.outlook ul {
-          margin-bottom: 0;
-          font-size: 12.5px;
+        .mobile-country-open-btn:active {
+          transform: scale(0.985);
         }
       }
 
@@ -3635,7 +3659,7 @@
       aria-live="polite"
     ></div>
 
-    <main class="mobile-accordion" id="mobile-accordion">
+    <main class="mobile-explorer" id="mobile-explorer">
       <section class="mobile-legend">
         <img
           class="legend-logo"
@@ -3657,6 +3681,16 @@
           </span>
         </div>
       </section>
+      <section class="mobile-explorer-intro">
+        <h2>Explore Country Ecosystems</h2>
+        <p>
+          Open any country to enter the full experience with resources, events,
+          organisations, research, government signals, outlook, and
+          representatives.
+        </p>
+      </section>
+      <div id="mobile-country-chips" class="mobile-country-chips"></div>
+      <section id="mobile-country-grid" class="mobile-country-grid"></section>
     </main>
 
     <script>
@@ -4126,114 +4160,117 @@
         return tpl.innerHTML;
       }
 
-      const host = document.getElementById("mobile-accordion");
-      function formatItem(item) {
-        if (!item) return "";
-        const text = String(item).trim();
+      const mobileExplorer = document.getElementById("mobile-explorer");
+      const mobileCountryChips = document.getElementById("mobile-country-chips");
+      const mobileCountryGrid = document.getElementById("mobile-country-grid");
+      const pendingCountryModalRequests = new Map();
+      let pendingRequestCounter = 0;
 
-        if (text.includes(":")) {
-          const idx = text.indexOf(":");
-          const head = text.slice(0, idx).trim();
-          const tail = text.slice(idx + 1).trim();
-          if (head.length > 0 && tail.length > 0) {
-            return `<strong>${head}:</strong> ${tail}`;
-          }
-        }
-
-        const words = text.split(/\s+/);
-        if (words.length <= 3) return `<strong>${text}</strong>`;
-        const lead = words.slice(0, 3).join(" ");
-        const rest = words.slice(3).join(" ");
-        return `<strong>${lead}</strong> ${rest}`;
+      function getStatusLabel(statusClass) {
+        if (statusClass === "leading") return "Leading";
+        if (statusClass === "momentum") return "High Momentum";
+        return "In Development";
       }
 
-      countries.forEach((c) => {
-        const sectionsHtml = Object.entries(c.sections)
-          .map(([title, bullets]) => {
-            const list = bullets
-              .map((b) => `<li>${formatItem(b)}</li>`)
-              .join("");
-            const sectionClass =
-              title === "Outlook"
-                ? "accordion-body-section outlook"
-                : "accordion-body-section";
-            return `<section class="${sectionClass}"><h4>${title}</h4><ul>${list}</ul></section>`;
+      function isMobileViewport() {
+        return window.matchMedia("(max-width: 785px)").matches;
+      }
+
+      function normalizeCountryCode(rawCode) {
+        const value = String(rawCode || "").trim().toUpperCase();
+        return value === "GB" ? "UK" : value;
+      }
+
+      function requestCountryModalHtml(countryCode) {
+        return new Promise((resolve, reject) => {
+          if (!frame || !frame.contentWindow) {
+            reject(new Error("Map iframe is not ready."));
+            return;
+          }
+          const normalized = normalizeCountryCode(countryCode);
+          if (!normalized) {
+            reject(new Error("Invalid country code."));
+            return;
+          }
+          const requestId = `mobile-${Date.now()}-${pendingRequestCounter += 1}`;
+          const timeout = window.setTimeout(() => {
+            pendingCountryModalRequests.delete(requestId);
+            reject(new Error("Country details request timed out."));
+          }, 6000);
+          pendingCountryModalRequests.set(requestId, {
+            resolve,
+            reject,
+            timeout,
+            countryCode: normalized,
+          });
+          frame.contentWindow.postMessage(
+            {
+              type: "ecva-request-country-modal-html",
+              payload: { countryId: normalized, requestId },
+            },
+            "*",
+          );
+        });
+      }
+
+      async function openCountryByCode(countryCode) {
+        const html = await requestCountryModalHtml(countryCode);
+        await openDesktopModal(html);
+      }
+
+      function setMobileCountryLoading(countryCode, loading) {
+        if (!mobileExplorer) return;
+        const selector = `.mobile-country-open-btn[data-country-id="${normalizeCountryCode(countryCode)}"]`;
+        const btn = mobileExplorer.querySelector(selector);
+        if (!btn) return;
+        if (loading) {
+          btn.classList.add("is-loading");
+          btn.dataset.baseLabel = btn.textContent;
+          btn.textContent = "Opening country...";
+        } else {
+          btn.classList.remove("is-loading");
+          btn.textContent = btn.dataset.baseLabel || "Open full country view";
+        }
+      }
+
+      function buildMobileExplorer() {
+        if (!mobileExplorer || !mobileCountryChips || !mobileCountryGrid) return;
+        const sorted = [...countries].sort((a, b) => {
+          const order = { leading: 0, momentum: 1, dev: 2 };
+          const o = (order[a.statusClass] || 9) - (order[b.statusClass] || 9);
+          if (o !== 0) return o;
+          return a.name.localeCompare(b.name);
+        });
+        mobileCountryChips.innerHTML = sorted
+          .map(
+            (item) =>
+              `<button class="mobile-country-chip" type="button" data-country-id="${item.code}">${item.flag} ${item.code}</button>`,
+          )
+          .join("");
+        mobileCountryGrid.innerHTML = sorted
+          .map((item) => {
+            const outlook =
+              item.sections && Array.isArray(item.sections.Outlook)
+                ? item.sections.Outlook[0] || ""
+                : "";
+            return `
+              <article class="mobile-country-card">
+                <div class="mobile-country-meta">
+                  <h3 class="mobile-country-name">${item.flag} ${item.name}</h3>
+                  <p class="mobile-country-subline">${outlook}</p>
+                </div>
+                <span class="mobile-country-badge ${item.statusClass}">
+                  ${getStatusLabel(item.statusClass)}
+                </span>
+                <button class="mobile-country-open-btn" type="button" data-country-id="${item.code}">
+                  Open full country view
+                </button>
+              </article>
+            `;
           })
           .join("");
-
-        const item = document.createElement("details");
-        item.innerHTML = `
-          <summary>
-            <span class="summary-left">
-              <span class="summary-flag">${c.flag}</span>
-              <span class="summary-name">${c.name}</span>
-            </span>
-            <span class="status ${c.statusClass}">${c.status}</span>
-          </summary>
-          <div class="accordion-body">${sectionsHtml}</div>
-        `;
-        host.appendChild(item);
-      });
-
-      translateElementText(host, activeLang);
-
-      const detailItems = Array.from(host.querySelectorAll("details"));
-      const DURATION_MS = 320;
-
-      function animateOpen(item) {
-        const body = item.querySelector(".accordion-body");
-        if (!body || item.dataset.animating === "1") return;
-        item.dataset.animating = "1";
-        item.open = true;
-        body.style.maxHeight = "0px";
-        body.style.opacity = "0";
-        body.style.transform = "translateY(-6px)";
-        requestAnimationFrame(() => {
-          body.style.maxHeight = body.scrollHeight + "px";
-          body.style.opacity = "1";
-          body.style.transform = "translateY(0)";
-        });
-        window.setTimeout(() => {
-          body.style.maxHeight = "none";
-          item.classList.add("is-open");
-          item.dataset.animating = "0";
-        }, DURATION_MS);
+        translateElementText(mobileExplorer, activeLang);
       }
-
-      function animateClose(item) {
-        const body = item.querySelector(".accordion-body");
-        if (!body || item.dataset.animating === "1") return;
-        item.dataset.animating = "1";
-        item.classList.remove("is-open");
-        const currentHeight = body.scrollHeight;
-        body.style.maxHeight = currentHeight + "px";
-        requestAnimationFrame(() => {
-          body.style.maxHeight = "0px";
-          body.style.opacity = "0";
-          body.style.transform = "translateY(-6px)";
-        });
-        window.setTimeout(() => {
-          item.open = false;
-          item.dataset.animating = "0";
-        }, DURATION_MS);
-      }
-
-      detailItems.forEach((item) => {
-        const summary = item.querySelector("summary");
-        if (!summary) return;
-        summary.addEventListener("click", (e) => {
-          e.preventDefault();
-          const isOpen = item.open && item.classList.contains("is-open");
-          detailItems.forEach((other) => {
-            if (other !== item && other.open) animateClose(other);
-          });
-          if (isOpen) {
-            animateClose(item);
-          } else {
-            animateOpen(item);
-          }
-        });
-      });
 
       const modalRoot = document.getElementById("country-modal-root");
       const modalContent = document.getElementById("country-modal-content");
@@ -4829,6 +4866,23 @@
           forceScrollToTopAcrossContexts();
           return;
         }
+        if (event.data.type === "ecva-country-modal-html") {
+          const payload = event.data.payload || {};
+          const requestId = String(payload.requestId || "");
+          if (requestId && pendingCountryModalRequests.has(requestId)) {
+            const pending = pendingCountryModalRequests.get(requestId);
+            pendingCountryModalRequests.delete(requestId);
+            if (pending && pending.timeout) {
+              window.clearTimeout(pending.timeout);
+            }
+            if (payload.html) {
+              pending.resolve(payload.html);
+            } else {
+              pending.reject(new Error("Country HTML payload is missing."));
+            }
+          }
+          return;
+        }
         if (event.data.type === "ecva-open-country-modal") {
           openDesktopModal(event.data.payload && event.data.payload.html);
         }
@@ -4972,6 +5026,26 @@
             document.execCommand("copy");
             document.body.removeChild(helper);
             showCopyStatus();
+          }
+        });
+      }
+
+      if (mobileExplorer) {
+        buildMobileExplorer();
+        mobileExplorer.addEventListener("click", async (event) => {
+          const trigger = event.target.closest("[data-country-id]");
+          if (!trigger) return;
+          const countryCode = trigger.getAttribute("data-country-id");
+          if (!countryCode) return;
+          if (!isMobileViewport()) return;
+          event.preventDefault();
+          try {
+            setMobileCountryLoading(countryCode, true);
+            await openCountryByCode(countryCode);
+          } catch (_error) {
+            // ignore silent failure in UI
+          } finally {
+            setMobileCountryLoading(countryCode, false);
           }
         });
       }

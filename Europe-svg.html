@@ -2485,9 +2485,13 @@
 
               if (type === "ecva-request-country-modal-html") {
                 const countryId = String(payload.countryId || "").trim();
+                const requestId = String(payload.requestId || "").trim();
                 if (!countryInfo[countryId]) return;
                 window.parent.postMessage(
-                  { type: "ecva-country-modal-html", payload: { countryId, html: renderModalHtml(countryId) } },
+                  {
+                    type: "ecva-country-modal-html",
+                    payload: { countryId, requestId, html: renderModalHtml(countryId) },
+                  },
                   "*",
                 );
                 return;
