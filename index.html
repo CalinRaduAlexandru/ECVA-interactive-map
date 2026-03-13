@@ -32,9 +32,9 @@
       .map-ui-overlay {
         position: absolute;
         left: 50%;
-        top: clamp(16px, 2.2vw, 28px);
+        top: clamp(54px, 6vw, 92px);
         transform: translateX(-50%);
-        width: min(1080px, calc(100% - 44px));
+        width: min(980px, calc(100% - 180px));
         z-index: 56;
         display: flex;
         align-items: flex-start;
@@ -48,6 +48,13 @@
         flex-direction: column;
         gap: 8px;
         pointer-events: none;
+      }
+
+      @media (max-width: 1120px) {
+        .map-ui-overlay {
+          top: clamp(28px, 4vw, 42px);
+          width: min(980px, calc(100% - 72px));
+        }
       }
 
       .embed-launch-btn {
@@ -87,8 +94,8 @@
       }
 
       .language-flag-btn {
-        min-width: 44px;
-        height: 44px;
+        min-width: 40px;
+        height: 40px;
         border: 1px solid rgba(126, 145, 156, 0.62);
         border-radius: 12px;
         background: rgba(241, 248, 252, 0.9);
@@ -107,14 +114,16 @@
 
       .language-flag-btn[data-active="true"] {
         opacity: 1;
+        min-width: 54px;
+        height: 54px;
         transform: translateY(0) scale(1);
-        filter: saturate(1.02);
+        filter: saturate(1.07);
       }
 
       .language-flag-btn[data-active="false"] {
-        opacity: 0.58;
+        opacity: 0.34;
         transform: translateY(1px) scale(0.9);
-        filter: saturate(0.92);
+        filter: saturate(0.82);
       }
 
       .language-flag-btn[data-active="false"]:hover {
@@ -128,23 +137,7 @@
       }
 
       .language-switch-toast {
-        position: static;
-        z-index: 1;
-        padding: 8px 12px;
-        border-radius: 10px;
-        border: 1px solid rgba(89, 170, 124, 0.58);
-        background: rgba(233, 250, 239, 0.94);
-        color: #198043;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.01em;
-        opacity: 0;
-        transform: translateY(7px);
-        transition:
-          opacity 220ms ease,
-          transform 220ms ease;
-        pointer-events: none;
-        user-select: none;
+        display: none;
       }
 
       .language-switch-toast.is-visible {
@@ -291,9 +284,10 @@
         inset: 0;
         z-index: 3100;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         padding: clamp(14px, 3vw, 30px);
+        padding-top: clamp(20px, 3vw, 38px);
         background: rgba(13, 23, 30, 0.56);
         opacity: 0;
         visibility: hidden;
@@ -353,6 +347,13 @@
         color: #395665;
       }
 
+      .embed-code-hint {
+        margin: 0 0 14px;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #35515f;
+      }
+
       .embed-code-row {
         display: grid;
         gap: 8px;
@@ -393,7 +394,27 @@
 
       .embed-code-actions {
         display: flex;
+        align-items: center;
+        gap: 12px;
         justify-content: flex-end;
+      }
+
+      .embed-code-status {
+        min-height: 24px;
+        display: inline-flex;
+        align-items: center;
+        color: #198043;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        opacity: 0;
+        transform: translateY(2px);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .embed-code-status.is-visible {
+        opacity: 1;
+        transform: translateY(0);
       }
 
       .embed-code-copy-btn {
@@ -3106,12 +3127,16 @@
         <button id="embed-code-close" class="embed-code-close" type="button" aria-label="Close">×</button>
         <h3 id="embed-code-title" class="embed-code-title">Copy code</h3>
         <p id="embed-code-lead" class="embed-code-lead">Choose the language and copy the embed code.</p>
+        <p id="embed-code-hint" class="embed-code-hint">
+          Copy this code to promote the Character Education movement through resources, research, organisations, events, and policy-level progress.
+        </p>
         <div class="embed-code-row">
           <label id="embed-language-label" for="embed-language-select">Language</label>
           <select id="embed-language-select"></select>
         </div>
         <textarea id="embed-code-preview" class="embed-code-preview" readonly></textarea>
         <div class="embed-code-actions">
+          <span id="embed-copy-status" class="embed-code-status" aria-live="polite"></span>
           <button id="embed-copy-btn" class="embed-code-copy-btn" type="button">Copy code</button>
         </div>
       </section>
@@ -3607,6 +3632,13 @@
         de: "Die Sprache wurde geändert",
         es: "El idioma ha sido cambiado",
       };
+      const COPY_STATUS_TEXT = {
+        en: "Text copied",
+        ro: "Text copiat",
+        fr: "Texte copié",
+        de: "Text kopiert",
+        es: "Texto copiado",
+      };
 
       const frame = document.querySelector(".desktop-map iframe");
       if (frame) {
@@ -3868,7 +3900,9 @@
       const embedCopyBtn = document.getElementById("embed-copy-btn");
       const embedCodeTitle = document.getElementById("embed-code-title");
       const embedCodeLead = document.getElementById("embed-code-lead");
+      const embedCodeHint = document.getElementById("embed-code-hint");
       const embedLanguageLabel = document.getElementById("embed-language-label");
+      const embedCopyStatus = document.getElementById("embed-copy-status");
       const contributeModal = document.getElementById("contribute-modal");
       const contributeModalClose = document.getElementById("contribute-modal-close");
       const contributeModalTitle = document.getElementById("contribute-modal-title");
@@ -3929,6 +3963,7 @@
       };
       let modalCloseTimer = null;
       const MODAL_CLOSE_MS = 320;
+      let embedCopyStatusTimer = null;
 
       function buildEmbedCode(langCode) {
         const target = SUPPORTED_LANGUAGES.some((item) => item.code === langCode) ? langCode : "en";
@@ -3978,10 +4013,6 @@
         const target = SUPPORTED_LANGUAGES.some((item) => item.code === nextLang) ? nextLang : "en";
         if (target === activeLang) return;
         window.__ecvaLanguageSwitching = true;
-        if (languageSwitchToast) {
-          languageSwitchToast.textContent = getLanguageChangedMessage(target);
-          languageSwitchToast.classList.add("is-visible");
-        }
         const url = new URL(window.location.href);
         url.searchParams.set("lang", target);
         if (target !== "en") {
@@ -4029,15 +4060,30 @@
         const base = [
           "Copy code",
           "Choose the language and copy the embed code.",
+          "Copy this code to promote the Character Education movement through resources, research, organisations, events, and policy-level progress.",
           "Language",
           "Copy code",
         ];
-        const [title, lead, label, copy] = await translateBatch(base, activeLang);
+        const [title, lead, hint, label, copy] = await translateBatch(base, activeLang);
         if (embedLaunchBtn) embedLaunchBtn.textContent = title;
         if (embedCodeTitle) embedCodeTitle.textContent = title;
         if (embedCodeLead) embedCodeLead.textContent = lead;
+        if (embedCodeHint) embedCodeHint.textContent = hint;
         if (embedLanguageLabel) embedLanguageLabel.textContent = label;
         if (embedCopyBtn) embedCopyBtn.textContent = copy;
+      }
+
+      function showCopyStatus() {
+        if (!embedCopyStatus) return;
+        const value = COPY_STATUS_TEXT[activeLang] || COPY_STATUS_TEXT.en;
+        embedCopyStatus.textContent = value;
+        embedCopyStatus.classList.add("is-visible");
+        if (embedCopyStatusTimer) {
+          window.clearTimeout(embedCopyStatusTimer);
+        }
+        embedCopyStatusTimer = window.setTimeout(() => {
+          embedCopyStatus.classList.remove("is-visible");
+        }, 1200);
       }
 
       function refreshEmbedCodePreview() {
@@ -4468,15 +4514,20 @@
           if (!embedCodePreview) return;
           try {
             await navigator.clipboard.writeText(embedCodePreview.value);
-            const previous = embedCopyBtn.textContent;
-            embedCopyBtn.textContent = activeLang === "en" ? "Copied" : "Copied";
-            window.setTimeout(() => {
-              embedCopyBtn.textContent = previous;
-            }, 1200);
+            showCopyStatus();
           } catch (error) {
-            embedCodePreview.focus();
-            embedCodePreview.select();
+            const helper = document.createElement("textarea");
+            helper.value = embedCodePreview.value;
+            helper.setAttribute("readonly", "readonly");
+            helper.style.position = "fixed";
+            helper.style.opacity = "0";
+            helper.style.pointerEvents = "none";
+            document.body.appendChild(helper);
+            helper.focus();
+            helper.select();
             document.execCommand("copy");
+            document.body.removeChild(helper);
+            showCopyStatus();
           }
         });
       }
