@@ -16,9 +16,8 @@
       }
 
       .desktop-map {
-        height: 100vh;
-        height: 100dvh;
-        min-height: 100dvh;
+        height: clamp(660px, 68vw, 980px);
+        min-height: 660px;
         animation: desktopMapFadeIn 0.55s ease 0s both;
         position: relative;
       }
@@ -171,7 +170,7 @@
         width: 100%;
         height: auto;
         max-height: none;
-        min-height: 100dvh;
+        min-height: 0;
         overflow: visible;
         position: relative;
         border-radius: 0;
@@ -3048,6 +3047,11 @@
       }
 
       @media (max-width: 785px) {
+        .desktop-map {
+          height: clamp(620px, 88vw, 860px);
+          min-height: 620px;
+        }
+
         .country-modal-pillars {
           grid-template-columns: 1fr;
           justify-items: stretch;
@@ -3590,15 +3594,19 @@
 
       function postEmbedHeightToParent() {
         if (window.parent === window) return;
-        const root = document.documentElement;
-        const body = document.body;
         const main = document.querySelector(".desktop-map");
-        const height = Math.max(
-          root ? root.scrollHeight : 0,
-          body ? body.scrollHeight : 0,
-          main ? main.scrollHeight : 0,
-          main ? main.offsetHeight : 0,
-        );
+        const isCountryModalOpen = modalRoot && modalRoot.classList.contains("is-visible");
+        let height = 0;
+        if (isCountryModalOpen) {
+          const shell = document.querySelector(".country-modal-shell");
+          const shellHeight = shell ? shell.scrollHeight : 0;
+          height = Math.max(680, Math.ceil(shellHeight + 24));
+        } else {
+          const mainHeight = main
+            ? Math.max(main.scrollHeight || 0, main.offsetHeight || 0, main.getBoundingClientRect().height || 0)
+            : 0;
+          height = Math.max(680, Math.ceil(mainHeight));
+        }
         if (!Number.isFinite(height) || height < 320) return;
         window.parent.postMessage(
           { type: EMBED_HEIGHT_EVENT, source: "ecva-map", height: Math.ceil(height) },
