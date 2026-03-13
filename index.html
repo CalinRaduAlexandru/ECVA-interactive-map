@@ -16,8 +16,8 @@
       }
 
       .desktop-map {
-        height: clamp(660px, 68vw, 980px);
-        min-height: 660px;
+        height: auto;
+        min-height: 0;
         animation: desktopMapFadeIn 0.55s ease 0s both;
         position: relative;
       }
@@ -25,7 +25,9 @@
       .desktop-map iframe {
         border: 0;
         width: 100%;
-        height: 100%;
+        height: auto;
+        aspect-ratio: 1040 / 708;
+        min-height: 520px;
         display: block;
       }
 
@@ -51,11 +53,15 @@
       }
 
       .map-ui-left {
-        transform: translate(72px, -12px);
+        transform: translate(144px, -24px);
+        opacity: 0;
+        animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
 
       .map-ui-right {
-        transform: translateX(-72px);
+        transform: translate(-144px, -12px);
+        opacity: 0;
+        animation: mapCornerUiIn 0.42s ease 1.94s forwards;
       }
 
       @media (max-width: 1120px) {
@@ -65,11 +71,22 @@
         }
 
         .map-ui-left {
-          transform: translate(36px, -6px);
+          transform: translate(72px, -12px);
         }
 
         .map-ui-right {
-          transform: translateX(-36px);
+          transform: translate(-72px, -6px);
+        }
+      }
+
+      @keyframes mapCornerUiIn {
+        from {
+          opacity: 0;
+          filter: blur(1px);
+        }
+        to {
+          opacity: 1;
+          filter: blur(0);
         }
       }
 
@@ -414,6 +431,7 @@
         align-items: center;
         gap: 12px;
         justify-content: flex-end;
+        margin-top: 16px;
       }
 
       .embed-code-status {
@@ -3153,7 +3171,7 @@
         <h3 id="embed-code-title" class="embed-code-title">Copy code</h3>
         <p id="embed-code-lead" class="embed-code-lead">Choose the language and copy the embed code.</p>
         <p id="embed-code-hint" class="embed-code-hint">
-          Copy this code to promote the Character Education movement through resources, research, organisations, events, and policy-level progress.
+          Copy this code to disseminate Character Education and give wider access to existing resources and research, increasing the likelihood of national policy impact and large-scale initiatives.
         </p>
         <div class="embed-code-row">
           <label id="embed-language-label" for="embed-language-select">Language</label>
@@ -4004,8 +4022,8 @@
   <iframe
     src="${url.toString()}"
     width="100%"
-    height="900"
-    style="border:0;display:block;width:100%;height:900px;min-height:900px;overflow:hidden;"
+    height="700"
+    style="border:0;display:block;width:100%;height:700px;min-height:520px;overflow:hidden;"
     scrolling="no"
     loading="lazy"
     referrerpolicy="strict-origin-when-cross-origin"
@@ -4017,7 +4035,7 @@
   var wrap = document.currentScript && document.currentScript.previousElementSibling;
   var iframe = wrap && wrap.querySelector ? wrap.querySelector('iframe') : null;
   if (!iframe) return;
-  var minHeight = 900;
+  var minHeight = 520;
   window.addEventListener('message', function(event){
     if (!event || !event.data || event.data.type !== '${EMBED_HEIGHT_EVENT}') return;
     if (event.origin && event.origin !== '${origin}') return;
@@ -4025,6 +4043,11 @@
     if (!Number.isFinite(h) || h < 320) return;
     iframe.style.height = Math.max(minHeight, Math.ceil(h)) + 'px';
     iframe.style.overflow = 'hidden';
+  }, { passive: true });
+  window.addEventListener('message', function(event){
+    if (!event || !event.data || event.data.type !== 'ecva-scroll-parent-top') return;
+    if (event.origin && event.origin !== '${origin}') return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, { passive: true });
 })();
 <\/script>`;
@@ -4085,7 +4108,7 @@
         const base = [
           "Copy code",
           "Choose the language and copy the embed code.",
-          "Copy this code to promote the Character Education movement through resources, research, organisations, events, and policy-level progress.",
+          "Copy this code to disseminate Character Education and give wider access to existing resources and research, increasing the likelihood of national policy impact and large-scale initiatives.",
           "Language",
           "Copy code",
         ];
@@ -4402,6 +4425,9 @@
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
         window.scrollTo({ top: 0, behavior: "smooth" });
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "ecva-scroll-parent-top" }, "*");
+        }
         notifyMapCountryOpenComplete();
         scheduleEmbedHeightPost();
       }
@@ -4554,10 +4580,16 @@
             helper.value = embedCodePreview.value;
             helper.setAttribute("readonly", "readonly");
             helper.style.position = "fixed";
+            helper.style.top = "0";
+            helper.style.left = "0";
             helper.style.opacity = "0";
             helper.style.pointerEvents = "none";
             document.body.appendChild(helper);
-            helper.focus();
+            try {
+              helper.focus({ preventScroll: true });
+            } catch (_focusError) {
+              helper.focus();
+            }
             helper.select();
             document.execCommand("copy");
             document.body.removeChild(helper);
