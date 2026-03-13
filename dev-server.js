@@ -167,19 +167,27 @@ async function translateBatchCached(texts, sourceLang, targetLang) {
       results.push('');
       continue;
     }
-    if (Object.prototype.hasOwnProperty.call(langCache, text)) {
-      results.push(String(langCache[text] || text));
-      continue;
+    const hasCached = Object.prototype.hasOwnProperty.call(langCache, text);
+    if (hasCached) {
+      const cachedValue = String(langCache[text] || text);
+      // If a previous transient failure stored the source text as target translation,
+      // retry once to recover real translation when the provider becomes available.
+      if (!(cachedValue === text && targetLang !== sourceLang)) {
+        results.push(cachedValue);
+        continue;
+      }
     }
     try {
       const translated = await translateTextGoogle(text, sourceLang, targetLang);
-      langCache[text] = translated || text;
-      results.push(langCache[text]);
+      const value = String(translated || text);
+      langCache[text] = value;
+      results.push(value);
       changed = true;
+      continue;
     } catch (error) {
-      langCache[text] = text;
+      // Do not cache fallback source text on translation errors,
+      // otherwise entries get permanently stuck in EN.
       results.push(text);
-      changed = true;
     }
   }
 
