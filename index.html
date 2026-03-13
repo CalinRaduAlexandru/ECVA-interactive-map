@@ -53,13 +53,13 @@
       }
 
       .map-ui-left {
-        transform: translate(144px, -24px);
+        transform: translate(104px, -24px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
 
       .map-ui-right {
-        transform: translate(-144px, -12px);
+        transform: translate(-104px, -12px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.94s forwards;
       }
@@ -71,11 +71,11 @@
         }
 
         .map-ui-left {
-          transform: translate(72px, -12px);
+          transform: translate(52px, -12px);
         }
 
         .map-ui-right {
-          transform: translate(-72px, -6px);
+          transform: translate(-52px, -6px);
         }
       }
 
@@ -4144,6 +4144,23 @@
         frame.contentWindow.postMessage({ type: "ecva-country-open-complete" }, "*");
       }
 
+      function forceScrollToTopAcrossContexts() {
+        try {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        } catch (_error) {
+          window.scrollTo(0, 0);
+        }
+        try {
+          document.documentElement.scrollTop = 0;
+          document.body.scrollTop = 0;
+        } catch (_error) {
+          // no-op
+        }
+        if (window.parent && window.parent !== window) {
+          window.parent.postMessage({ type: "ecva-scroll-parent-top" }, "*");
+        }
+      }
+
       function openEmbedCodeModal() {
         if (!embedCodeModal) return;
         const keepY = window.scrollY || window.pageYOffset || 0;
@@ -4413,6 +4430,7 @@
 
       async function openDesktopModal(html) {
         if (!modalRoot || !modalContent) return;
+        forceScrollToTopAcrossContexts();
         if (modalCloseTimer) {
           window.clearTimeout(modalCloseTimer);
           modalCloseTimer = null;
@@ -4424,10 +4442,8 @@
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        if (window.parent && window.parent !== window) {
-          window.parent.postMessage({ type: "ecva-scroll-parent-top" }, "*");
-        }
+        forceScrollToTopAcrossContexts();
+        window.setTimeout(forceScrollToTopAcrossContexts, 180);
         notifyMapCountryOpenComplete();
         scheduleEmbedHeightPost();
       }
@@ -4453,6 +4469,10 @@
 
       window.addEventListener("message", (event) => {
         if (!event || !event.data) return;
+        if (event.data.type === "ecva-scroll-parent-top") {
+          forceScrollToTopAcrossContexts();
+          return;
+        }
         if (event.data.type === "ecva-open-country-modal") {
           openDesktopModal(event.data.payload && event.data.payload.html);
         }

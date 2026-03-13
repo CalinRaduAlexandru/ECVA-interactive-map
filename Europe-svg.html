@@ -2067,6 +2067,12 @@
               if (!countryInfo[countryId]) return;
               window.parent.postMessage(
                 {
+                  type: "ecva-scroll-parent-top",
+                },
+                "*",
+              );
+              window.parent.postMessage(
+                {
                   type: "ecva-open-country-modal",
                   payload: {
                     countryId,
