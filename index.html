@@ -3073,7 +3073,7 @@
       <button id="embed-launch-btn" class="embed-launch-btn" type="button">Insert this iframe into your page</button>
       <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
       <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
-      <iframe src="Europe-svg.html" title="Europe Map"></iframe>
+      <iframe src="Europe-svg.html" title="Europe Map" scrolling="no" style="overflow:hidden"></iframe>
     </main>
 
     <div id="embed-code-modal" class="embed-code-modal" aria-hidden="true">
@@ -3916,7 +3916,8 @@
     src="${url.toString()}"
     width="100%"
     height="900"
-    style="border:0;display:block;width:100%;min-height:900px;"
+    style="border:0;display:block;width:100%;height:900px;min-height:900px;overflow:hidden;"
+    scrolling="no"
     loading="lazy"
     referrerpolicy="strict-origin-when-cross-origin"
     allowfullscreen
@@ -3934,6 +3935,7 @@
     var h = Number(event.data.height || 0);
     if (!Number.isFinite(h) || h < 320) return;
     iframe.style.height = Math.max(minHeight, Math.ceil(h)) + 'px';
+    iframe.style.overflow = 'hidden';
   }, { passive: true });
 })();
 <\/script>`;
