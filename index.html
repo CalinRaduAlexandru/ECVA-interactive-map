@@ -32,8 +32,8 @@
 
       .embed-launch-btn {
         position: absolute;
-        top: 16px;
-        left: 16px;
+        right: clamp(18px, 2.8vw, 36px);
+        bottom: clamp(18px, 2.8vw, 34px);
         z-index: 40;
         min-height: 34px;
         padding: 0 12px;
@@ -59,8 +59,8 @@
 
       .language-switch {
         position: absolute;
-        left: 16px;
-        bottom: 16px;
+        left: clamp(18px, 2.8vw, 36px);
+        bottom: clamp(18px, 2.8vw, 34px);
         z-index: 55;
         display: flex;
         align-items: flex-end;
@@ -111,8 +111,8 @@
 
       .language-switch-toast {
         position: absolute;
-        left: 16px;
-        bottom: 68px;
+        left: clamp(18px, 2.8vw, 36px);
+        bottom: clamp(74px, 8.5vw, 104px);
         z-index: 56;
         padding: 8px 12px;
         border-radius: 10px;
@@ -3897,6 +3897,7 @@
       function openWithLanguage(nextLang) {
         const target = SUPPORTED_LANGUAGES.some((item) => item.code === nextLang) ? nextLang : "en";
         if (target === activeLang) return;
+        window.__ecvaLanguageSwitching = true;
         if (languageSwitchToast) {
           languageSwitchToast.textContent = getLanguageChangedMessage(target);
           languageSwitchToast.classList.add("is-visible");
@@ -3920,13 +3921,14 @@
         languageSwitch.innerHTML = "";
 
         const localLang = fallbackLocalLang;
-        const langsToShow = [];
         if (activeLang === "en" && !localLang) {
-          langsToShow.push("en");
-        } else {
-          if (localLang) langsToShow.push(localLang);
-          langsToShow.push("en");
+          languageSwitch.style.display = "none";
+          return;
         }
+        languageSwitch.style.display = "flex";
+        const langsToShow = [];
+        if (localLang) langsToShow.push(localLang);
+        langsToShow.push("en");
 
         const dedup = [...new Set(langsToShow)];
         dedup.forEach((langCode) => {

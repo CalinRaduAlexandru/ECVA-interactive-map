@@ -903,6 +903,7 @@
 
   async function persistEditorState(state) {
     if (!canEditContent()) return;
+    if (window.__ecvaLanguageSwitching) return;
     try {
       const response = await fetch(EDITOR_API, {
         method: 'POST',
