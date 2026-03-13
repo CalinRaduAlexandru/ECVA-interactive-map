@@ -3587,6 +3587,37 @@
       if (frame) {
         frame.src = `Europe-svg.html?lang=${encodeURIComponent(activeLang)}`;
       }
+      const EMBED_HEIGHT_EVENT = "ecva-embed-height";
+      let heightPostTimer = null;
+
+      function postEmbedHeightToParent() {
+        if (window.parent === window) return;
+        const root = document.documentElement;
+        const body = document.body;
+        const main = document.querySelector(".desktop-map");
+        const height = Math.max(
+          root ? root.scrollHeight : 0,
+          body ? body.scrollHeight : 0,
+          main ? main.scrollHeight : 0,
+          main ? main.offsetHeight : 0,
+        );
+        if (!Number.isFinite(height) || height < 320) return;
+        window.parent.postMessage(
+          { type: EMBED_HEIGHT_EVENT, source: "ecva-map", height: Math.ceil(height) },
+          "*",
+        );
+      }
+
+      function scheduleEmbedHeightPost() {
+        if (heightPostTimer) {
+          window.clearTimeout(heightPostTimer);
+          heightPostTimer = null;
+        }
+        heightPostTimer = window.setTimeout(() => {
+          postEmbedHeightToParent();
+          heightPostTimer = null;
+        }, 80);
+      }
 
       const translationCache = new Map();
       function applyLocaleFixes(text, targetLang) {
@@ -3879,15 +3910,33 @@
         } else {
           url.searchParams.delete("baseLang");
         }
-        return `<iframe
-  src="${url.toString()}"
-  width="100%"
-  height="900"
-  style="border:0;display:block"
-  loading="lazy"
-  referrerpolicy="strict-origin-when-cross-origin"
-  allowfullscreen
-></iframe>`;
+        const origin = `${url.protocol}//${url.host}`;
+        return `<div style="width:100%;max-width:100%;overflow:visible;">
+  <iframe
+    src="${url.toString()}"
+    width="100%"
+    height="900"
+    style="border:0;display:block;width:100%;min-height:900px;"
+    loading="lazy"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+  ></iframe>
+</div>
+<script>
+(function(){
+  var wrap = document.currentScript && document.currentScript.previousElementSibling;
+  var iframe = wrap && wrap.querySelector ? wrap.querySelector('iframe') : null;
+  if (!iframe) return;
+  var minHeight = 900;
+  window.addEventListener('message', function(event){
+    if (!event || !event.data || event.data.type !== '${EMBED_HEIGHT_EVENT}') return;
+    if (event.origin && event.origin !== '${origin}') return;
+    var h = Number(event.data.height || 0);
+    if (!Number.isFinite(h) || h < 320) return;
+    iframe.style.height = Math.max(minHeight, Math.ceil(h)) + 'px';
+  }, { passive: true });
+})();
+<\/script>`;
       }
 
       function getLanguageChangedMessage(langCode) {
@@ -3979,6 +4028,7 @@
         if (!modalRoot || !modalRoot.classList.contains("is-visible")) {
           document.body.style.overflow = "";
         }
+        scheduleEmbedHeightPost();
       }
 
       function runContributeConfetti() {
@@ -4246,6 +4296,7 @@
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
         document.body.style.overflow = "hidden";
+        scheduleEmbedHeightPost();
       }
 
       function closeDesktopModal() {
@@ -4263,6 +4314,7 @@
             modalContent.innerHTML = "";
           }
           document.body.style.overflow = "";
+          scheduleEmbedHeightPost();
           modalCloseTimer = null;
         }, MODAL_CLOSE_MS);
       }
@@ -4400,6 +4452,15 @@
       initEmbedUiText();
       translateElementText(document.querySelector(".mobile-legend"), activeLang);
       renderLanguageSwitch();
+      scheduleEmbedHeightPost();
+      window.addEventListener("load", scheduleEmbedHeightPost);
+      window.addEventListener("resize", scheduleEmbedHeightPost);
+      if (document.body && window.MutationObserver) {
+        const mo = new MutationObserver(() => {
+          scheduleEmbedHeightPost();
+        });
+        mo.observe(document.body, { childList: true, subtree: true });
+      }
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
