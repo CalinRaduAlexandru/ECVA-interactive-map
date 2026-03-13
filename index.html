@@ -1062,48 +1062,14 @@
         font-weight: 800;
       }
 
-      .country-modal-pillar-row {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
-        margin-top: 4px;
-      }
-
-      .country-modal-pillar-title-pill {
+      .country-modal-pillar-label {
         margin: 0;
-        min-height: 36px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.52);
-        background: linear-gradient(
-          135deg,
-          var(--pillar-color-a),
-          var(--pillar-color-b)
-        );
-        box-shadow:
-          0 7px 16px rgba(26, 50, 64, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.28);
-        color: #f9fdff;
-        font-size: clamp(12px, 1.05vw, 15px);
-        font-weight: 800;
-        line-height: 1;
-        letter-spacing: 0.03em;
+        font-size: clamp(13px, 1.25vw, 19px);
+        line-height: 1.1;
+        letter-spacing: 0.02em;
         text-transform: uppercase;
-        white-space: nowrap;
-        padding: 12px 18px;
-      }
-
-      .country-modal-pillar-actions {
-        width: auto;
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        gap: 0;
-        flex: 0 0 auto;
+        color: #121b20;
+        font-weight: 800;
       }
 
       .country-modal-info-wrap {
@@ -1122,32 +1088,6 @@
         font-weight: 700;
         line-height: 1;
         cursor: help;
-      }
-
-      .country-modal-contribute-btn {
-        min-width: 114px;
-        min-height: 40px;
-        border-radius: 12px;
-        border: 1px solid rgba(37, 59, 70, 0.48);
-        background: linear-gradient(180deg, #f4f8fa, #e8f0f4);
-        color: #213943;
-        font-size: 13px;
-        font-weight: 800;
-        padding: 0 20px;
-        letter-spacing: 0.04em;
-        line-height: 1;
-        text-align: center;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-        white-space: nowrap;
-        text-transform: uppercase;
-        cursor: pointer;
-      }
-
-      .country-modal-contribute-btn:hover {
-        background: linear-gradient(180deg, #eef5f8, #dbe8ee);
       }
 
       .country-modal-info-tooltip {
@@ -1788,7 +1728,7 @@
         margin: 0 0 14px;
         display: inline-flex;
         align-items: center;
-        padding: 6px 12px;
+        padding: 12px 18px;
         border-radius: 999px;
         border: 1px solid rgba(255, 255, 255, 0.5);
         background: linear-gradient(135deg, var(--pill-a), var(--pill-b));
@@ -2315,22 +2255,9 @@
           font-size: clamp(22px, 5.4vw, 30px);
         }
 
-        .country-modal-pillar-row {
-          gap: 12px;
-          margin-top: 8px;
-        }
-
-        .country-modal-pillar-title-pill {
-          min-height: 50px;
-          font-size: clamp(18px, 4.4vw, 24px);
-          padding: 16px 20px;
-        }
-
-        .country-modal-contribute-btn {
-          min-width: 132px;
-          min-height: 52px;
-          font-size: 15px;
-          padding: 0 24px;
+        .country-modal-pillar-label {
+          font-size: clamp(30px, 7.8vw, 42px);
+          line-height: 1.02;
         }
 
         .country-modal-close {

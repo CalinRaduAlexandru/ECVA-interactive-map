@@ -1978,12 +1978,7 @@
                   return `
                   <article class="country-modal-pillar ${config.active ? "is-active" : "is-unavailable"} ${escapeHtml(pillarThemeClass)}">
                     <span class="country-modal-pillar-dot">${dotTextHtml}</span>
-                    <div class="country-modal-pillar-row">
-                      <strong class="country-modal-pillar-title-pill">${escapeHtml(pillar.bottom)}</strong>
-                      <div class="country-modal-pillar-actions">
-                        <button class="country-modal-contribute-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Upload</button>
-                      </div>
-                    </div>
+                    <strong class="country-modal-pillar-label">${escapeHtml(pillar.bottom)}</strong>
                   </article>
                 `;
                 })
