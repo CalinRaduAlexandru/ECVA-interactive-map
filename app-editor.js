@@ -37,10 +37,18 @@
   const EDITOR_API = '/api/editor-data';
   const EDITOR_VERSIONS_API = '/api/editor-data/versions';
   const UPLOAD_API = '/api/upload-image';
-  const query = new URLSearchParams(window.location.search);
-  const currentLang =
-    String(query.get('lang') || query.get('pa') || query.get('language') || 'en').trim().toLowerCase() || 'en';
-  const canEditContent = currentLang === 'en';
+  function getCurrentLang() {
+    const query = new URLSearchParams(window.location.search);
+    const fromQuery = String(query.get('lang') || query.get('pa') || query.get('language') || '')
+      .trim()
+      .toLowerCase();
+    if (fromQuery) return fromQuery;
+    return String(document.documentElement.lang || 'en').trim().toLowerCase() || 'en';
+  }
+
+  function canEditContent() {
+    return getCurrentLang() === 'en';
+  }
 
   let activeCountries = [];
   let selectedCountryId = '';
@@ -103,7 +111,7 @@
     document.body.style.overflow = 'hidden';
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
-    if (!canEditContent) {
+    if (!canEditContent()) {
       showToast('Read-only mode. Edit and rollback are available only in English (?lang=en).', true);
     }
     postToMap('ecva-request-active-countries');
@@ -260,10 +268,10 @@
       restore.type = 'button';
       restore.className = 'ecva-version-restore';
       restore.textContent = 'Restore';
-      restore.disabled = !canEditContent || !Number.isInteger(id);
-      restore.title = canEditContent ? 'Restore this version' : 'Read-only mode';
+      restore.disabled = !canEditContent() || !Number.isInteger(id);
+      restore.title = canEditContent() ? 'Restore this version' : 'Read-only mode';
       restore.addEventListener('click', async () => {
-        if (!canEditContent || !Number.isInteger(id)) return;
+        if (!canEditContent() || !Number.isInteger(id)) return;
         restore.disabled = true;
         const prev = restore.textContent;
         restore.textContent = 'Restoring...';
@@ -887,14 +895,14 @@
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
-    if (canEditContent) {
+    if (canEditContent()) {
       addEditButtons(manageBody);
       addRepresentativeControls(manageBody);
     }
   }
 
   async function persistEditorState(state) {
-    if (!canEditContent) return;
+    if (!canEditContent()) return;
     try {
       const response = await fetch(EDITOR_API, {
         method: 'POST',
