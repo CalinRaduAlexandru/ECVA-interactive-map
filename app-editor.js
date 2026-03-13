@@ -48,6 +48,7 @@
   let representativeImageNaturalWidth = 0;
   let representativeImageNaturalHeight = 0;
   let representativeCrop = null;
+  let representativeInitial = null;
   let cropPointerState = null;
   let toastTimer = null;
   let persistTimer = null;
@@ -150,6 +151,7 @@
     representativeImageNaturalWidth = 0;
     representativeImageNaturalHeight = 0;
     representativeCrop = null;
+    representativeInitial = null;
     cropPointerState = null;
     if (editorCropImage) {
       editorCropImage.removeAttribute('src');
@@ -274,6 +276,11 @@
       return;
     }
     editorCropImage.style.display = 'block';
+    if (/^https?:\/\//i.test(representativeCropSource)) {
+      editorCropImage.crossOrigin = 'anonymous';
+    } else {
+      editorCropImage.removeAttribute('crossorigin');
+    }
     editorCropImage.src = representativeCropSource;
     editorCropImage.onload = () => {
       representativeImageNaturalWidth = editorCropImage.naturalWidth || 0;
@@ -320,6 +327,9 @@
         return;
       }
       const img = new Image();
+      if (/^https?:\/\//i.test(representativeCropSource)) {
+        img.crossOrigin = 'anonymous';
+      }
       img.onload = () => {
         const width = 700;
         const height = 520;
@@ -341,11 +351,27 @@
         const sw = crop.w * img.naturalWidth;
         const sh = crop.h * img.naturalHeight;
         ctx.drawImage(img, sx, sy, sw, sh, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/png'));
+        try {
+          resolve(canvas.toDataURL('image/png'));
+        } catch (error) {
+          reject(new Error('canvas_tainted'));
+        }
       };
       img.onerror = () => reject(new Error('image_load_failed'));
       img.src = representativeCropSource;
     });
+  }
+
+  function cropEquals(a, b) {
+    if (!a && !b) return true;
+    if (!a || !b) return false;
+    const eps = 0.0005;
+    return (
+      Math.abs(Number(a.x || 0) - Number(b.x || 0)) < eps &&
+      Math.abs(Number(a.y || 0) - Number(b.y || 0)) < eps &&
+      Math.abs(Number(a.w || 0) - Number(b.w || 0)) < eps &&
+      Math.abs(Number(a.h || 0) - Number(b.h || 0)) < eps
+    );
   }
 
   function renderCountryTabs() {
@@ -583,6 +609,14 @@
     representativeSourceImagePath = sourceImage;
     setCropPreviewImage(sourceImage, hasCrop ? crop : null);
     setCropStatus('Current image loaded. Move or resize frame, then Save.');
+    representativeInitial = {
+      name: name.trim(),
+      title: title.trim(),
+      organisation: organisation.trim(),
+      image,
+      sourceImage,
+      crop: hasCrop ? crop : null,
+    };
 
     editorTarget = {
       type: 'representative',
@@ -841,7 +875,10 @@
       if (editorMode === 'representative' && editorTarget.type === 'representative') {
         let image = representativeImagePath;
         let sourceImage = representativeSourceImagePath || representativeCropSource || '';
+        const cropNow = normalizeCropFrame();
+        const cropChanged = !cropEquals(cropNow, representativeInitial && representativeInitial.crop);
         const hasNewLocalImage = representativeCropSource.startsWith('data:image/');
+        const shouldRegenerateImage = hasNewLocalImage || cropChanged;
         if (hasNewLocalImage) {
           try {
             sourceImage = await uploadRepresentativeImageData(
@@ -857,14 +894,19 @@
             showToast(`Image upload failed${reason}`, true);
             return;
           }
-        } else if (sourceImage && representativeCropSource) {
+        } else if (shouldRegenerateImage && sourceImage && representativeCropSource) {
           try {
             image = await uploadRepresentativeImageData(
               await makeCroppedDataUrl(),
               representativeCropFileName,
             );
           } catch (error) {
-            showToast('Image crop failed. Try again.', true);
+            const reason = error && error.message ? String(error.message) : '';
+            if (reason.includes('canvas_tainted')) {
+              showToast('Image crop blocked by browser security. Re-upload image and save again.', true);
+            } else {
+              showToast(`Image crop failed${reason ? ` (${reason})` : ''}.`, true);
+            }
             return;
           }
         }
@@ -875,7 +917,7 @@
           organisation: editorRepOrganisation ? editorRepOrganisation.value : '',
           image,
           sourceImage,
-          crop: normalizeCropFrame(),
+          crop: cropNow,
         };
 
         if (editorTarget.action === 'add') {
