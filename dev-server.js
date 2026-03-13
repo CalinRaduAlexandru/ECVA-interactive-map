@@ -18,6 +18,8 @@ const DATA_FILE = path.join(ROOT, 'editor-data.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const TRANSLATION_CACHE_FILE = path.join(ROOT, 'translations-cache.json');
 const EDITOR_STATE_KEY = 'global';
+const VERSION_LIMIT_DEFAULT = 25;
+const VERSION_LIMIT_MAX = 80;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -40,21 +42,45 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
+function parseLimit(value, fallback = VERSION_LIMIT_DEFAULT) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(1, Math.min(VERSION_LIMIT_MAX, Math.trunc(num)));
+}
+
+function hashState(state) {
+  return crypto
+    .createHash('sha1')
+    .update(JSON.stringify(state || {}))
+    .digest('hex');
+}
+
+function makeVersionSnapshot(state, note) {
+  return {
+    id: Date.now(),
+    state: state && typeof state === 'object' ? state : {},
+    note: String(note || 'save'),
+    createdAt: new Date().toISOString(),
+  };
+}
+
 function readEditorDataFromFile() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
+      if (!Array.isArray(parsed.versions)) parsed.versions = [];
       return parsed;
     }
   } catch (error) {
     // fall through
   }
-  return { state: {} };
+  return { state: {}, versions: [] };
 }
 
 function writeEditorDataToFile(data) {
-  const next = data && typeof data === 'object' ? data : { state: {} };
+  const next = data && typeof data === 'object' ? data : { state: {}, versions: [] };
+  if (!Array.isArray(next.versions)) next.versions = [];
   fs.writeFileSync(DATA_FILE, JSON.stringify(next, null, 2), 'utf8');
 }
 
@@ -185,6 +211,23 @@ async function ensurePostgresReady() {
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `)
+      .then(() =>
+        pgPool.query(`
+          CREATE TABLE IF NOT EXISTS ecva_app_state_versions (
+            id BIGSERIAL PRIMARY KEY,
+            state JSONB NOT NULL DEFAULT '{}'::jsonb,
+            state_hash TEXT NOT NULL,
+            note TEXT NOT NULL DEFAULT 'save',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+          )
+        `),
+      )
+      .then(() =>
+        pgPool.query(`
+          CREATE INDEX IF NOT EXISTS idx_ecva_app_state_versions_created_at
+          ON ecva_app_state_versions (created_at DESC)
+        `),
+      )
       .then(() => true)
       .catch((error) => {
         // eslint-disable-next-line no-console
@@ -217,6 +260,12 @@ async function writeEditorDataToPostgres(data) {
   if (!ready || !pgPool) return false;
   const state = data && data.state && typeof data.state === 'object' ? data.state : {};
   const updatedAt = data && data.updatedAt ? String(data.updatedAt) : new Date().toISOString();
+  const note = data && data.note ? String(data.note) : 'save';
+  const stateHash = hashState(state);
+  const latest = await pgPool.query(
+    'SELECT state_hash FROM ecva_app_state_versions ORDER BY id DESC LIMIT 1',
+  );
+
   await pgPool.query(
     `
       INSERT INTO ecva_app_state (id, state, updated_at)
@@ -226,7 +275,88 @@ async function writeEditorDataToPostgres(data) {
     `,
     [EDITOR_STATE_KEY, JSON.stringify(state), updatedAt],
   );
+  const latestHash =
+    latest && latest.rows && latest.rows[0] && latest.rows[0].state_hash
+      ? String(latest.rows[0].state_hash)
+      : '';
+  if (latestHash !== stateHash) {
+    await pgPool.query(
+      `
+        INSERT INTO ecva_app_state_versions (state, state_hash, note)
+        VALUES ($1::jsonb, $2, $3)
+      `,
+      [JSON.stringify(state), stateHash, note],
+    );
+  }
   return true;
+}
+
+async function listEditorVersionsFromPostgres(limit) {
+  const ready = await ensurePostgresReady();
+  if (!ready || !pgPool) return [];
+  const safeLimit = parseLimit(limit);
+  const result = await pgPool.query(
+    `
+      SELECT id, created_at, note
+      FROM ecva_app_state_versions
+      ORDER BY id DESC
+      LIMIT $1
+    `,
+    [safeLimit],
+  );
+  return (result.rows || []).map((row) => ({
+    versionId: Number(row.id),
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : '',
+    note: String((row && row.note) || 'save'),
+    store: 'postgres',
+  }));
+}
+
+async function readVersionStateFromPostgres(versionId) {
+  const ready = await ensurePostgresReady();
+  if (!ready || !pgPool) return null;
+  const idNum = Number(versionId);
+  if (!Number.isInteger(idNum) || idNum <= 0) return null;
+  const result = await pgPool.query(
+    'SELECT id, state, created_at FROM ecva_app_state_versions WHERE id = $1 LIMIT 1',
+    [idNum],
+  );
+  if (!result.rows.length) return null;
+  const row = result.rows[0];
+  return {
+    versionId: Number(row.id),
+    state: row && row.state && typeof row.state === 'object' ? row.state : {},
+    createdAt: row.created_at ? new Date(row.created_at).toISOString() : '',
+  };
+}
+
+function listEditorVersionsFromFile(limit) {
+  const safeLimit = parseLimit(limit);
+  const data = readEditorDataFromFile();
+  const versions = Array.isArray(data.versions) ? data.versions : [];
+  return versions
+    .slice(-safeLimit)
+    .reverse()
+    .map((item) => ({
+      versionId: Number(item.id),
+      createdAt: String(item.createdAt || ''),
+      note: String(item.note || 'save'),
+      store: 'file',
+    }));
+}
+
+function readVersionStateFromFile(versionId) {
+  const idNum = Number(versionId);
+  if (!Number.isInteger(idNum) || idNum <= 0) return null;
+  const data = readEditorDataFromFile();
+  const versions = Array.isArray(data.versions) ? data.versions : [];
+  const found = versions.find((item) => Number(item && item.id) === idNum);
+  if (!found || !found.state || typeof found.state !== 'object') return null;
+  return {
+    versionId: idNum,
+    state: found.state,
+    createdAt: String(found.createdAt || ''),
+  };
 }
 
 async function readEditorData() {
@@ -249,8 +379,27 @@ async function writeEditorData(data) {
     console.error('Postgres write failed:', error);
     persistedToDb = false;
   }
-  // Keep local backup for development and recovery even when DB is enabled.
-  writeEditorDataToFile(payload);
+  if (!persistedToDb) {
+    const current = readEditorDataFromFile();
+    const versions = Array.isArray(current.versions) ? current.versions : [];
+    const nextState = payload.state && typeof payload.state === 'object' ? payload.state : {};
+    const nextHash = hashState(nextState);
+    const latestHash =
+      versions.length && versions[versions.length - 1] && versions[versions.length - 1].state
+        ? hashState(versions[versions.length - 1].state)
+        : '';
+    if (latestHash !== nextHash) {
+      versions.push(makeVersionSnapshot(nextState, payload.note || 'save'));
+    }
+    writeEditorDataToFile({
+      state: nextState,
+      updatedAt: payload.updatedAt || new Date().toISOString(),
+      versions: versions.slice(-VERSION_LIMIT_MAX),
+    });
+  } else {
+    // Keep local backup for development and recovery even when DB is enabled.
+    writeEditorDataToFile(payload);
+  }
   return persistedToDb;
 }
 
@@ -384,6 +533,61 @@ const server = http.createServer(async (req, res) => {
           });
         } catch (writeError) {
           return sendJson(res, 500, { ok: false, error: 'state_write_failed' });
+        }
+      });
+      return;
+    }
+
+    return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
+  }
+
+  if (pathname === '/api/editor-data/versions') {
+    if (req.method === 'GET') {
+      try {
+        const limit = parseLimit(parsed.query && parsed.query.limit);
+        let versions = [];
+        if (pgPool) {
+          versions = await listEditorVersionsFromPostgres(limit);
+        } else {
+          versions = listEditorVersionsFromFile(limit);
+        }
+        return sendJson(res, 200, { ok: true, versions });
+      } catch (error) {
+        return sendJson(res, 500, { ok: false, error: 'versions_read_failed' });
+      }
+    }
+
+    if (req.method === 'POST') {
+      readJsonBody(req, 256 * 1024, async (error, parsedBody) => {
+        if (error) {
+          return sendJson(res, 400, { ok: false, error: 'invalid_json' });
+        }
+        const versionId = Number(parsedBody && parsedBody.versionId);
+        if (!Number.isInteger(versionId) || versionId <= 0) {
+          return sendJson(res, 400, { ok: false, error: 'invalid_version_id' });
+        }
+        try {
+          const version = pgPool
+            ? await readVersionStateFromPostgres(versionId)
+            : readVersionStateFromFile(versionId);
+          if (!version) {
+            return sendJson(res, 404, { ok: false, error: 'version_not_found' });
+          }
+          const payload = {
+            state: version.state,
+            updatedAt: new Date().toISOString(),
+            note: `rollback:${version.versionId}`,
+          };
+          const persistedToDb = await writeEditorData(payload);
+          return sendJson(res, 200, {
+            ok: true,
+            state: version.state,
+            restoredFrom: version.versionId,
+            updatedAt: payload.updatedAt,
+            store: persistedToDb ? 'postgres' : 'file',
+          });
+        } catch (rollbackError) {
+          return sendJson(res, 500, { ok: false, error: 'rollback_failed' });
         }
       });
       return;

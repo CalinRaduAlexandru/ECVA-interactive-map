@@ -35,7 +35,12 @@
 
   const WEBSITE_URL = 'https://www.ecvassociation.org';
   const EDITOR_API = '/api/editor-data';
+  const EDITOR_VERSIONS_API = '/api/editor-data/versions';
   const UPLOAD_API = '/api/upload-image';
+  const query = new URLSearchParams(window.location.search);
+  const currentLang =
+    String(query.get('lang') || query.get('pa') || query.get('language') || 'en').trim().toLowerCase() || 'en';
+  const canEditContent = currentLang === 'en';
 
   let activeCountries = [];
   let selectedCountryId = '';
@@ -52,6 +57,11 @@
   let cropPointerState = null;
   let toastTimer = null;
   let persistTimer = null;
+  let versionHistoryBtn = null;
+  let versionHistoryModal = null;
+  let versionHistoryList = null;
+  let versionHistoryCloseBtn = null;
+  let versionHistoryWired = false;
 
   function postToMap(type, payload) {
     if (!mapFrame.contentWindow) return;
@@ -91,12 +101,18 @@
     manageRoot.classList.add('is-visible');
     manageRoot.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
+    ensureVersionHistoryUi();
+    ensureVersionHistoryButton();
+    if (!canEditContent) {
+      showToast('Read-only mode. Edit and rollback are available only in English (?lang=en).', true);
+    }
     postToMap('ecva-request-active-countries');
   }
 
   function closeManage() {
     if (!manageRoot) return;
     closeEditorModal();
+    closeVersionHistoryModal();
     manageRoot.classList.remove('is-visible');
     manageRoot.setAttribute('aria-hidden', 'true');
     if (manageBody) manageBody.innerHTML = '';
@@ -117,6 +133,169 @@
     editorMode = 'entry';
     clearEditorFields();
     setEditorMode('entry');
+  }
+
+  function ensureVersionHistoryUi() {
+    if (versionHistoryModal) return;
+
+    const style = document.createElement('style');
+    style.textContent = `
+      .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:center;justify-content:center;background:rgba(15,26,34,.52);padding:16px}
+      .ecva-version-modal.is-visible{display:flex}
+      .ecva-version-dialog{width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - 28px);overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px}
+      .ecva-version-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+      .ecva-version-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
+      .ecva-version-sub{margin:0 0 10px;color:#45616f;font:600 13px/1.4 "Alexandria",sans-serif}
+      .ecva-version-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-version-list{display:grid;gap:8px}
+      .ecva-version-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
+      .ecva-version-meta{display:grid;gap:3px}
+      .ecva-version-main{font:800 14px/1.2 "Alexandria",sans-serif;color:#223d49}
+      .ecva-version-note{font:600 12px/1.25 "Alexandria",sans-serif;color:#597482}
+      .ecva-version-restore{height:36px;padding:0 12px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 12px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-version-empty{padding:14px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
+    `;
+    document.head.appendChild(style);
+
+    const modal = document.createElement('div');
+    modal.className = 'ecva-version-modal';
+    modal.setAttribute('aria-hidden', 'true');
+    modal.innerHTML = `
+      <section class="ecva-version-dialog" role="dialog" aria-modal="true" aria-label="Version history">
+        <header class="ecva-version-head">
+          <h3 class="ecva-version-title">Version history</h3>
+          <button type="button" class="ecva-version-close">Close</button>
+        </header>
+        <p class="ecva-version-sub">Each save creates a version. Restore any previous state instantly.</p>
+        <div class="ecva-version-list"></div>
+      </section>
+    `;
+    document.body.appendChild(modal);
+    versionHistoryModal = modal;
+    versionHistoryList = modal.querySelector('.ecva-version-list');
+    versionHistoryCloseBtn = modal.querySelector('.ecva-version-close');
+
+    if (versionHistoryCloseBtn) {
+      versionHistoryCloseBtn.addEventListener('click', closeVersionHistoryModal);
+    }
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) closeVersionHistoryModal();
+    });
+  }
+
+  function ensureVersionHistoryButton() {
+    if (!manageRoot || versionHistoryBtn) return;
+    const topbar = manageRoot.querySelector('.ecva-manage-topbar');
+    if (!topbar) return;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ecva-manage-close';
+    btn.textContent = 'Version history';
+    btn.addEventListener('click', openVersionHistoryModal);
+    const closeBtn = topbar.querySelector('#ecva-manage-close-btn');
+    if (closeBtn && closeBtn.parentNode === topbar) {
+      topbar.insertBefore(btn, closeBtn);
+    } else {
+      topbar.appendChild(btn);
+    }
+    versionHistoryBtn = btn;
+  }
+
+  function closeVersionHistoryModal() {
+    if (!versionHistoryModal) return;
+    versionHistoryModal.classList.remove('is-visible');
+    versionHistoryModal.setAttribute('aria-hidden', 'true');
+  }
+
+  function formatVersionDate(value) {
+    const d = new Date(String(value || ''));
+    if (!Number.isFinite(d.getTime())) return 'Unknown time';
+    return d.toLocaleString();
+  }
+
+  async function fetchVersions() {
+    const response = await fetch(`${EDITOR_VERSIONS_API}?limit=30`, { cache: 'no-store' });
+    if (!response.ok) throw new Error('versions_fetch_failed');
+    const payload = await response.json();
+    return Array.isArray(payload && payload.versions) ? payload.versions : [];
+  }
+
+  async function rollbackToVersion(versionId) {
+    const response = await fetch(EDITOR_VERSIONS_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ versionId }),
+    });
+    if (!response.ok) throw new Error('rollback_failed');
+    const payload = await response.json();
+    if (!payload || payload.ok === false || !payload.state || typeof payload.state !== 'object') {
+      throw new Error('rollback_invalid_payload');
+    }
+    postToMap('ecva-editor-apply-state', { state: payload.state });
+    if (selectedCountryId) {
+      postToMap('ecva-request-country-modal-html', { countryId: selectedCountryId });
+    }
+    showToast('Version restored.');
+  }
+
+  function renderVersionHistory(items) {
+    if (!versionHistoryList) return;
+    const list = Array.isArray(items) ? items : [];
+    if (!list.length) {
+      versionHistoryList.innerHTML = '<div class="ecva-version-empty">No saved versions yet.</div>';
+      return;
+    }
+    versionHistoryList.innerHTML = '';
+    list.forEach((item) => {
+      const row = document.createElement('article');
+      row.className = 'ecva-version-item';
+      const id = Number(item && item.versionId);
+      row.innerHTML = `
+        <div class="ecva-version-meta">
+          <div class="ecva-version-main">Version #${Number.isInteger(id) ? id : 'n/a'}</div>
+          <div class="ecva-version-note">${formatVersionDate(item && item.createdAt)} • ${String((item && item.note) || 'save')}</div>
+        </div>
+      `;
+      const restore = document.createElement('button');
+      restore.type = 'button';
+      restore.className = 'ecva-version-restore';
+      restore.textContent = 'Restore';
+      restore.disabled = !canEditContent || !Number.isInteger(id);
+      restore.title = canEditContent ? 'Restore this version' : 'Read-only mode';
+      restore.addEventListener('click', async () => {
+        if (!canEditContent || !Number.isInteger(id)) return;
+        restore.disabled = true;
+        const prev = restore.textContent;
+        restore.textContent = 'Restoring...';
+        try {
+          await rollbackToVersion(id);
+          closeVersionHistoryModal();
+        } catch (error) {
+          showToast('Could not restore this version.', true);
+          restore.disabled = false;
+          restore.textContent = prev;
+        }
+      });
+      row.appendChild(restore);
+      versionHistoryList.appendChild(row);
+    });
+  }
+
+  async function openVersionHistoryModal() {
+    ensureVersionHistoryUi();
+    if (!versionHistoryModal || !versionHistoryList) return;
+    versionHistoryModal.classList.add('is-visible');
+    versionHistoryModal.setAttribute('aria-hidden', 'false');
+    versionHistoryList.innerHTML = '<div class="ecva-version-empty">Loading versions...</div>';
+    try {
+      const versions = await fetchVersions();
+      renderVersionHistory(versions);
+    } catch (error) {
+      versionHistoryList.innerHTML = '<div class="ecva-version-empty">Could not load version history.</div>';
+    }
+    if (!versionHistoryWired) {
+      versionHistoryWired = true;
+    }
   }
 
   function setEditorMode(mode) {
@@ -708,11 +887,14 @@
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
-    addEditButtons(manageBody);
-    addRepresentativeControls(manageBody);
+    if (canEditContent) {
+      addEditButtons(manageBody);
+      addRepresentativeControls(manageBody);
+    }
   }
 
   async function persistEditorState(state) {
+    if (!canEditContent) return;
     try {
       const response = await fetch(EDITOR_API, {
         method: 'POST',
