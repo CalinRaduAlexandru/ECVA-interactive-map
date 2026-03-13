@@ -53,7 +53,7 @@
       }
 
       .map-ui-left {
-        transform: translate(104px, -24px);
+        transform: translate(80px, -24px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
@@ -444,7 +444,9 @@
         letter-spacing: 0.01em;
         opacity: 0;
         transform: translateY(2px);
-        transition: opacity 180ms ease, transform 180ms ease;
+        transition:
+          opacity 180ms ease,
+          transform 180ms ease;
       }
 
       .embed-code-status.is-visible {
@@ -869,8 +871,8 @@
         width: 100%;
         font-size: clamp(92px, 13vw, 240px);
         line-height: 0.9;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
-          sans-serif;
+        font-family:
+          "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
       }
 
       .country-modal-hero-name {
@@ -1002,8 +1004,7 @@
         width: clamp(58px, 6.2vw, 94px);
         height: clamp(58px, 6.2vw, 94px);
         color: rgba(239, 251, 255, 0.94);
-        filter:
-          drop-shadow(0 0 10px rgba(234, 249, 255, 0.42))
+        filter: drop-shadow(0 0 10px rgba(234, 249, 255, 0.42))
           drop-shadow(0 7px 14px rgba(8, 23, 31, 0.22));
         pointer-events: none;
       }
@@ -1727,29 +1728,39 @@
         opacity: 0.62;
       }
 
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-kicker,
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-title,
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-org,
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-rep-meta h5 {
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-kicker,
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-title,
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-org,
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-rep-meta
+        h5 {
         max-width: 96%;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-rep-meta h5 {
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-rep-meta
+        h5 {
         margin: 0 0 2px;
         font-size: clamp(13px, 1.05vw, 16px);
         font-weight: 700;
         line-height: 1.2;
       }
 
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-kicker {
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-kicker {
         display: none;
       }
 
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-title,
-      .country-modal-rep-slide:not([data-offset="0"]) .country-modal-representative-org {
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-title,
+      .country-modal-rep-slide:not([data-offset="0"])
+        .country-modal-representative-org {
         margin: 0;
         font-size: 11px;
       }
@@ -1983,8 +1994,8 @@
         align-self: flex-start;
         line-height: 1;
         font-size: 32px;
-        font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji",
-          sans-serif;
+        font-family:
+          "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
         display: inline-flex;
         justify-content: flex-end;
         gap: 4px;
@@ -2805,7 +2816,9 @@
         font-weight: 800;
         letter-spacing: 0.02em;
         cursor: pointer;
-        transition: transform 0.2s ease, filter 0.2s ease;
+        transition:
+          transform 0.2s ease,
+          filter 0.2s ease;
       }
 
       .ecva-admin-btn:hover {
@@ -3065,7 +3078,9 @@
         font-weight: 700;
         opacity: 0;
         transform: translateY(8px);
-        transition: opacity 0.24s ease, transform 0.24s ease;
+        transition:
+          opacity 0.24s ease,
+          transform 0.24s ease;
         pointer-events: none;
         z-index: 3200;
       }
@@ -3155,50 +3170,122 @@
     <main class="desktop-map">
       <div class="map-ui-overlay">
         <div class="map-ui-left">
-          <div id="language-switch" class="language-switch" aria-label="Language switch"></div>
-          <div id="language-switch-toast" class="language-switch-toast" aria-live="polite"></div>
+          <div
+            id="language-switch"
+            class="language-switch"
+            aria-label="Language switch"
+          ></div>
+          <div
+            id="language-switch-toast"
+            class="language-switch-toast"
+            aria-live="polite"
+          ></div>
         </div>
         <div class="map-ui-right">
-          <button id="embed-launch-btn" class="embed-launch-btn" type="button">Copy code</button>
+          <button id="embed-launch-btn" class="embed-launch-btn" type="button">
+            Copy code
+          </button>
         </div>
       </div>
-      <iframe src="Europe-svg.html" title="Europe Map" scrolling="no" style="overflow:hidden"></iframe>
+      <iframe
+        src="Europe-svg.html"
+        title="Europe Map"
+        scrolling="no"
+        style="overflow: hidden"
+      ></iframe>
     </main>
 
     <div id="embed-code-modal" class="embed-code-modal" aria-hidden="true">
-      <section class="embed-code-dialog" role="dialog" aria-modal="true" aria-label="Generate iframe code">
-        <button id="embed-code-close" class="embed-code-close" type="button" aria-label="Close">×</button>
+      <section
+        class="embed-code-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Generate iframe code"
+      >
+        <button
+          id="embed-code-close"
+          class="embed-code-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
         <h3 id="embed-code-title" class="embed-code-title">Copy code</h3>
-        <p id="embed-code-lead" class="embed-code-lead">Choose the language and copy the embed code.</p>
+        <p id="embed-code-lead" class="embed-code-lead">
+          Choose the language and copy the embed code.
+        </p>
         <p id="embed-code-hint" class="embed-code-hint">
-          Copy this code to disseminate Character Education and give wider access to existing resources and research, increasing the likelihood of national policy impact and large-scale initiatives.
+          Copy this code to disseminate Character Education and give wider
+          access to existing resources and research, increasing the likelihood
+          of national policy impact and large-scale initiatives.
         </p>
         <div class="embed-code-row">
-          <label id="embed-language-label" for="embed-language-select">Language</label>
+          <label id="embed-language-label" for="embed-language-select"
+            >Language</label
+          >
           <select id="embed-language-select"></select>
         </div>
-        <textarea id="embed-code-preview" class="embed-code-preview" readonly></textarea>
+        <textarea
+          id="embed-code-preview"
+          class="embed-code-preview"
+          readonly
+        ></textarea>
         <div class="embed-code-actions">
-          <span id="embed-copy-status" class="embed-code-status" aria-live="polite"></span>
-          <button id="embed-copy-btn" class="embed-code-copy-btn" type="button">Copy code</button>
+          <span
+            id="embed-copy-status"
+            class="embed-code-status"
+            aria-live="polite"
+          ></span>
+          <button id="embed-copy-btn" class="embed-code-copy-btn" type="button">
+            Copy code
+          </button>
         </div>
       </section>
     </div>
 
     <div id="country-modal-root" class="country-modal-root" aria-hidden="true">
-      <section class="country-modal-shell" role="dialog" aria-modal="true" aria-label="Country details">
-        <button id="country-modal-close" class="country-modal-close" type="button" aria-label="Close modal">
+      <section
+        class="country-modal-shell"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Country details"
+      >
+        <button
+          id="country-modal-close"
+          class="country-modal-close"
+          type="button"
+          aria-label="Close modal"
+        >
           <span aria-hidden="true">Close X</span>
         </button>
         <div id="country-modal-content" class="country-modal-content"></div>
       </section>
       <div id="contribute-modal" class="contribute-modal" aria-hidden="true">
-        <section class="contribute-modal-dialog" role="dialog" aria-modal="true" aria-label="Contribute questionnaire">
-          <button id="contribute-modal-close" class="contribute-modal-close" type="button" aria-label="Close contribute form">×</button>
-          <div id="contribute-confetti" class="contribute-confetti" aria-hidden="true"></div>
-          <h3 id="contribute-modal-title" class="contribute-modal-title">Contribute</h3>
+        <section
+          class="contribute-modal-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Contribute questionnaire"
+        >
+          <button
+            id="contribute-modal-close"
+            class="contribute-modal-close"
+            type="button"
+            aria-label="Close contribute form"
+          >
+            ×
+          </button>
+          <div
+            id="contribute-confetti"
+            class="contribute-confetti"
+            aria-hidden="true"
+          ></div>
+          <h3 id="contribute-modal-title" class="contribute-modal-title">
+            Contribute
+          </h3>
           <p class="contribute-modal-lead">
-            Share verified information that helps strengthen Character Education visibility in this country.
+            Share verified information that helps strengthen Character Education
+            visibility in this country.
           </p>
           <article class="contribute-modal-info">
             <h4 id="contribute-modal-info-title">Section Scope</h4>
@@ -3208,17 +3295,31 @@
             <div class="contribute-form-row">
               <label>
                 Full Name
-                <input type="text" name="name" placeholder="Your name" required />
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Your name"
+                  required
+                />
               </label>
               <label>
                 Email
-                <input type="email" name="email" placeholder="you@example.org" required />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="you@example.org"
+                  required
+                />
               </label>
             </div>
             <div class="contribute-form-row">
               <label>
                 Organisation
-                <input type="text" name="organisation" placeholder="Institution / NGO / School" />
+                <input
+                  type="text"
+                  name="organisation"
+                  placeholder="Institution / NGO / School"
+                />
               </label>
               <label>
                 Contribution Type
@@ -3233,35 +3334,69 @@
             </div>
             <label>
               Contribution Details
-              <textarea name="details" placeholder="Title, subtitle, available languages, short description, links, and contact data."></textarea>
+              <textarea
+                name="details"
+                placeholder="Title, subtitle, available languages, short description, links, and contact data."
+              ></textarea>
             </label>
             <div class="contribute-form-actions">
-              <button class="contribute-form-btn secondary" id="contribute-cancel-btn" type="button">Cancel</button>
-              <button class="contribute-form-btn primary" type="submit">Submit</button>
+              <button
+                class="contribute-form-btn secondary"
+                id="contribute-cancel-btn"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button class="contribute-form-btn primary" type="submit">
+                Submit
+              </button>
             </div>
           </form>
         </section>
       </div>
       <div id="tepace-modal" class="tepace-modal" aria-hidden="true">
-        <section class="tepace-modal-dialog" role="dialog" aria-modal="true" aria-label="TEPACE research form">
-          <button id="tepace-modal-close" class="tepace-modal-close" type="button" aria-label="Close TEPACE form">×</button>
-          <h3 id="tepace-modal-title" class="tepace-modal-title">Help us with the research</h3>
+        <section
+          class="tepace-modal-dialog"
+          role="dialog"
+          aria-modal="true"
+          aria-label="TEPACE research form"
+        >
+          <button
+            id="tepace-modal-close"
+            class="tepace-modal-close"
+            type="button"
+            aria-label="Close TEPACE form"
+          >
+            ×
+          </button>
+          <h3 id="tepace-modal-title" class="tepace-modal-title">
+            Help us with the research
+          </h3>
           <p id="tepace-modal-lead" class="tepace-modal-lead">
-            Join the TEPACE research effort and share your perspective on Character Education in your country.
+            Join the TEPACE research effort and share your perspective on
+            Character Education in your country.
           </p>
           <section class="tepace-modal-grid">
             <article class="tepace-modal-block">
               <h4>Informational Points</h4>
               <ul>
-                <li>TEPACE explores teachers’ and parents’ perspectives on Character Education across Europe.</li>
-                <li>Comparative mixed-methods design: questionnaires and interviews.</li>
+                <li>
+                  TEPACE explores teachers’ and parents’ perspectives on
+                  Character Education across Europe.
+                </li>
+                <li>
+                  Comparative mixed-methods design: questionnaires and
+                  interviews.
+                </li>
                 <li>At least 11 countries involved, with 35+ researchers.</li>
               </ul>
             </article>
             <article class="tepace-modal-block">
               <h4>Research Focus</h4>
               <ul>
-                <li>How stakeholders perceive school-based Character Education.</li>
+                <li>
+                  How stakeholders perceive school-based Character Education.
+                </li>
                 <li>What virtues are most valued by teachers and parents.</li>
                 <li>Cross-country differences in attitudes and priorities.</li>
               </ul>
@@ -3273,30 +3408,64 @@
               <div class="tepace-form-row">
                 <label>
                   Full Name
-                  <input type="text" name="name" placeholder="Your name" required />
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Your name"
+                    required
+                  />
                 </label>
                 <label>
                   Email
-                  <input type="email" name="email" placeholder="you@example.org" required />
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="you@example.org"
+                    required
+                  />
                 </label>
               </div>
               <div class="tepace-form-row">
                 <label>
                   Country
-                  <input id="tepace-country-input" type="text" name="country" placeholder="Country code" />
+                  <input
+                    id="tepace-country-input"
+                    type="text"
+                    name="country"
+                    placeholder="Country code"
+                  />
                 </label>
                 <label>
                   Organisation
-                  <input type="text" name="organisation" placeholder="School / University / NGO" />
+                  <input
+                    type="text"
+                    name="organisation"
+                    placeholder="School / University / NGO"
+                  />
                 </label>
               </div>
               <label>
                 Message
-                <textarea name="message" placeholder="Tell us why you want to contribute to this research."></textarea>
+                <textarea
+                  name="message"
+                  placeholder="Tell us why you want to contribute to this research."
+                ></textarea>
               </label>
               <div class="tepace-form-actions">
-                <button id="tepace-cancel-btn" class="tepace-form-btn secondary" type="button">Cancel</button>
-                <button id="tepace-download-btn" class="tepace-form-btn primary" type="button">Download Questionnaire</button>
+                <button
+                  id="tepace-cancel-btn"
+                  class="tepace-form-btn secondary"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button
+                  id="tepace-download-btn"
+                  class="tepace-form-btn primary"
+                  type="button"
+                >
+                  Download Questionnaire
+                </button>
               </div>
             </form>
           </section>
@@ -3305,31 +3474,77 @@
     </div>
 
     <div id="ecva-admin-hub" class="ecva-admin-hub" aria-hidden="true">
-      <section class="ecva-admin-hub-dialog" role="dialog" aria-modal="true" aria-label="ECVA hub">
-        <button id="ecva-close-hub-btn" class="ecva-admin-hub-close" type="button" aria-label="Close">×</button>
+      <section
+        class="ecva-admin-hub-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="ECVA hub"
+      >
+        <button
+          id="ecva-close-hub-btn"
+          class="ecva-admin-hub-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
         <h3>Where to?</h3>
         <div class="ecva-admin-hub-actions">
-          <button id="ecva-manage-app-btn" class="ecva-admin-btn secondary" type="button">Manage the app</button>
-          <button id="ecva-go-website-btn" class="ecva-admin-btn primary" type="button">Go to ECVA website</button>
+          <button
+            id="ecva-manage-app-btn"
+            class="ecva-admin-btn secondary"
+            type="button"
+          >
+            Manage the app
+          </button>
+          <button
+            id="ecva-go-website-btn"
+            class="ecva-admin-btn primary"
+            type="button"
+          >
+            Go to ECVA website
+          </button>
         </div>
       </section>
     </div>
 
     <div id="ecva-manage-root" class="ecva-manage-root" aria-hidden="true">
-      <section class="ecva-manage-shell" role="dialog" aria-modal="true" aria-label="Manage app">
+      <section
+        class="ecva-manage-shell"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Manage app"
+      >
         <header class="ecva-manage-topbar">
-          <div id="ecva-manage-country-tabs" class="ecva-manage-country-tabs"></div>
-          <button id="ecva-manage-close-btn" class="ecva-manage-close" type="button">Close X</button>
+          <div
+            id="ecva-manage-country-tabs"
+            class="ecva-manage-country-tabs"
+          ></div>
+          <button
+            id="ecva-manage-close-btn"
+            class="ecva-manage-close"
+            type="button"
+          >
+            Close X
+          </button>
         </header>
         <div id="ecva-manage-body" class="ecva-manage-body"></div>
       </section>
     </div>
 
     <div id="ecva-editor-modal" class="ecva-editor-modal" aria-hidden="true">
-      <section class="ecva-editor-modal-dialog" role="dialog" aria-modal="true" aria-label="Edit entry">
+      <section
+        class="ecva-editor-modal-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Edit entry"
+      >
         <h3 id="ecva-editor-heading">Edit entry</h3>
         <form id="ecva-editor-form" class="ecva-editor-form">
-          <div id="ecva-editor-entry-fields" class="ecva-editor-section is-visible">
+          <div
+            id="ecva-editor-entry-fields"
+            class="ecva-editor-section is-visible"
+          >
             <label>
               Title
               <input id="ecva-editor-title" type="text" />
@@ -3358,35 +3573,74 @@
             </label>
             <label>
               Upload Photo
-              <input id="ecva-editor-rep-image-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" />
+              <input
+                id="ecva-editor-rep-image-file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+              />
             </label>
             <section class="ecva-editor-image-cropper">
-              <div id="ecva-editor-crop-preview" class="ecva-editor-crop-preview">
+              <div
+                id="ecva-editor-crop-preview"
+                class="ecva-editor-crop-preview"
+              >
                 <img id="ecva-editor-crop-image" alt="Crop preview" />
                 <div id="ecva-editor-crop-frame" class="ecva-editor-crop-frame">
-                  <span id="ecva-editor-crop-handle" class="ecva-editor-crop-frame-handle" aria-hidden="true"></span>
+                  <span
+                    id="ecva-editor-crop-handle"
+                    class="ecva-editor-crop-frame-handle"
+                    aria-hidden="true"
+                  ></span>
                 </div>
               </div>
               <div class="ecva-editor-crop-actions">
-                <span class="ecva-editor-crop-tip">Move frame and resize from the corner handle.</span>
-                <span id="ecva-editor-crop-status" class="ecva-editor-crop-status">No new image selected.</span>
+                <span class="ecva-editor-crop-tip"
+                  >Move frame and resize from the corner handle.</span
+                >
+                <span
+                  id="ecva-editor-crop-status"
+                  class="ecva-editor-crop-status"
+                  >No new image selected.</span
+                >
               </div>
             </section>
           </div>
           <div class="ecva-editor-actions">
-            <button id="ecva-editor-remove-btn" class="ecva-admin-btn danger" type="button" style="display:none;">Remove</button>
-            <button id="ecva-editor-cancel-btn" class="ecva-admin-btn secondary" type="button">Cancel</button>
+            <button
+              id="ecva-editor-remove-btn"
+              class="ecva-admin-btn danger"
+              type="button"
+              style="display: none"
+            >
+              Remove
+            </button>
+            <button
+              id="ecva-editor-cancel-btn"
+              class="ecva-admin-btn secondary"
+              type="button"
+            >
+              Cancel
+            </button>
             <button class="ecva-admin-btn primary" type="submit">Save</button>
           </div>
         </form>
       </section>
     </div>
 
-    <div id="ecva-toast" class="ecva-toast" role="status" aria-live="polite"></div>
+    <div
+      id="ecva-toast"
+      class="ecva-toast"
+      role="status"
+      aria-live="polite"
+    ></div>
 
     <main class="mobile-accordion" id="mobile-accordion">
       <section class="mobile-legend">
-        <img class="legend-logo" src="ECVA_LOGO.png" alt="ECVA (European Character and Virtues Association) Logo" />
+        <img
+          class="legend-logo"
+          src="ECVA_LOGO.png"
+          alt="ECVA (European Character and Virtues Association) Logo"
+        />
         <div class="legend-row">
           <span class="legend-item">
             <span class="legend-swatch legend-leading">1</span>
@@ -3544,8 +3798,12 @@
           status: "In Development",
           statusClass: "dev",
           sections: {
-            Academic: ["EMC (Enseignement Moral et Civique) remains central to moral/civic instruction."],
-            Policy: ["Compulsory EMC (Enseignement Moral et Civique) with sustained government attention."],
+            Academic: [
+              "EMC (Enseignement Moral et Civique) remains central to moral/civic instruction.",
+            ],
+            Policy: [
+              "Compulsory EMC (Enseignement Moral et Civique) with sustained government attention.",
+            ],
             Practice: [
               "Implementation is broad, but virtue framing remains limited.",
             ],
@@ -3650,13 +3908,19 @@
         queryParams.get("lang") ||
         queryParams.get("pa") ||
         queryParams.get("language");
-      const activeLang = SUPPORTED_LANGUAGES.some((item) => item.code === languageQuery)
+      const activeLang = SUPPORTED_LANGUAGES.some(
+        (item) => item.code === languageQuery,
+      )
         ? languageQuery
         : "en";
-      const baseLangQuery = String(queryParams.get("baseLang") || "").trim().toLowerCase();
-      const baseLang = SUPPORTED_LANGUAGES.some((item) => item.code === baseLangQuery) && baseLangQuery !== "en"
-        ? baseLangQuery
-        : "";
+      const baseLangQuery = String(queryParams.get("baseLang") || "")
+        .trim()
+        .toLowerCase();
+      const baseLang =
+        SUPPORTED_LANGUAGES.some((item) => item.code === baseLangQuery) &&
+        baseLangQuery !== "en"
+          ? baseLangQuery
+          : "";
       const fallbackLocalLang = activeLang !== "en" ? activeLang : baseLang;
       document.documentElement.lang = activeLang;
 
@@ -3693,21 +3957,24 @@
       function postEmbedHeightToParent() {
         if (window.parent === window) return;
         const main = document.querySelector(".desktop-map");
-        const isCountryModalOpen = modalRoot && modalRoot.classList.contains("is-visible");
+        const isCountryModalOpen =
+          modalRoot && modalRoot.classList.contains("is-visible");
         let height = 0;
         if (isCountryModalOpen) {
           const shell = document.querySelector(".country-modal-shell");
           const shellHeight = shell ? shell.scrollHeight : 0;
-          height = Math.max(680, Math.ceil(shellHeight + 24));
+          height = Math.max(520, Math.ceil(shellHeight + 24));
         } else {
-          const mainHeight = main
-            ? Math.max(main.scrollHeight || 0, main.offsetHeight || 0, main.getBoundingClientRect().height || 0)
-            : 0;
-          height = Math.max(680, Math.ceil(mainHeight));
+          const mainHeight = main ? main.getBoundingClientRect().height || 0 : 0;
+          height = Math.max(520, Math.ceil(mainHeight));
         }
         if (!Number.isFinite(height) || height < 320) return;
         window.parent.postMessage(
-          { type: EMBED_HEIGHT_EVENT, source: "ecva-map", height: Math.ceil(height) },
+          {
+            type: EMBED_HEIGHT_EVENT,
+            source: "ecva-map",
+            height: Math.ceil(height),
+          },
           "*",
         );
       }
@@ -3745,7 +4012,10 @@
           const normalized = String(text || "");
           const cacheKey = `${targetLang}|${normalized}`;
           if (translationCache.has(cacheKey)) {
-            out[i] = applyLocaleFixes(translationCache.get(cacheKey), targetLang);
+            out[i] = applyLocaleFixes(
+              translationCache.get(cacheKey),
+              targetLang,
+            );
           } else {
             missing.push(normalized);
             missingIndex.push(i);
@@ -3768,7 +4038,10 @@
             ? payload.translated
             : missing;
           missing.forEach((text, idx) => {
-            const value = applyLocaleFixes(String(translated[idx] || text), targetLang);
+            const value = applyLocaleFixes(
+              String(translated[idx] || text),
+              targetLang,
+            );
             const cacheKey = `${targetLang}|${text}`;
             // Do not cache identity fallback for non-EN targets; allow future retries.
             if (!(targetLang !== "en" && value === text)) {
@@ -3787,7 +4060,11 @@
 
       async function translateElementText(scope, targetLang) {
         if (!scope || targetLang === "en") return;
-        const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, null);
+        const walker = document.createTreeWalker(
+          scope,
+          NodeFilter.SHOW_TEXT,
+          null,
+        );
         const textNodes = [];
         while (walker.nextNode()) {
           const node = walker.currentNode;
@@ -3806,10 +4083,16 @@
           if (!trimmed) continue;
           textNodes.push({ node, value: trimmed });
         }
-        const translated = await translateBatch(textNodes.map((item) => item.value), targetLang);
+        const translated = await translateBatch(
+          textNodes.map((item) => item.value),
+          targetLang,
+        );
         textNodes.forEach((item, index) => {
           if (!translated[index]) return;
-          item.node.nodeValue = item.node.nodeValue.replace(item.value, translated[index]);
+          item.node.nodeValue = item.node.nodeValue.replace(
+            item.value,
+            translated[index],
+          );
         });
       }
 
@@ -3935,30 +4218,48 @@
       const modalClose = document.getElementById("country-modal-close");
       const embedLaunchBtn = document.getElementById("embed-launch-btn");
       const languageSwitch = document.getElementById("language-switch");
-      const languageSwitchToast = document.getElementById("language-switch-toast");
+      const languageSwitchToast = document.getElementById(
+        "language-switch-toast",
+      );
       const embedCodeModal = document.getElementById("embed-code-modal");
       const embedCodeClose = document.getElementById("embed-code-close");
-      const embedLanguageSelect = document.getElementById("embed-language-select");
+      const embedLanguageSelect = document.getElementById(
+        "embed-language-select",
+      );
       const embedCodePreview = document.getElementById("embed-code-preview");
       const embedCopyBtn = document.getElementById("embed-copy-btn");
       const embedCodeTitle = document.getElementById("embed-code-title");
       const embedCodeLead = document.getElementById("embed-code-lead");
       const embedCodeHint = document.getElementById("embed-code-hint");
-      const embedLanguageLabel = document.getElementById("embed-language-label");
+      const embedLanguageLabel = document.getElementById(
+        "embed-language-label",
+      );
       const embedCopyStatus = document.getElementById("embed-copy-status");
       const contributeModal = document.getElementById("contribute-modal");
-      const contributeModalClose = document.getElementById("contribute-modal-close");
-      const contributeModalTitle = document.getElementById("contribute-modal-title");
-      const contributeModalInfoTitle = document.getElementById("contribute-modal-info-title");
-      const contributeModalInfoBody = document.getElementById("contribute-modal-info-body");
-      const contributeCancelBtn = document.getElementById("contribute-cancel-btn");
+      const contributeModalClose = document.getElementById(
+        "contribute-modal-close",
+      );
+      const contributeModalTitle = document.getElementById(
+        "contribute-modal-title",
+      );
+      const contributeModalInfoTitle = document.getElementById(
+        "contribute-modal-info-title",
+      );
+      const contributeModalInfoBody = document.getElementById(
+        "contribute-modal-info-body",
+      );
+      const contributeCancelBtn = document.getElementById(
+        "contribute-cancel-btn",
+      );
       const contributeForm = document.getElementById("contribute-form");
       const contributeConfetti = document.getElementById("contribute-confetti");
       const tepaceModal = document.getElementById("tepace-modal");
       const tepaceModalClose = document.getElementById("tepace-modal-close");
       const tepaceModalTitle = document.getElementById("tepace-modal-title");
       const tepaceModalLead = document.getElementById("tepace-modal-lead");
-      const tepaceCountryInput = document.getElementById("tepace-country-input");
+      const tepaceCountryInput = document.getElementById(
+        "tepace-country-input",
+      );
       const tepaceCancelBtn = document.getElementById("tepace-cancel-btn");
       const tepaceDownloadBtn = document.getElementById("tepace-download-btn");
       const tepaceForm = document.getElementById("tepace-form");
@@ -4009,7 +4310,11 @@
       let embedCopyStatusTimer = null;
 
       function buildEmbedCode(langCode) {
-        const target = SUPPORTED_LANGUAGES.some((item) => item.code === langCode) ? langCode : "en";
+        const target = SUPPORTED_LANGUAGES.some(
+          (item) => item.code === langCode,
+        )
+          ? langCode
+          : "en";
         const url = new URL(window.location.href);
         url.searchParams.set("lang", target);
         if (target !== "en") {
@@ -4058,7 +4363,11 @@
       }
 
       function openWithLanguage(nextLang) {
-        const target = SUPPORTED_LANGUAGES.some((item) => item.code === nextLang) ? nextLang : "en";
+        const target = SUPPORTED_LANGUAGES.some(
+          (item) => item.code === nextLang,
+        )
+          ? nextLang
+          : "en";
         if (target === activeLang) return;
         window.__ecvaLanguageSwitching = true;
         const url = new URL(window.location.href);
@@ -4094,8 +4403,14 @@
           const btn = document.createElement("button");
           btn.type = "button";
           btn.className = "language-flag-btn";
-          btn.setAttribute("aria-label", `Switch language to ${langCode.toUpperCase()}`);
-          btn.setAttribute("data-active", langCode === activeLang ? "true" : "false");
+          btn.setAttribute(
+            "aria-label",
+            `Switch language to ${langCode.toUpperCase()}`,
+          );
+          btn.setAttribute(
+            "data-active",
+            langCode === activeLang ? "true" : "false",
+          );
           btn.title = langCode.toUpperCase();
           btn.innerHTML = `<span class="language-flag-emoji">${LANGUAGE_FLAGS[langCode] || "🏳️"}</span>`;
           btn.addEventListener("click", () => openWithLanguage(langCode));
@@ -4112,7 +4427,10 @@
           "Language",
           "Copy code",
         ];
-        const [title, lead, hint, label, copy] = await translateBatch(base, activeLang);
+        const [title, lead, hint, label, copy] = await translateBatch(
+          base,
+          activeLang,
+        );
         if (embedLaunchBtn) embedLaunchBtn.textContent = title;
         if (embedCodeTitle) embedCodeTitle.textContent = title;
         if (embedCodeLead) embedCodeLead.textContent = lead;
@@ -4141,7 +4459,10 @@
 
       function notifyMapCountryOpenComplete() {
         if (!frame || !frame.contentWindow) return;
-        frame.contentWindow.postMessage({ type: "ecva-country-open-complete" }, "*");
+        frame.contentWindow.postMessage(
+          { type: "ecva-country-open-complete" },
+          "*",
+        );
       }
 
       function forceScrollToTopAcrossContexts() {
@@ -4189,8 +4510,14 @@
           piece.className = "contribute-confetti-piece";
           piece.style.left = `${Math.random() * 100}%`;
           piece.style.background = colors[i % colors.length];
-          piece.style.setProperty("--confetti-x", `${(Math.random() - 0.5) * 180}px`);
-          piece.style.setProperty("--confetti-r", `${(Math.random() - 0.5) * 540}deg`);
+          piece.style.setProperty(
+            "--confetti-x",
+            `${(Math.random() - 0.5) * 180}px`,
+          );
+          piece.style.setProperty(
+            "--confetti-r",
+            `${(Math.random() - 0.5) * 540}deg`,
+          );
           piece.style.animationDelay = `${Math.random() * 120}ms`;
           contributeConfetti.appendChild(piece);
         }
@@ -4258,8 +4585,12 @@
           const slides = Array.from(
             carousel.querySelectorAll(".country-modal-rep-slide"),
           );
-          const prevBtn = carousel.querySelector(".country-modal-rep-nav.is-prev");
-          const nextBtn = carousel.querySelector(".country-modal-rep-nav.is-next");
+          const prevBtn = carousel.querySelector(
+            ".country-modal-rep-nav.is-prev",
+          );
+          const nextBtn = carousel.querySelector(
+            ".country-modal-rep-nav.is-next",
+          );
           const dotsHost = carousel
             .closest(".country-modal-rep-carousel-wrap")
             ?.querySelector("[data-rep-dots]");
@@ -4410,7 +4741,8 @@
         contributeButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
             const pillarId = btn.getAttribute("data-contribute-pillar");
-            const pillarLabel = btn.getAttribute("data-contribute-label") || "Section";
+            const pillarLabel =
+              btn.getAttribute("data-contribute-label") || "Section";
             if (!pillarId) return;
             openContributeModal(pillarId, pillarLabel);
           });
@@ -4437,7 +4769,9 @@
         }
         modalRoot.classList.remove("is-closing");
         const localizedHtml =
-          activeLang === "en" ? (html || "") : await translateHtmlString(html || "", activeLang);
+          activeLang === "en"
+            ? html || ""
+            : await translateHtmlString(html || "", activeLang);
         modalContent.innerHTML = localizedHtml;
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
@@ -4540,7 +4874,9 @@
             "4. What barriers exist in your country for implementation?",
             "5. What policy-level actions could improve Character Education?",
           ].join("\n");
-          const blob = new Blob([questionnaire], { type: "text/plain;charset=utf-8" });
+          const blob = new Blob([questionnaire], {
+            type: "text/plain;charset=utf-8",
+          });
           const url = URL.createObjectURL(blob);
           const link = document.createElement("a");
           link.href = url;
@@ -4619,7 +4955,10 @@
       }
 
       initEmbedUiText();
-      translateElementText(document.querySelector(".mobile-legend"), activeLang);
+      translateElementText(
+        document.querySelector(".mobile-legend"),
+        activeLang,
+      );
       renderLanguageSwitch();
       scheduleEmbedHeightPost();
       window.addEventListener("load", scheduleEmbedHeightPost);
@@ -4633,7 +4972,10 @@
 
       document.addEventListener("keydown", (event) => {
         if (event.key === "Escape") {
-          if (embedCodeModal && embedCodeModal.classList.contains("is-visible")) {
+          if (
+            embedCodeModal &&
+            embedCodeModal.classList.contains("is-visible")
+          ) {
             closeEmbedCodeModal();
             return;
           }
@@ -4641,7 +4983,10 @@
             closeTepaceModal();
             return;
           }
-          if (contributeModal && contributeModal.classList.contains("is-visible")) {
+          if (
+            contributeModal &&
+            contributeModal.classList.contains("is-visible")
+          ) {
             closeContributeModal();
             return;
           }
