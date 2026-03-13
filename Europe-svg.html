@@ -1937,7 +1937,10 @@
 
                   return `
                     <section class="country-modal-detail-card" data-pillar-card="${escapeHtml(pillar.id)}" id="pillar-${escapeHtml(pillar.id)}">
-                      <h4>${escapeHtml(pillar.bottom)}</h4>
+                      <div class="country-modal-detail-header">
+                        <h4>${escapeHtml(pillar.bottom)}</h4>
+                        <button class="country-modal-detail-post-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Post</button>
+                      </div>
                       <div class="country-modal-entry-list">
                         ${entryHtml || `<p class="country-modal-detail-empty">No entries added yet.</p>`}
                       </div>
@@ -2003,7 +2006,6 @@
                   <div class="country-modal-outlook-inline">
                     ${renderOutlookPanel(countryId, info)}
                   </div>
-                  <hr class="country-modal-divider" />
                 </div>
                 <div class="country-modal-grid">
                   ${renderPillarDetailCards(countryId)}

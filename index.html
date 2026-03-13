@@ -279,6 +279,7 @@
       .country-modal-content {
         color: #1f2f37;
         padding-bottom: clamp(44px, 6vw, 96px);
+        --country-card-gap: clamp(12px, 1.4vw, 18px);
       }
 
       .contribute-modal {
@@ -1069,7 +1070,9 @@
         letter-spacing: 0.02em;
         text-transform: uppercase;
         color: #121b20;
-        font-weight: 800;
+        font-weight: 900;
+        text-align: center;
+        width: 100%;
       }
 
       .country-modal-info-wrap {
@@ -1151,11 +1154,7 @@
       }
 
       .country-modal-divider {
-        margin: 12px 0 14px;
-        height: 2px;
-        border: 0;
-        border-radius: 999px;
-        background: linear-gradient(90deg, rgba(111, 136, 148, 0.34));
+        display: none;
       }
 
       .country-modal-outlook-inline {
@@ -1655,7 +1654,7 @@
       .country-modal-grid {
         display: grid;
         grid-template-columns: 1fr;
-        gap: clamp(10px, 1.8vw, 18px);
+        gap: var(--country-card-gap);
       }
 
       @media (min-width: 620px) {
@@ -1674,6 +1673,16 @@
         background: linear-gradient(135deg, var(--card-a), var(--card-b));
         padding: 14px 16px;
         box-shadow: 0 10px 24px rgba(31, 55, 68, 0.08);
+        display: flex;
+        flex-direction: column;
+        gap: var(--country-card-gap);
+      }
+
+      .country-modal-detail-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
       }
 
       .country-modal-detail-card.is-focus-target {
@@ -1725,7 +1734,7 @@
       }
 
       .country-modal-detail-card h4 {
-        margin: 0 0 14px;
+        margin: 0;
         display: inline-flex;
         align-items: center;
         padding: 12px 18px;
@@ -1745,6 +1754,31 @@
         -webkit-user-select: none;
       }
 
+      .country-modal-detail-post-btn {
+        margin-left: auto;
+        min-height: 40px;
+        min-width: 112px;
+        border-radius: 12px;
+        border: 1px solid rgba(112, 138, 150, 0.6);
+        background: linear-gradient(180deg, #f1f7fa, #e3edf2);
+        color: #26404d;
+        font-family: "Alexandria", sans-serif;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        padding: 0 16px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .country-modal-detail-post-btn:hover {
+        background: linear-gradient(180deg, #e8f2f7, #d8e7ef);
+      }
+
       .country-modal-detail-card.is-pending {
         background: rgba(246, 249, 250, 0.9);
       }
@@ -1760,7 +1794,7 @@
       .country-modal-entry-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 10px;
+        gap: var(--country-card-gap);
         align-items: stretch;
         align-content: start;
       }
@@ -2121,6 +2155,18 @@
 
         .country-modal-grid {
           grid-template-columns: 1fr;
+        }
+
+        .country-modal-detail-header {
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .country-modal-detail-post-btn {
+          min-height: 38px;
+          min-width: 96px;
+          font-size: 12px;
+          padding: 0 12px;
         }
 
         .country-modal-outlook-panel {
@@ -4607,7 +4653,7 @@
         });
 
         const contributeButtons = modalContent.querySelectorAll(
-          ".country-modal-contribute-btn[data-contribute-pillar]",
+          ".country-modal-detail-post-btn[data-contribute-pillar], .country-modal-contribute-btn[data-contribute-pillar]",
         );
         contributeButtons.forEach((btn) => {
           btn.addEventListener("click", () => {
