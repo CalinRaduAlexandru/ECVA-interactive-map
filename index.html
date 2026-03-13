@@ -50,10 +50,26 @@
         pointer-events: none;
       }
 
+      .map-ui-left {
+        transform: translate(72px, -12px);
+      }
+
+      .map-ui-right {
+        transform: translateX(-72px);
+      }
+
       @media (max-width: 1120px) {
         .map-ui-overlay {
           top: clamp(28px, 4vw, 42px);
           width: min(980px, calc(100% - 72px));
+        }
+
+        .map-ui-left {
+          transform: translate(36px, -6px);
+        }
+
+        .map-ui-right {
+          transform: translateX(-36px);
         }
       }
 
@@ -61,6 +77,7 @@
         position: static;
         z-index: 1;
         min-height: 34px;
+        margin-top: 12px;
         padding: 0 12px;
         border-radius: 10px;
         border: 1px solid rgba(132, 151, 161, 0.62);
@@ -2698,9 +2715,17 @@
         inset: 0;
         background: rgba(20, 33, 40, 0.46);
         display: none;
-        align-items: center;
         justify-content: center;
         z-index: 3000;
+      }
+
+      .ecva-admin-hub {
+        align-items: flex-start;
+        padding-top: clamp(20px, 3vw, 38px);
+      }
+
+      .ecva-editor-modal {
+        align-items: center;
       }
 
       .ecva-admin-hub.is-visible,
@@ -4098,9 +4123,11 @@
 
       function openEmbedCodeModal() {
         if (!embedCodeModal) return;
+        const keepY = window.scrollY || window.pageYOffset || 0;
         embedCodeModal.classList.add("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "false");
         document.body.style.overflow = "hidden";
+        window.scrollTo({ top: keepY, left: 0, behavior: "auto" });
       }
 
       function closeEmbedCodeModal() {
@@ -4374,6 +4401,7 @@
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
         modalRoot.setAttribute("aria-hidden", "false");
+        window.scrollTo({ top: 0, behavior: "smooth" });
         notifyMapCountryOpenComplete();
         scheduleEmbedHeightPost();
       }
@@ -4494,7 +4522,11 @@
       }
 
       if (embedLaunchBtn) {
-        embedLaunchBtn.addEventListener("click", openEmbedCodeModal);
+        embedLaunchBtn.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          openEmbedCodeModal();
+        });
       }
 
       if (embedCodeClose) {
@@ -4510,7 +4542,9 @@
       }
 
       if (embedCopyBtn) {
-        embedCopyBtn.addEventListener("click", async () => {
+        embedCopyBtn.addEventListener("click", async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
           if (!embedCodePreview) return;
           try {
             await navigator.clipboard.writeText(embedCodePreview.value);
