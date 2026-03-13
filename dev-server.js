@@ -3,12 +3,21 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 const https = require('https');
+const crypto = require('crypto');
+
+let Pool = null;
+try {
+  ({ Pool } = require('pg'));
+} catch (error) {
+  Pool = null;
+}
 
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8081);
 const DATA_FILE = path.join(ROOT, 'editor-data.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const TRANSLATION_CACHE_FILE = path.join(ROOT, 'translations-cache.json');
+const EDITOR_STATE_KEY = 'global';
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -31,7 +40,7 @@ function sendJson(res, status, payload) {
   res.end(JSON.stringify(payload));
 }
 
-function readEditorData() {
+function readEditorDataFromFile() {
   try {
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
     const parsed = JSON.parse(raw);
@@ -44,7 +53,7 @@ function readEditorData() {
   return { state: {} };
 }
 
-function writeEditorData(data) {
+function writeEditorDataToFile(data) {
   const next = data && typeof data === 'object' ? data : { state: {} };
   fs.writeFileSync(DATA_FILE, JSON.stringify(next, null, 2), 'utf8');
 }
@@ -104,6 +113,137 @@ function parseDataUrl(dataUrl) {
   const mime = match[1].toLowerCase();
   const base64 = match[2];
   return { mime, base64 };
+}
+
+function isCloudinaryConfigured() {
+  return Boolean(
+    process.env.CLOUDINARY_CLOUD_NAME &&
+      process.env.CLOUDINARY_API_KEY &&
+      process.env.CLOUDINARY_API_SECRET,
+  );
+}
+
+function buildCloudinaryPublicId(inputName) {
+  const safeName = safeUploadFileName(inputName);
+  const ext = path.extname(safeName).toLowerCase();
+  return path.basename(safeName, ext);
+}
+
+async function uploadImageToCloudinary(dataUrl, inputName) {
+  const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || '').trim();
+  const apiKey = String(process.env.CLOUDINARY_API_KEY || '').trim();
+  const apiSecret = String(process.env.CLOUDINARY_API_SECRET || '').trim();
+  const folder = String(process.env.CLOUDINARY_FOLDER || 'ecva-map').trim();
+  const publicId = buildCloudinaryPublicId(inputName);
+  const timestamp = Math.floor(Date.now() / 1000);
+
+  const signaturePayload = `folder=${folder}&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+  const signature = crypto.createHash('sha1').update(signaturePayload).digest('hex');
+
+  const form = new FormData();
+  form.append('file', String(dataUrl || ''));
+  form.append('api_key', apiKey);
+  form.append('timestamp', String(timestamp));
+  form.append('signature', signature);
+  form.append('folder', folder);
+  form.append('public_id', publicId);
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`;
+  const response = await fetch(endpoint, { method: 'POST', body: form });
+  if (!response.ok) {
+    const details = await response.text().catch(() => '');
+    throw new Error(`cloudinary_upload_failed:${response.status}:${details}`);
+  }
+  const payload = await response.json();
+  const imageUrl = String(payload && payload.secure_url ? payload.secure_url : '').trim();
+  if (!imageUrl) {
+    throw new Error('cloudinary_upload_missing_url');
+  }
+  return imageUrl;
+}
+
+function createPostgresClient() {
+  if (!Pool || !process.env.DATABASE_URL) return null;
+  const sslEnabled = String(process.env.PGSSL || 'require').toLowerCase() !== 'disable';
+  return new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: sslEnabled ? { rejectUnauthorized: false } : false,
+  });
+}
+
+const pgPool = createPostgresClient();
+let pgReadyPromise = null;
+
+async function ensurePostgresReady() {
+  if (!pgPool) return false;
+  if (!pgReadyPromise) {
+    pgReadyPromise = pgPool
+      .query(`
+        CREATE TABLE IF NOT EXISTS ecva_app_state (
+          id TEXT PRIMARY KEY,
+          state JSONB NOT NULL DEFAULT '{}'::jsonb,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `)
+      .then(() => true)
+      .catch(() => false);
+  }
+  return pgReadyPromise;
+}
+
+async function readEditorDataFromPostgres() {
+  const ready = await ensurePostgresReady();
+  if (!ready || !pgPool) return null;
+  const result = await pgPool.query(
+    'SELECT state, updated_at FROM ecva_app_state WHERE id = $1 LIMIT 1',
+    [EDITOR_STATE_KEY],
+  );
+  if (!result.rows.length) return null;
+  const row = result.rows[0];
+  return {
+    state: row && row.state && typeof row.state === 'object' ? row.state : {},
+    updatedAt: row && row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString(),
+  };
+}
+
+async function writeEditorDataToPostgres(data) {
+  const ready = await ensurePostgresReady();
+  if (!ready || !pgPool) return false;
+  const state = data && data.state && typeof data.state === 'object' ? data.state : {};
+  const updatedAt = data && data.updatedAt ? String(data.updatedAt) : new Date().toISOString();
+  await pgPool.query(
+    `
+      INSERT INTO ecva_app_state (id, state, updated_at)
+      VALUES ($1, $2::jsonb, $3::timestamptz)
+      ON CONFLICT (id)
+      DO UPDATE SET state = EXCLUDED.state, updated_at = EXCLUDED.updated_at
+    `,
+    [EDITOR_STATE_KEY, JSON.stringify(state), updatedAt],
+  );
+  return true;
+}
+
+async function readEditorData() {
+  try {
+    const fromDb = await readEditorDataFromPostgres();
+    if (fromDb) return fromDb;
+  } catch (error) {
+    // Fall back to file store.
+  }
+  return readEditorDataFromFile();
+}
+
+async function writeEditorData(data) {
+  const payload = data && typeof data === 'object' ? data : { state: {} };
+  let persistedToDb = false;
+  try {
+    persistedToDb = await writeEditorDataToPostgres(payload);
+  } catch (error) {
+    persistedToDb = false;
+  }
+  // Keep local backup for development and recovery even when DB is enabled.
+  writeEditorDataToFile(payload);
+  return persistedToDb;
 }
 
 function httpGetJson(targetUrl) {
@@ -204,17 +344,22 @@ function safePathname(pathname) {
   return normalized.startsWith(path.sep) ? normalized.slice(1) : normalized;
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const parsed = url.parse(req.url, true);
   const pathname = parsed.pathname || '/';
 
   if (pathname === '/api/editor-data') {
     if (req.method === 'GET') {
-      return sendJson(res, 200, readEditorData());
+      try {
+        const data = await readEditorData();
+        return sendJson(res, 200, data);
+      } catch (error) {
+        return sendJson(res, 500, { ok: false, error: 'state_read_failed' });
+      }
     }
 
     if (req.method === 'POST') {
-      readJsonBody(req, 2 * 1024 * 1024, (error, parsedBody) => {
+      readJsonBody(req, 2 * 1024 * 1024, async (error, parsedBody) => {
         if (error) {
           return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
@@ -222,8 +367,16 @@ const server = http.createServer((req, res) => {
           ? parsedBody.state
           : {};
         const payload = { state, updatedAt: new Date().toISOString() };
-        writeEditorData(payload);
-        return sendJson(res, 200, { ok: true, updatedAt: payload.updatedAt });
+        try {
+          const persistedToDb = await writeEditorData(payload);
+          return sendJson(res, 200, {
+            ok: true,
+            updatedAt: payload.updatedAt,
+            store: persistedToDb ? 'postgres' : 'file',
+          });
+        } catch (writeError) {
+          return sendJson(res, 500, { ok: false, error: 'state_write_failed' });
+        }
       });
       return;
     }
@@ -235,26 +388,40 @@ const server = http.createServer((req, res) => {
     if (req.method !== 'POST') {
       return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
     }
-    readJsonBody(req, 15 * 1024 * 1024, (error, parsedBody) => {
+    readJsonBody(req, 15 * 1024 * 1024, async (error, parsedBody) => {
       if (error) {
         return sendJson(res, 400, { ok: false, error: 'invalid_json' });
       }
       const filename = safeUploadFileName(parsedBody && parsedBody.filename);
-      const parsed = parseDataUrl(parsedBody && parsedBody.dataUrl);
-      if (!parsed) {
+      const dataUrl = String(parsedBody && parsedBody.dataUrl ? parsedBody.dataUrl : '');
+      const parsedDataUrl = parseDataUrl(dataUrl);
+      if (!parsedDataUrl) {
         return sendJson(res, 400, { ok: false, error: 'invalid_data_url' });
       }
       try {
+        if (isCloudinaryConfigured()) {
+          const imageUrl = await uploadImageToCloudinary(dataUrl, filename);
+          return sendJson(res, 200, {
+            ok: true,
+            path: imageUrl,
+            provider: 'cloudinary',
+          });
+        }
         ensureUploadDir();
         const outPath = path.join(ASSETS_UPLOAD_DIR, filename);
-        const bytes = Buffer.from(parsed.base64, 'base64');
+        const bytes = Buffer.from(parsedDataUrl.base64, 'base64');
         fs.writeFileSync(outPath, bytes);
         return sendJson(res, 200, {
           ok: true,
           path: `/assets/uploads/${filename}`,
+          provider: 'local',
         });
       } catch (writeError) {
-        return sendJson(res, 500, { ok: false, error: 'write_failed' });
+        return sendJson(res, 500, {
+          ok: false,
+          error: 'write_failed',
+          details: String(writeError && writeError.message ? writeError.message : ''),
+        });
       }
     });
     return;
@@ -313,4 +480,8 @@ const server = http.createServer((req, res) => {
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`ECVA server running at http://localhost:${PORT}`);
+  // eslint-disable-next-line no-console
+  console.log(
+    `State store: ${pgPool ? 'postgres' : 'file'} | Image store: ${isCloudinaryConfigured() ? 'cloudinary' : 'local'}`,
+  );
 });
