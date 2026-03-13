@@ -896,7 +896,6 @@
         align-content: flex-start;
         align-items: flex-start;
         justify-content: space-between;
-        gap: clamp(18px, 2.1vw, 30px);
         padding-top: 8px;
         padding-inline: clamp(2px, 0.5vw, 8px);
       }
@@ -911,7 +910,6 @@
         justify-content: center;
         text-align: center;
         gap: 10px;
-        padding: 10px 8px 14px;
       }
 
       .country-modal-pillar-dot {
@@ -3910,11 +3908,19 @@
         let height = 0;
         if (isManageOpen) {
           const shellHeight = manageShell ? manageShell.scrollHeight : 0;
-          height = Math.max(520, Math.ceil(shellHeight + 24), Math.ceil(docHeight));
+          height = Math.max(
+            520,
+            Math.ceil(shellHeight + 24),
+            Math.ceil(docHeight),
+          );
         } else if (isCountryModalOpen) {
           const shell = document.querySelector(".country-modal-shell");
           const shellHeight = shell ? shell.scrollHeight : 0;
-          height = Math.max(520, Math.ceil(shellHeight + 24), Math.ceil(docHeight));
+          height = Math.max(
+            520,
+            Math.ceil(shellHeight + 24),
+            Math.ceil(docHeight),
+          );
         } else {
           const mainHeight = main
             ? main.getBoundingClientRect().height || 0
@@ -4075,7 +4081,9 @@
       }
 
       const mobileExplorer = document.getElementById("mobile-explorer");
-      const mobileCountryChips = document.getElementById("mobile-country-chips");
+      const mobileCountryChips = document.getElementById(
+        "mobile-country-chips",
+      );
       const mobileCountryGrid = document.getElementById("mobile-country-grid");
       const pendingCountryModalRequests = new Map();
       let pendingRequestCounter = 0;
@@ -4091,7 +4099,9 @@
       }
 
       function normalizeCountryCode(rawCode) {
-        const value = String(rawCode || "").trim().toUpperCase();
+        const value = String(rawCode || "")
+          .trim()
+          .toUpperCase();
         return value === "GB" ? "UK" : value;
       }
 
@@ -4106,7 +4116,7 @@
             reject(new Error("Invalid country code."));
             return;
           }
-          const requestId = `mobile-${Date.now()}-${pendingRequestCounter += 1}`;
+          const requestId = `mobile-${Date.now()}-${(pendingRequestCounter += 1)}`;
           const timeout = window.setTimeout(() => {
             pendingCountryModalRequests.delete(requestId);
             reject(new Error("Country details request timed out."));
@@ -4148,7 +4158,8 @@
       }
 
       function buildMobileExplorer() {
-        if (!mobileExplorer || !mobileCountryChips || !mobileCountryGrid) return;
+        if (!mobileExplorer || !mobileCountryChips || !mobileCountryGrid)
+          return;
         const sorted = [...countries].sort((a, b) => {
           const order = { leading: 0, momentum: 1, dev: 2 };
           const o = (order[a.statusClass] || 9) - (order[b.statusClass] || 9);
