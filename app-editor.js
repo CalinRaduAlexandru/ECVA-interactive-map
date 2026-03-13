@@ -856,11 +856,12 @@
     editorForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       if (!editorTarget) return;
-      if (editorMode === 'entry' && editorTarget.type === 'entry') {
+      const target = { ...editorTarget };
+      if (editorMode === 'entry' && target.type === 'entry') {
         postToMap('ecva-editor-update-entry', {
-          countryId: editorTarget.countryId,
-          pillarId: editorTarget.pillarId,
-          entryIndex: editorTarget.entryIndex,
+          countryId: target.countryId,
+          pillarId: target.pillarId,
+          entryIndex: target.entryIndex,
           fields: {
             title: editorTitle ? editorTitle.value : '',
             subtitle: editorSubtitle ? editorSubtitle.value : '',
@@ -872,7 +873,7 @@
         return;
       }
 
-      if (editorMode === 'representative' && editorTarget.type === 'representative') {
+      if (editorMode === 'representative' && target.type === 'representative') {
         let image = representativeImagePath;
         let sourceImage = representativeSourceImagePath || representativeCropSource || '';
         const cropNow = normalizeCropFrame();
@@ -920,15 +921,15 @@
           crop: cropNow,
         };
 
-        if (editorTarget.action === 'add') {
+        if (target.action === 'add') {
           postToMap('ecva-editor-add-representative', {
-            countryId: editorTarget.countryId,
+            countryId: target.countryId,
             representative,
           });
         } else {
           postToMap('ecva-editor-update-representative', {
-            countryId: editorTarget.countryId,
-            representativeIndex: editorTarget.representativeIndex,
+            countryId: target.countryId,
+            representativeIndex: target.representativeIndex,
             representative,
           });
         }
