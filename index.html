@@ -15,6 +15,12 @@
         color: #243843;
       }
 
+      html.ecva-scroll-locked,
+      body.ecva-scroll-locked {
+        overflow: hidden !important;
+        overscroll-behavior: contain;
+      }
+
       .desktop-map {
         height: auto;
         min-height: 0;
@@ -285,17 +291,20 @@
       .contribute-modal {
         position: fixed;
         inset: 0;
+        width: 100vw;
+        height: 100dvh;
         z-index: 1200;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
-        padding: clamp(14px, 3vw, 30px);
+        padding: 0;
         background: rgba(13, 23, 30, 0.56);
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
         transition: opacity 260ms ease;
         backdrop-filter: blur(3px);
+        overflow: hidden;
       }
 
       .tepace-modal {
@@ -648,14 +657,15 @@
       }
 
       .contribute-modal-dialog {
-        width: min(760px, 100%);
-        max-height: min(90vh, 860px);
+        width: min(760px, calc(100vw - 28px));
+        max-height: calc(90dvh - 16px);
         overflow: auto;
         border-radius: 18px;
         border: 1px solid rgba(138, 158, 169, 0.55);
         background: linear-gradient(180deg, #f9fcfe 0%, #f1f7fa 100%);
         box-shadow: 0 26px 50px rgba(12, 26, 34, 0.3);
         padding: clamp(16px, 2.2vw, 24px);
+        margin-top: 10dvh;
         transform: translateY(12px) scale(0.98);
         transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
         position: relative;
@@ -726,6 +736,19 @@
       .contribute-form {
         display: grid;
         gap: 10px;
+      }
+
+      .contribute-form[hidden] {
+        display: none !important;
+      }
+
+      .contribute-form-section-title {
+        margin: 2px 0 -2px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #2b4451;
       }
 
       .contribute-form-row {
@@ -825,6 +848,109 @@
       .contribute-form-btn.primary {
         background: linear-gradient(180deg, #2f4f5e, #203d4a);
         color: #f2f8fb;
+      }
+
+      .contribute-modal-main.is-hidden {
+        display: none;
+      }
+
+      .contribute-success-view {
+        display: grid;
+        justify-items: center;
+        text-align: center;
+        gap: 14px;
+        padding: clamp(20px, 2.3vw, 30px) 8px 4px;
+      }
+
+      .contribute-success-view[hidden] {
+        display: none !important;
+      }
+
+      .contribute-success-title {
+        margin: 0;
+        font-size: clamp(22px, 2.6vw, 30px);
+        font-weight: 800;
+        color: #24404d;
+      }
+
+      .contribute-success-message {
+        margin: 0;
+        max-width: 620px;
+        font-size: clamp(15px, 1.8vw, 18px);
+        line-height: 1.52;
+        color: #355260;
+      }
+
+      .contribute-rep-cropper {
+        display: grid;
+        gap: 10px;
+        margin-top: 4px;
+        padding: 10px;
+        border: 1px solid rgba(130, 151, 162, 0.45);
+        border-radius: 12px;
+        background: rgba(240, 247, 250, 0.8);
+      }
+
+      .contribute-rep-crop-preview {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 700 / 520;
+        border-radius: 10px;
+        border: 1px solid rgba(130, 151, 162, 0.45);
+        background: linear-gradient(140deg, #d8e4ea, #eaf2f6);
+        overflow: hidden;
+      }
+
+      .contribute-rep-crop-preview img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform-origin: center center;
+        max-width: none;
+        max-height: none;
+        user-select: none;
+        pointer-events: none;
+      }
+
+      .contribute-rep-crop-frame {
+        position: absolute;
+        border: 2px solid rgba(246, 251, 255, 0.95);
+        box-shadow: 0 0 0 999px rgba(18, 33, 42, 0.38);
+        border-radius: 8px;
+        cursor: move;
+        touch-action: none;
+        display: none;
+      }
+
+      .contribute-rep-crop-frame-handle {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        right: -10px;
+        bottom: -10px;
+        border-radius: 6px;
+        border: 2px solid rgba(246, 251, 255, 0.95);
+        background: #2e4e5f;
+        box-shadow: 0 2px 8px rgba(15, 28, 36, 0.45);
+        cursor: nwse-resize;
+      }
+
+      .contribute-rep-crop-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .contribute-rep-crop-status {
+        font-size: 12px;
+        color: #35505e;
+      }
+
+      .contribute-rep-crop-tip {
+        font-size: 12px;
+        color: #486271;
+        font-weight: 600;
       }
 
       .contribute-confetti {
@@ -2364,7 +2490,9 @@
         }
 
         .contribute-modal-dialog {
-          max-height: 92vh;
+          width: min(760px, calc(100vw - 18px));
+          max-height: 90dvh;
+          margin-top: 6dvh;
           padding: 14px;
         }
 
@@ -3781,140 +3909,267 @@
             Share verified information that helps strengthen Character Education
             visibility in this country.
           </p>
-          <article class="contribute-modal-info">
-            <h4 id="contribute-modal-info-title">Section Scope</h4>
-            <div id="contribute-modal-info-body"></div>
-          </article>
-          <form class="contribute-form" id="contribute-form">
-            <input type="hidden" name="mode" />
-            <input type="hidden" name="countryId" />
-            <input type="hidden" name="pillarId" />
-            <div class="contribute-form-row">
-              <label>
-                Your Name
-                <input
-                  type="text"
-                  name="submitterName"
-                  placeholder="Your full name"
-                  required
-                />
-              </label>
-              <label>
-                Your Email
-                <input
-                  type="email"
-                  name="submitterEmail"
-                  placeholder="you@example.org"
-                  required
-                />
-              </label>
-            </div>
-            <div class="contribute-form-row">
-              <label>
-                Country
-                <input
-                  type="text"
-                  name="countryCode"
-                  placeholder="Country code"
-                  readonly
-                />
-              </label>
-              <label>
-                Languages available for reading
-                <input
-                  type="text"
-                  name="languageAvailability"
-                  placeholder="e.g. Romanian, English, German"
-                />
-              </label>
-            </div>
-            <div class="contribute-form-row">
-              <label>
-                Pillar
-                <input
-                  type="text"
-                  name="pillarLabel"
-                  placeholder="Auto selected"
-                  readonly
-                />
-              </label>
-              <label>
-                <span id="contribute-title-label">Title</span>
-                <input
-                  id="contribute-title-input"
-                  type="text"
-                  name="title"
-                  placeholder="Article title"
-                  required
-                />
-              </label>
-            </div>
-            <label>
-              Description
-              <textarea
-                name="description"
-                placeholder="Summary, scope, impact, and any verification details."
-                required
-              ></textarea>
-            </label>
-            <label>
-              Links
-              <textarea
-                name="links"
-                placeholder="One link per line (article, source, profile, institution, etc.)"
-              ></textarea>
-            </label>
-            <label>
-              Attachments
-              <input
-                type="file"
-                name="attachments"
-                multiple
-              />
-            </label>
-            <fieldset class="contribute-form-contact">
-              <legend>Contact representative</legend>
+          <div id="contribute-modal-main" class="contribute-modal-main">
+            <article class="contribute-modal-info">
+              <h4 id="contribute-modal-info-title">Section Scope</h4>
+              <div id="contribute-modal-info-body"></div>
+            </article>
+            <form class="contribute-form" id="contribute-form">
+              <input type="hidden" name="mode" />
+              <input type="hidden" name="countryId" />
+              <input type="hidden" name="pillarId" />
               <div class="contribute-form-row">
                 <label>
-                  Name
+                  Your Name
                   <input
                     type="text"
-                    name="contactName"
-                    placeholder="Representative name"
+                    name="submitterName"
+                    placeholder="Your full name"
+                    required
                   />
                 </label>
                 <label>
-                  Role
+                  Your Email
+                  <input
+                    type="email"
+                    name="submitterEmail"
+                    placeholder="you@example.org"
+                    required
+                  />
+                </label>
+              </div>
+              <div class="contribute-form-row">
+                <label>
+                  Country
                   <input
                     type="text"
-                    name="contactRole"
-                    placeholder="Representative role"
+                    name="countryCode"
+                    placeholder="Country code"
+                    readonly
+                  />
+                </label>
+                <label>
+                  Languages available for reading
+                  <input
+                    type="text"
+                    name="languageAvailability"
+                    placeholder="e.g. Romanian, English, German"
+                  />
+                </label>
+              </div>
+              <div class="contribute-form-row">
+                <label>
+                  Pillar
+                  <input
+                    type="text"
+                    name="pillarLabel"
+                    placeholder="Auto selected"
+                    readonly
+                  />
+                </label>
+                <label>
+                  <span id="contribute-title-label">Title</span>
+                  <input
+                    id="contribute-title-input"
+                    type="text"
+                    name="title"
+                    placeholder="Article title"
+                    required
                   />
                 </label>
               </div>
               <label>
-                Email
+                Description
+                <textarea
+                  name="description"
+                  placeholder="Summary, scope, impact, and any verification details."
+                  required
+                ></textarea>
+              </label>
+              <label>
+                Links
+                <textarea
+                  name="links"
+                  placeholder="One link per line (article, source, profile, institution, etc.)"
+                ></textarea>
+              </label>
+              <label>
+                Attachments
                 <input
-                  type="email"
-                  name="contactEmail"
-                  placeholder="representative@example.org"
+                  type="file"
+                  name="attachments"
+                  multiple
                 />
               </label>
-            </fieldset>
-            <p id="contribute-form-status" class="contribute-form-status" aria-live="polite"></p>
-            <div class="contribute-form-actions">
-              <button
-                class="contribute-form-btn secondary"
-                id="contribute-cancel-btn"
-                type="button"
-              >
-                Cancel
-              </button>
-              <button class="contribute-form-btn primary" type="submit">
-                Send for review
-              </button>
-            </div>
-          </form>
+              <fieldset class="contribute-form-contact">
+                <legend>Contact representative</legend>
+                <div class="contribute-form-row">
+                  <label>
+                    Name
+                    <input
+                      type="text"
+                      name="contactName"
+                      placeholder="Representative name"
+                    />
+                  </label>
+                  <label>
+                    Role
+                    <input
+                      type="text"
+                      name="contactRole"
+                      placeholder="Representative role"
+                    />
+                  </label>
+                </div>
+                <label>
+                  Email
+                  <input
+                    type="email"
+                    name="contactEmail"
+                    placeholder="representative@example.org"
+                  />
+                </label>
+              </fieldset>
+              <p id="contribute-form-status" class="contribute-form-status" aria-live="polite"></p>
+              <div class="contribute-form-actions">
+                <button
+                  class="contribute-form-btn secondary"
+                  id="contribute-cancel-btn"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button class="contribute-form-btn primary" type="submit">
+                  Send for review
+                </button>
+              </div>
+            </form>
+            <form class="contribute-form" id="contribute-rep-form" hidden>
+              <input type="hidden" name="mode" value="representative" />
+              <input type="hidden" name="countryId" />
+              <input type="hidden" name="pillarId" value="representatives" />
+              <p class="contribute-form-section-title">Personal data</p>
+              <div class="contribute-form-row">
+                <label>
+                  Your Name
+                  <input
+                    type="text"
+                    name="submitterName"
+                    placeholder="Your full name"
+                    required
+                  />
+                </label>
+                <label>
+                  Your Email
+                  <input
+                    type="email"
+                    name="submitterEmail"
+                    placeholder="you@example.org"
+                    required
+                  />
+                </label>
+              </div>
+              <p class="contribute-form-section-title">Representative details</p>
+              <div class="contribute-form-row">
+                <label>
+                  Representative Name
+                  <input
+                    type="text"
+                    name="representativeName"
+                    placeholder="Full name"
+                    required
+                  />
+                </label>
+                <label>
+                  Representative Title
+                  <input
+                    type="text"
+                    name="representativeTitle"
+                    placeholder="Role / title"
+                    required
+                  />
+                </label>
+              </div>
+              <label>
+                Organisation
+                <input
+                  type="text"
+                  name="organisation"
+                  placeholder="Organisation name"
+                  required
+                />
+              </label>
+              <label>
+                Upload Photo
+                <input
+                  id="contribute-rep-photo"
+                  type="file"
+                  name="representativePhoto"
+                  accept="image/*"
+                  required
+                />
+              </label>
+              <section class="contribute-rep-cropper">
+                <div
+                  id="contribute-rep-crop-preview"
+                  class="contribute-rep-crop-preview"
+                >
+                  <img id="contribute-rep-crop-image" alt="Crop preview" />
+                  <div
+                    id="contribute-rep-crop-frame"
+                    class="contribute-rep-crop-frame"
+                  >
+                    <span
+                      id="contribute-rep-crop-handle"
+                      class="contribute-rep-crop-frame-handle"
+                    ></span>
+                  </div>
+                </div>
+                <div class="contribute-rep-crop-meta">
+                  <span class="contribute-rep-crop-tip"
+                    >Move frame and resize from the corner handle.</span
+                  >
+                  <span
+                    id="contribute-rep-crop-status"
+                    class="contribute-rep-crop-status"
+                    aria-live="polite"
+                    >No image selected yet.</span
+                  >
+                </div>
+              </section>
+              <p
+                id="contribute-rep-form-status"
+                class="contribute-form-status"
+                aria-live="polite"
+              ></p>
+              <div class="contribute-form-actions">
+                <button
+                  class="contribute-form-btn secondary"
+                  id="contribute-rep-cancel-btn"
+                  type="button"
+                >
+                  Cancel
+                </button>
+                <button class="contribute-form-btn primary" type="submit">
+                  Trimite solicitarea
+                </button>
+              </div>
+            </form>
+          </div>
+          <section id="contribute-success-view" class="contribute-success-view" hidden>
+            <h4 class="contribute-success-title">Felicitări!</h4>
+            <p id="contribute-success-message" class="contribute-success-message">
+              Felicitări, recomandarea a fost trimisă, un moderator al paginii o
+              va vizualiza și prelucra.
+            </p>
+            <button
+              id="contribute-success-close-btn"
+              class="contribute-form-btn primary"
+              type="button"
+            >
+              Close
+            </button>
+          </section>
         </section>
       </div>
       <div id="tepace-modal" class="tepace-modal" aria-hidden="true">
@@ -4854,19 +5109,56 @@
       const contributeModalInfoBody = document.getElementById(
         "contribute-modal-info-body",
       );
+      const contributeModalMain = document.getElementById(
+        "contribute-modal-main",
+      );
       const contributeCancelBtn = document.getElementById(
         "contribute-cancel-btn",
       );
+      const contributeRepCancelBtn = document.getElementById(
+        "contribute-rep-cancel-btn",
+      );
       const contributeForm = document.getElementById("contribute-form");
+      const contributeRepForm = document.getElementById("contribute-rep-form");
       const contributeConfetti = document.getElementById("contribute-confetti");
       const contributeFormStatus = document.getElementById(
         "contribute-form-status",
+      );
+      const contributeRepFormStatus = document.getElementById(
+        "contribute-rep-form-status",
       );
       const contributeTitleLabel = document.getElementById(
         "contribute-title-label",
       );
       const contributeTitleInput = document.getElementById(
         "contribute-title-input",
+      );
+      const contributeRepPhotoInput = document.getElementById(
+        "contribute-rep-photo",
+      );
+      const contributeRepCropPreview = document.getElementById(
+        "contribute-rep-crop-preview",
+      );
+      const contributeRepCropImage = document.getElementById(
+        "contribute-rep-crop-image",
+      );
+      const contributeRepCropFrame = document.getElementById(
+        "contribute-rep-crop-frame",
+      );
+      const contributeRepCropHandle = document.getElementById(
+        "contribute-rep-crop-handle",
+      );
+      const contributeRepCropStatus = document.getElementById(
+        "contribute-rep-crop-status",
+      );
+      const contributeSuccessView = document.getElementById(
+        "contribute-success-view",
+      );
+      const contributeSuccessMessage = document.getElementById(
+        "contribute-success-message",
+      );
+      const contributeSuccessCloseBtn = document.getElementById(
+        "contribute-success-close-btn",
       );
       const tepaceModal = document.getElementById("tepace-modal");
       const tepaceModalClose = document.getElementById("tepace-modal-close");
@@ -4875,6 +5167,7 @@
       const tepaceCancelBtn = document.getElementById("tepace-cancel-btn");
       const tepaceDownloadBtn = document.getElementById("tepace-download-btn");
       const ATTACHMENT_UPLOAD_API = "/api/upload-attachment";
+      const IMAGE_UPLOAD_API = "/api/upload-image";
       let contributeContext = {
         mode: "article",
         countryId: "",
@@ -4882,6 +5175,12 @@
         pillarId: "",
         pillarLabel: "",
       };
+      let contributeRepCropSource = "";
+      let contributeRepCropFilename = "representative-image.png";
+      let contributeRepNaturalWidth = 0;
+      let contributeRepNaturalHeight = 0;
+      let contributeRepCrop = null;
+      let contributeRepPointerState = null;
       const contributeInfoByPillar = {
         resources: {
           title: "Dedicated Resources",
@@ -4935,6 +5234,24 @@
       let modalCloseTimer = null;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
+      const REP_FORM_COPY = {
+        en: {
+          title: "Recommend a representative",
+          lead: "Share a representative suggestion for this country.",
+          success:
+            "Congratulations, your recommendation was sent. A page moderator will review and process it.",
+          submit: "Send request",
+          close: "Close",
+        },
+        ro: {
+          title: "Recomandă o personalitate reprezentativă a Educației Caracterului",
+          lead: "Trimite o recomandare de reprezentant pentru această țară.",
+          success:
+            "Felicitări, recomandarea a fost trimisă, un moderator al paginii o va vizualiza și prelucra.",
+          submit: "Trimite solicitarea",
+          close: "Închide",
+        },
+      };
 
       function buildEmbedCode(langCode) {
         const target = SUPPORTED_LANGUAGES.some(
@@ -5111,21 +5428,28 @@
 
       function openEmbedCodeModal() {
         if (!embedCodeModal) return;
-        const keepY = window.scrollY || window.pageYOffset || 0;
         embedCodeModal.classList.add("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
-        window.scrollTo({ top: keepY, left: 0, behavior: "auto" });
+        syncGlobalScrollLock();
       }
 
       function closeEmbedCodeModal() {
         if (!embedCodeModal) return;
         embedCodeModal.classList.remove("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "true");
-        if (!modalRoot || !modalRoot.classList.contains("is-visible")) {
-          document.body.style.overflow = "";
-        }
+        syncGlobalScrollLock();
         scheduleEmbedHeightPost();
+      }
+
+      function syncGlobalScrollLock() {
+        const isLocked = Boolean(
+          (embedCodeModal && embedCodeModal.classList.contains("is-visible")) ||
+            (contributeModal &&
+              contributeModal.classList.contains("is-visible")) ||
+            (tepaceModal && tepaceModal.classList.contains("is-visible")),
+        );
+        document.documentElement.classList.toggle("ecva-scroll-locked", isLocked);
+        document.body.classList.toggle("ecva-scroll-locked", isLocked);
       }
 
       function runContributeConfetti() {
@@ -5162,6 +5486,247 @@
         } else if (tone === "success") {
           contributeFormStatus.classList.add("is-success");
         }
+      }
+
+      function setContributeRepStatus(message, tone) {
+        if (!contributeRepFormStatus) return;
+        contributeRepFormStatus.textContent = String(message || "");
+        contributeRepFormStatus.classList.remove("is-error", "is-success");
+        if (tone === "error") {
+          contributeRepFormStatus.classList.add("is-error");
+        } else if (tone === "success") {
+          contributeRepFormStatus.classList.add("is-success");
+        }
+      }
+
+      function getRepFormCopy() {
+        if (activeLang === "ro") return REP_FORM_COPY.ro;
+        return REP_FORM_COPY.en;
+      }
+
+      function setContributeSuccessView(visible) {
+        if (contributeSuccessView) {
+          contributeSuccessView.hidden = !visible;
+        }
+        if (contributeModalMain) {
+          contributeModalMain.classList.toggle("is-hidden", Boolean(visible));
+        }
+      }
+
+      function resetContributeRepCrop() {
+        contributeRepCropSource = "";
+        contributeRepCropFilename = "representative-image.png";
+        contributeRepNaturalWidth = 0;
+        contributeRepNaturalHeight = 0;
+        contributeRepCrop = null;
+        contributeRepPointerState = null;
+        if (contributeRepCropImage) {
+          contributeRepCropImage.removeAttribute("src");
+          contributeRepCropImage.style.display = "none";
+          contributeRepCropImage.style.width = "0px";
+          contributeRepCropImage.style.height = "0px";
+        }
+        if (contributeRepCropFrame) {
+          contributeRepCropFrame.style.display = "none";
+          contributeRepCropFrame.style.left = "0px";
+          contributeRepCropFrame.style.top = "0px";
+          contributeRepCropFrame.style.width = "0px";
+          contributeRepCropFrame.style.height = "0px";
+        }
+        if (contributeRepCropStatus) {
+          contributeRepCropStatus.textContent = "No image selected yet.";
+        }
+      }
+
+      function getContributeRepPreviewRect() {
+        if (!contributeRepCropImage || !contributeRepCropPreview) return null;
+        const naturalW =
+          contributeRepNaturalWidth || contributeRepCropImage.naturalWidth || 0;
+        const naturalH =
+          contributeRepNaturalHeight || contributeRepCropImage.naturalHeight || 0;
+        if (!naturalW || !naturalH) return null;
+        const pw = contributeRepCropPreview.clientWidth;
+        const ph = contributeRepCropPreview.clientHeight;
+        const scale = Math.min(pw / naturalW, ph / naturalH);
+        const dw = naturalW * scale;
+        const dh = naturalH * scale;
+        const x = (pw - dw) / 2;
+        const y = (ph - dh) / 2;
+        return { naturalW, naturalH, pw, ph, dw, dh, x, y };
+      }
+
+      function clampContributeRepCropFrame(nextFrame) {
+        const rect = getContributeRepPreviewRect();
+        if (!rect || !nextFrame) return null;
+        const ratio = 700 / 520;
+        const minW = Math.max(120, rect.dw * 0.2);
+        const maxW = Math.min(rect.dw, rect.dh * ratio);
+        let w = Math.max(minW, Math.min(Number(nextFrame.w) || minW, maxW));
+        let h = w / ratio;
+        if (h > rect.dh) {
+          h = rect.dh;
+          w = h * ratio;
+        }
+        const halfW = w / 2;
+        const halfH = h / 2;
+        const minCx = rect.x + halfW;
+        const maxCx = rect.x + rect.dw - halfW;
+        const minCy = rect.y + halfH;
+        const maxCy = rect.y + rect.dh - halfH;
+        const cx = Math.max(minCx, Math.min(Number(nextFrame.cx) || minCx, maxCx));
+        const cy = Math.max(minCy, Math.min(Number(nextFrame.cy) || minCy, maxCy));
+        return { cx, cy, w, h };
+      }
+
+      function applyContributeRepCropUi() {
+        if (!contributeRepCropFrame || !contributeRepCrop) return;
+        const frame = clampContributeRepCropFrame(contributeRepCrop);
+        if (!frame) return;
+        contributeRepCrop = frame;
+        contributeRepCropFrame.style.display = "block";
+        contributeRepCropFrame.style.width = `${frame.w}px`;
+        contributeRepCropFrame.style.height = `${frame.h}px`;
+        contributeRepCropFrame.style.left = `${frame.cx - frame.w / 2}px`;
+        contributeRepCropFrame.style.top = `${frame.cy - frame.h / 2}px`;
+      }
+
+      function initializeContributeRepCrop(cropNorm) {
+        const rect = getContributeRepPreviewRect();
+        if (!rect) return;
+        if (cropNorm && typeof cropNorm === "object") {
+          const cx =
+            rect.x +
+            ((Number(cropNorm.x) || 0) + (Number(cropNorm.w) || 0) / 2) * rect.dw;
+          const cy =
+            rect.y +
+            ((Number(cropNorm.y) || 0) + (Number(cropNorm.h) || 0) / 2) * rect.dh;
+          const w = Math.max(10, (Number(cropNorm.w) || 0.7) * rect.dw);
+          contributeRepCrop = { cx, cy, w, h: w / (700 / 520) };
+        } else {
+          const maxW = Math.min(rect.dw, rect.dh * (700 / 520));
+          const w = maxW * 0.72;
+          contributeRepCrop = {
+            cx: rect.x + rect.dw / 2,
+            cy: rect.y + rect.dh / 2,
+            w,
+            h: w / (700 / 520),
+          };
+        }
+        applyContributeRepCropUi();
+      }
+
+      function normalizeContributeRepCrop() {
+        const rect = getContributeRepPreviewRect();
+        const frame = clampContributeRepCropFrame(contributeRepCrop);
+        if (!rect || !frame) return null;
+        const x = (frame.cx - frame.w / 2 - rect.x) / rect.dw;
+        const y = (frame.cy - frame.h / 2 - rect.y) / rect.dh;
+        const w = frame.w / rect.dw;
+        const h = frame.h / rect.dh;
+        return {
+          x: Math.max(0, Math.min(1, x)),
+          y: Math.max(0, Math.min(1, y)),
+          w: Math.max(0.02, Math.min(1, w)),
+          h: Math.max(0.02, Math.min(1, h)),
+        };
+      }
+
+      function setContributeRepCropPreview(source, cropNorm) {
+        contributeRepCropSource = String(source || "").trim();
+        contributeRepNaturalWidth = 0;
+        contributeRepNaturalHeight = 0;
+        if (!contributeRepCropImage) return;
+        if (!contributeRepCropSource) {
+          resetContributeRepCrop();
+          return;
+        }
+        contributeRepCropImage.style.display = "block";
+        if (/^https?:\/\//i.test(contributeRepCropSource)) {
+          contributeRepCropImage.crossOrigin = "anonymous";
+        } else {
+          contributeRepCropImage.removeAttribute("crossorigin");
+        }
+        contributeRepCropImage.src = contributeRepCropSource;
+        contributeRepCropImage.onload = () => {
+          contributeRepNaturalWidth = contributeRepCropImage.naturalWidth || 0;
+          contributeRepNaturalHeight = contributeRepCropImage.naturalHeight || 0;
+          const rect = getContributeRepPreviewRect();
+          if (!rect) return;
+          contributeRepCropImage.style.width = `${rect.dw}px`;
+          contributeRepCropImage.style.height = `${rect.dh}px`;
+          contributeRepCropImage.style.transform = "translate(-50%, -50%)";
+          initializeContributeRepCrop(cropNorm);
+          if (contributeRepCropStatus) {
+            contributeRepCropStatus.textContent =
+              "Move frame and resize from the corner handle.";
+          }
+        };
+      }
+
+      function uploadContributeImage(dataUrl, filename) {
+        return fetch(IMAGE_UPLOAD_API, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: filename || "representative-image.png",
+            dataUrl: String(dataUrl || ""),
+          }),
+        }).then(async (response) => {
+          let payload = null;
+          try {
+            payload = await response.json();
+          } catch (_error) {
+            payload = null;
+          }
+          if (!response.ok || (payload && payload.ok === false)) {
+            const details =
+              payload && payload.details ? ` (${payload.details})` : "";
+            throw new Error(`upload_image_failed${details}`);
+          }
+          const path = payload && payload.path ? String(payload.path) : "";
+          if (!path) throw new Error("upload_image_missing_path");
+          return path;
+        });
+      }
+
+      function makeContributeRepCroppedDataUrl() {
+        return new Promise((resolve, reject) => {
+          if (!contributeRepCropSource) {
+            reject(new Error("no_source"));
+            return;
+          }
+          const img = new Image();
+          if (/^https?:\/\//i.test(contributeRepCropSource)) {
+            img.crossOrigin = "anonymous";
+          }
+          img.onload = () => {
+            const crop = normalizeContributeRepCrop();
+            if (!crop) {
+              reject(new Error("crop_not_ready"));
+              return;
+            }
+            const canvas = document.createElement("canvas");
+            canvas.width = 700;
+            canvas.height = 520;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) {
+              reject(new Error("canvas_not_available"));
+              return;
+            }
+            const sx = crop.x * img.naturalWidth;
+            const sy = crop.y * img.naturalHeight;
+            const sw = crop.w * img.naturalWidth;
+            const sh = crop.h * img.naturalHeight;
+            ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 700, 520);
+            try {
+              resolve(canvas.toDataURL("image/png"));
+            } catch (_error) {
+              reject(new Error("canvas_tainted"));
+            }
+          };
+          img.onerror = () => reject(new Error("image_load_failed"));
+          img.src = contributeRepCropSource;
+        });
       }
 
       async function uploadContributeAttachments(files) {
@@ -5226,10 +5791,9 @@
           title: `${pillarLabel || "Section"} Contribution`,
           paragraphs: ["Provide verified details to enrich this section."],
         };
+        const repCopy = getRepFormCopy();
         const modeTitle =
-          mode === "representative"
-            ? "Recommend a representative"
-            : "Suggest an article";
+          mode === "representative" ? repCopy.title : "Suggest an article";
         if (contributeModalTitle) {
           contributeModalTitle.textContent = modeTitle;
         }
@@ -5239,8 +5803,16 @@
         contributeModalInfoBody.innerHTML = info.paragraphs
           .map((p) => `<p>${p}</p>`)
           .join("");
+        setContributeSuccessView(false);
+        if (contributeSuccessMessage) {
+          contributeSuccessMessage.textContent = repCopy.success;
+        }
+        if (contributeSuccessCloseBtn) {
+          contributeSuccessCloseBtn.textContent = repCopy.close;
+        }
         if (contributeForm) {
           contributeForm.reset();
+          contributeForm.hidden = mode === "representative";
           const modeInput = contributeForm.querySelector('[name="mode"]');
           const countryInput = contributeForm.querySelector('[name="countryId"]');
           const countryCodeInput = contributeForm.querySelector(
@@ -5259,28 +5831,42 @@
               mode === "representative"
                 ? "Representatives"
                 : (pillarLabel || "Pillar");
-
           if (contributeTitleLabel) {
-            contributeTitleLabel.textContent =
-              mode === "representative" ? "Representative Name" : "Title";
+            contributeTitleLabel.textContent = "Title";
           }
           if (contributeTitleInput) {
-            contributeTitleInput.placeholder =
-              mode === "representative"
-                ? "Representative full name"
-                : "Article title";
+            contributeTitleInput.placeholder = "Article title";
           }
         }
+        if (contributeRepForm) {
+          contributeRepForm.reset();
+          contributeRepForm.hidden = mode !== "representative";
+          const repCountryInput = contributeRepForm.querySelector(
+            '[name="countryId"]',
+          );
+          const repPillarInput = contributeRepForm.querySelector(
+            '[name="pillarId"]',
+          );
+          if (repCountryInput) repCountryInput.value = countryId;
+          if (repPillarInput) repPillarInput.value = "representatives";
+          const repSubmitBtn = contributeRepForm.querySelector('[type="submit"]');
+          if (repSubmitBtn) repSubmitBtn.textContent = repCopy.submit;
+        }
+        resetContributeRepCrop();
         const leadCountry = countryName || countryId || "this country";
         const leadText =
           mode === "representative"
-            ? `Share a representative suggestion for ${leadCountry}.`
+            ? activeLang === "ro"
+              ? `Trimite o recomandare de reprezentant pentru ${leadCountry}.`
+              : `Share a representative suggestion for ${leadCountry}.`
             : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
         const leadNode = contributeModal.querySelector(".contribute-modal-lead");
         if (leadNode) leadNode.textContent = leadText;
         setContributeStatus("");
+        setContributeRepStatus("");
         contributeModal.classList.add("is-visible");
         contributeModal.setAttribute("aria-hidden", "false");
+        syncGlobalScrollLock();
         runContributeConfetti();
       }
 
@@ -5289,6 +5875,10 @@
         contributeModal.classList.remove("is-visible");
         contributeModal.setAttribute("aria-hidden", "true");
         setContributeStatus("");
+        setContributeRepStatus("");
+        setContributeSuccessView(false);
+        resetContributeRepCrop();
+        syncGlobalScrollLock();
       }
 
       function openTepaceModal(countryLabel, countryFlag) {
@@ -5303,12 +5893,14 @@
         }
         tepaceModal.classList.add("is-visible");
         tepaceModal.setAttribute("aria-hidden", "false");
+        syncGlobalScrollLock();
       }
 
       function closeTepaceModal() {
         if (!tepaceModal) return;
         tepaceModal.classList.remove("is-visible");
         tepaceModal.setAttribute("aria-hidden", "true");
+        syncGlobalScrollLock();
       }
 
       function wireOutlookCarousels() {
@@ -5636,11 +6228,18 @@
         contributeCancelBtn.addEventListener("click", closeContributeModal);
       }
 
+      if (contributeRepCancelBtn) {
+        contributeRepCancelBtn.addEventListener("click", closeContributeModal);
+      }
+
+      if (contributeSuccessCloseBtn) {
+        contributeSuccessCloseBtn.addEventListener("click", closeContributeModal);
+      }
+
       if (contributeForm) {
         contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
           const formData = new FormData(contributeForm);
-          const mode = String(formData.get("mode") || "article").trim();
           const countryId = String(formData.get("countryId") || "")
             .trim()
             .toUpperCase();
@@ -5654,7 +6253,7 @@
             setContributeStatus("Missing country context.", "error");
             return;
           }
-          if (mode !== "representative" && !pillarId) {
+          if (!pillarId) {
             setContributeStatus("Missing pillar context.", "error");
             return;
           }
@@ -5680,13 +6279,10 @@
               id: `${countryId}-${Date.now()}-${Math.random()
                 .toString(36)
                 .slice(2, 7)}`,
-              type: mode === "representative" ? "representative" : "article",
+              type: "article",
               status: "new",
-              pillarId: mode === "representative" ? "representatives" : pillarId,
-              pillarLabel:
-                mode === "representative"
-                  ? "Representatives"
-                  : (pillarLabel || "Pillar"),
+              pillarId,
+              pillarLabel: pillarLabel || "Pillar",
               title,
               description,
               languageAvailability: String(
@@ -5726,6 +6322,179 @@
             if (submitBtn) submitBtn.disabled = false;
           }
         });
+      }
+
+      if (contributeRepForm) {
+        contributeRepForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          const formData = new FormData(contributeRepForm);
+          const countryId = String(formData.get("countryId") || "")
+            .trim()
+            .toUpperCase();
+          const representativeName = String(
+            formData.get("representativeName") || "",
+          ).trim();
+          const representativeTitle = String(
+            formData.get("representativeTitle") || "",
+          ).trim();
+          const organisation = String(formData.get("organisation") || "").trim();
+          const submitterName = String(formData.get("submitterName") || "").trim();
+          const submitterEmail = String(formData.get("submitterEmail") || "").trim();
+
+          if (!countryId) {
+            setContributeRepStatus("Missing country context.", "error");
+            return;
+          }
+          if (
+            !representativeName ||
+            !representativeTitle ||
+            !organisation ||
+            !submitterName ||
+            !submitterEmail
+          ) {
+            setContributeRepStatus("Please complete all required fields.", "error");
+            return;
+          }
+          const crop = normalizeContributeRepCrop();
+          if (!crop || !contributeRepCropSource) {
+            setContributeRepStatus(
+              "Please upload and frame the representative photo.",
+              "error",
+            );
+            return;
+          }
+
+          setContributeRepStatus("Uploading image...", "");
+          const submitBtn = contributeRepForm.querySelector('[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
+          try {
+            const croppedDataUrl = await makeContributeRepCroppedDataUrl();
+            const imagePath = await uploadContributeImage(
+              croppedDataUrl,
+              contributeRepCropFilename,
+            );
+            const submission = {
+              id: `${countryId}-${Date.now()}-${Math.random()
+                .toString(36)
+                .slice(2, 7)}`,
+              type: "representative",
+              status: "new",
+              pillarId: "representatives",
+              pillarLabel: "Representatives",
+              title: representativeName,
+              description: `${representativeTitle} • ${organisation}`,
+              languageAvailability: "",
+              links: [],
+              attachments: [],
+              submittedBy: {
+                name: submitterName,
+                email: submitterEmail,
+              },
+              representativeContact: {
+                name: "",
+                role: "",
+                email: "",
+              },
+              representativeDraft: {
+                name: representativeName,
+                title: representativeTitle,
+                organisation,
+                image: imagePath,
+                sourceImage: imagePath,
+                crop,
+              },
+              createdAt: new Date().toISOString(),
+            };
+            if (
+              !postToMapFrame("ecva-editor-add-submission", {
+                countryId,
+                submission,
+              })
+            ) {
+              throw new Error("map_frame_not_ready");
+            }
+            setContributeRepStatus("Suggestion sent for review.", "success");
+            setContributeSuccessView(true);
+          } catch (_error) {
+            setContributeRepStatus(
+              "Could not submit your recommendation. Please try again.",
+              "error",
+            );
+          } finally {
+            if (submitBtn) submitBtn.disabled = false;
+          }
+        });
+      }
+
+      if (contributeRepPhotoInput) {
+        contributeRepPhotoInput.addEventListener("change", () => {
+          const file =
+            contributeRepPhotoInput.files && contributeRepPhotoInput.files[0];
+          if (!file) {
+            resetContributeRepCrop();
+            return;
+          }
+          contributeRepCropFilename = file.name || "representative-image.png";
+          const reader = new FileReader();
+          reader.onerror = () => {
+            setContributeRepStatus("Could not read image file.", "error");
+          };
+          reader.onload = () => {
+            setContributeRepCropPreview(String(reader.result || ""), null);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (contributeRepCropFrame) {
+        contributeRepCropFrame.addEventListener("pointerdown", (event) => {
+          if (!(event.target instanceof Element)) return;
+          if (!contributeRepCrop) return;
+          const isHandle = event.target === contributeRepCropHandle;
+          contributeRepPointerState = {
+            mode: isHandle ? "resize" : "move",
+            startX: event.clientX,
+            startY: event.clientY,
+            startFrame: { ...contributeRepCrop },
+          };
+          contributeRepCropFrame.setPointerCapture(event.pointerId);
+          event.preventDefault();
+        });
+        contributeRepCropFrame.addEventListener("pointermove", (event) => {
+          if (!contributeRepPointerState || !contributeRepCrop) return;
+          const dx = event.clientX - contributeRepPointerState.startX;
+          const dy = event.clientY - contributeRepPointerState.startY;
+          if (contributeRepPointerState.mode === "move") {
+            contributeRepCrop = clampContributeRepCropFrame({
+              ...contributeRepPointerState.startFrame,
+              cx: contributeRepPointerState.startFrame.cx + dx,
+              cy: contributeRepPointerState.startFrame.cy + dy,
+            });
+          } else {
+            const ratio = 700 / 520;
+            const start = contributeRepPointerState.startFrame;
+            const delta = Math.max(dx, dy * ratio);
+            const nextW = Math.max(40, start.w + delta);
+            contributeRepCrop = clampContributeRepCropFrame({
+              cx: start.cx + (nextW - start.w) / 2,
+              cy: start.cy + (nextW / ratio - start.h) / 2,
+              w: nextW,
+            });
+          }
+          applyContributeRepCropUi();
+          event.preventDefault();
+        });
+        const endPointer = (event) => {
+          if (
+            contributeRepPointerState &&
+            contributeRepCropFrame.hasPointerCapture(event.pointerId)
+          ) {
+            contributeRepCropFrame.releasePointerCapture(event.pointerId);
+          }
+          contributeRepPointerState = null;
+        };
+        contributeRepCropFrame.addEventListener("pointerup", endPointer);
+        contributeRepCropFrame.addEventListener("pointercancel", endPointer);
       }
 
       if (tepaceModalClose) {
@@ -5847,12 +6616,18 @@
         activeLang,
       );
       renderLanguageSwitch();
+      syncGlobalScrollLock();
       scheduleEmbedHeightPost();
       window.addEventListener("load", () => {
         scheduleEmbedHeightPost();
         preloadPillarIcons();
       });
-      window.addEventListener("resize", scheduleEmbedHeightPost);
+      window.addEventListener("resize", () => {
+        scheduleEmbedHeightPost();
+        if (!contributeRepCropSource) return;
+        const cropNorm = normalizeContributeRepCrop();
+        setContributeRepCropPreview(contributeRepCropSource, cropNorm);
+      });
       if (document.body && window.MutationObserver) {
         const mo = new MutationObserver(() => {
           scheduleEmbedHeightPost();
