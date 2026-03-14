@@ -172,6 +172,28 @@
       display: none;
     }
 
+    .pending-country-hint {
+      pointer-events: all;
+      opacity: 0.92;
+      animation: pillFadeIn 0.28s ease both;
+    }
+
+    .pending-country-hint .hint-bg {
+      fill: rgba(242, 247, 249, 0.94);
+      stroke: #6f8894;
+      stroke-width: 1.8;
+    }
+
+    .pending-country-hint .hint-text {
+      fill: #3a5461;
+      font-family: "Alexandria", sans-serif;
+      font-size: 12px;
+      font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      user-select: none;
+    }
+
     .country-label .pill-bg {
       fill: rgba(243, 247, 248, 0.95);
       stroke: #6f8894;
@@ -1011,6 +1033,45 @@
               RO: "development",
               SE: "development",
             };
+
+            function getDisplayCountryCode(countryCode) {
+              const normalized = String(countryCode || "").trim().toUpperCase();
+              return normalized === "GB" ? "UK" : normalized;
+            }
+
+            function ensureCountryData(countryCode) {
+              const code = String(countryCode || "").trim().toUpperCase();
+              if (!code) return null;
+              const pathNode = document.getElementById(code);
+              if (!pathNode) return null;
+              const fallbackName = String(pathNode.getAttribute("name") || code).trim();
+              const fallbackFlag = toFlagEmoji(code) || "🏳️";
+              if (!countryInfo[code] || typeof countryInfo[code] !== "object") {
+                countryInfo[code] = {
+                  flag: fallbackFlag,
+                  name: fallbackName,
+                  academic: [],
+                  policy: [],
+                  practice: [],
+                  outlook: [
+                    `${fallbackName} is preparing to enter the ECVA family and new information will be available soon.`,
+                  ],
+                };
+              } else {
+                countryInfo[code].flag = String(countryInfo[code].flag || fallbackFlag).trim() || fallbackFlag;
+                countryInfo[code].name = String(countryInfo[code].name || fallbackName).trim() || fallbackName;
+                if (!Array.isArray(countryInfo[code].outlook)) {
+                  countryInfo[code].outlook = [];
+                }
+              }
+              if (!pillarConfigByCountry[code] || typeof pillarConfigByCountry[code] !== "object") {
+                pillarConfigByCountry[code] = makeCountryPillars(countryInfo[code].flag || fallbackFlag);
+              }
+              if (!Array.isArray(representativesByCountry[code])) {
+                representativesByCountry[code] = [];
+              }
+              return countryInfo[code];
+            }
 
             async function translateMapLegendIfNeeded() {
               if (mapLang === "en") return;
@@ -2005,7 +2066,7 @@
             }
 
             function renderModalHtml(countryId) {
-              const info = countryInfo[countryId];
+              const info = ensureCountryData(countryId);
               if (!info) return "";
               return `
                 <div class="country-modal-header">
@@ -2030,7 +2091,7 @@
             }
 
             function openParentModal(countryId) {
-              if (!countryInfo[countryId]) return;
+              ensureCountryData(countryId);
               if (!isStatusActive(countryStatus[countryId])) return;
               window.parent.postMessage(
                 {
@@ -2055,7 +2116,7 @@
               if (!normalizedCode) return null;
               const pathNode = document.getElementById(normalizedCode);
               if (!pathNode) return null;
-              const info = countryInfo[normalizedCode] || {};
+              const info = ensureCountryData(normalizedCode) || {};
               const statusValue = normalizeStatusValue(countryStatus[normalizedCode] || "no_data");
               return {
                 code: normalizedCode,
@@ -2079,7 +2140,7 @@
 
             function getActiveCountriesPayload() {
               return getAllCountriesPayload().filter(
-                (country) => isStatusActive(country.statusValue) && !!countryInfo[country.code],
+                (country) => isStatusActive(country.statusValue),
               );
             }
 
@@ -2256,13 +2317,16 @@
               legend.setAttribute("y", y.toFixed(1));
             }
 
-            const labels = document.querySelectorAll("#country-labels .country-label");
+            const initialLabels = Array.from(
+              document.querySelectorAll("#country-labels .country-label"),
+            );
             const mapCountryPaths = Array.from(document.querySelectorAll("path[id][name]"));
             const labelsLayer = document.getElementById("country-labels");
             const trailLayer = document.getElementById("country-trail-layer");
             const mapRoot = document.querySelector("svg");
             const labelByCountry = new Map();
             const pathByCountry = new Map();
+            const pendingHintByCountry = new Map();
             const statusClassList = [
               "is-status-leading",
               "is-status-high_momentum",
@@ -2273,6 +2337,10 @@
             let hoveredCountryPath = null;
             let activeTrail = null;
             let loadingCountryCode = "";
+
+            function getAllLabelNodes() {
+              return Array.from(document.querySelectorAll("#country-labels .country-label"));
+            }
 
             function bringCountryAbove(pathEl) {
               if (!pathEl || !pathEl.parentNode) return;
@@ -2310,7 +2378,7 @@
             }
 
             function clearAllCountryHoverStates(exceptPath) {
-              labels.forEach((labelNode) => {
+              getAllLabelNodes().forEach((labelNode) => {
                 const code = labelNode.getAttribute("data-country");
                 const pathNode = code ? document.getElementById(code) : null;
                 if (!pathNode || pathNode === exceptPath) return;
@@ -2365,14 +2433,200 @@
               }, 4500);
             }
 
+            function ensurePendingHintLayer() {
+              if (!mapRoot || !labelsLayer) return null;
+              let layer = document.getElementById("pending-country-hints");
+              if (layer) return layer;
+              layer = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              layer.setAttribute("id", "pending-country-hints");
+              const parent = labelsLayer.parentNode;
+              if (parent) {
+                parent.insertBefore(layer, labelsLayer);
+              } else {
+                mapRoot.appendChild(layer);
+              }
+              return layer;
+            }
+
+            function setPendingCountryHint(countryId, visible) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code) return;
+              const existing = pendingHintByCountry.get(code);
+              if (!visible) {
+                if (existing && existing.parentNode) {
+                  existing.parentNode.removeChild(existing);
+                }
+                pendingHintByCountry.delete(code);
+                return;
+              }
+
+              const pathNode = pathByCountry.get(code) || document.getElementById(code);
+              if (!pathNode) return;
+              const info = ensureCountryData(code);
+              if (!info) return;
+              const layer = ensurePendingHintLayer();
+              if (!layer) return;
+
+              const box = pathNode.getBBox();
+              const centerX = box.x + box.width / 2;
+              const centerY = box.y + box.height / 2;
+
+              let marker = existing;
+              if (!marker) {
+                marker = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                marker.setAttribute("class", "pending-country-hint");
+                marker.setAttribute("data-country", code);
+
+                const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                circle.setAttribute("class", "hint-bg");
+                circle.setAttribute("cx", "0");
+                circle.setAttribute("cy", "0");
+                circle.setAttribute("r", "9.5");
+
+                const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                text.setAttribute("class", "hint-text");
+                text.setAttribute("x", "0");
+                text.setAttribute("y", "0");
+                text.textContent = "?";
+
+                marker.appendChild(circle);
+                marker.appendChild(text);
+                layer.appendChild(marker);
+                pendingHintByCountry.set(code, marker);
+              }
+              marker.setAttribute(
+                "transform",
+                `translate(${centerX.toFixed(1)} ${centerY.toFixed(1)})`,
+              );
+              const tipText = `${info.name} is preparing to enter the ECVA family and new information will be available soon!`;
+              marker.setAttribute("aria-label", tipText);
+              const titleNode = marker.querySelector("title") || document.createElementNS("http://www.w3.org/2000/svg", "title");
+              titleNode.textContent = tipText;
+              if (!titleNode.parentNode) {
+                marker.appendChild(titleNode);
+              }
+            }
+
+            function createCountryLabel(countryId) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code || !labelsLayer) return null;
+              const existing = labelByCountry.get(code);
+              if (existing) return existing;
+              const info = ensureCountryData(code);
+              if (!info) return null;
+              const label = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              label.setAttribute("class", "country-label");
+              label.setAttribute("data-country", code);
+
+              const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              bg.setAttribute("class", "pill-bg");
+
+              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              text.setAttribute("class", "pill-text");
+              text.setAttribute("x", "0");
+              text.setAttribute("y", "0");
+
+              const flag = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+              flag.setAttribute("class", "flag");
+              flag.textContent = info.flag || toFlagEmoji(code) || "🏳️";
+
+              const codeNode = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+              codeNode.setAttribute("class", "code");
+              codeNode.setAttribute("dx", "0");
+              codeNode.textContent = getDisplayCountryCode(code);
+
+              text.appendChild(flag);
+              text.appendChild(codeNode);
+              label.appendChild(bg);
+              label.appendChild(text);
+              labelsLayer.appendChild(label);
+              labelByCountry.set(code, label);
+              return label;
+            }
+
+            function positionAndSizeCountryLabel(labelNode, countryCode, labelIndex) {
+              if (!labelNode) return;
+              const code = String(countryCode || "").trim().toUpperCase();
+              const countryPath = pathByCountry.get(code) || document.getElementById(code);
+              if (!countryPath) return;
+              const info = ensureCountryData(code);
+              const textNode = labelNode.querySelector(".pill-text");
+              if (textNode) {
+                const flagNode = textNode.querySelector(".flag");
+                const codeNode = textNode.querySelector(".code");
+                if (flagNode) {
+                  flagNode.textContent = info && info.flag ? info.flag : toFlagEmoji(code) || "🏳️";
+                }
+                if (codeNode) {
+                  codeNode.textContent = getDisplayCountryCode(code);
+                }
+              }
+              labelNode.style.setProperty(
+                "--pill-delay",
+                `${(1.48 + Math.max(0, Number(labelIndex) || 0) * 0.045).toFixed(3)}s`,
+              );
+              const box = countryPath.getBBox();
+              const centerX = box.x + box.width / 2;
+              const centerY = box.y + box.height / 2;
+              labelNode.style.setProperty("--tx", `${centerX.toFixed(1)}px`);
+              labelNode.style.setProperty("--ty", `${centerY.toFixed(1)}px`);
+
+              const pillText = labelNode.querySelector(".pill-text");
+              const pillBg = labelNode.querySelector(".pill-bg");
+              if (pillText && pillBg) {
+                const textBox = pillText.getBBox();
+                const padX = 9;
+                const padY = 3;
+                const width = textBox.width + padX * 2;
+                const height = textBox.height + padY * 2;
+                pillBg.setAttribute("x", (-width / 2).toFixed(1));
+                pillBg.setAttribute("y", (-height / 2).toFixed(1));
+                pillBg.setAttribute("width", width.toFixed(1));
+                pillBg.setAttribute("height", height.toFixed(1));
+                pillBg.setAttribute("rx", (height / 2).toFixed(1));
+                pillBg.setAttribute("ry", (height / 2).toFixed(1));
+
+                if (!labelNode.querySelector(".country-label-loader")) {
+                  const loaderGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
+                  loaderGroup.setAttribute("class", "country-label-loader");
+                  loaderGroup.setAttribute(
+                    "transform",
+                    `translate(${(width / 2 + 16).toFixed(1)} 0)`,
+                  );
+                  const loaderBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                  loaderBg.setAttribute("class", "loader-bg");
+                  loaderBg.setAttribute("cx", "0");
+                  loaderBg.setAttribute("cy", "0");
+                  loaderBg.setAttribute("r", "7.5");
+                  const loaderRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                  loaderRing.setAttribute("class", "loader-ring");
+                  loaderRing.setAttribute("cx", "0");
+                  loaderRing.setAttribute("cy", "0");
+                  loaderRing.setAttribute("r", "5.2");
+                  loaderGroup.appendChild(loaderBg);
+                  loaderGroup.appendChild(loaderRing);
+                  labelNode.appendChild(loaderGroup);
+                } else {
+                  const loaderGroup = labelNode.querySelector(".country-label-loader");
+                  if (loaderGroup) {
+                    loaderGroup.setAttribute(
+                      "transform",
+                      `translate(${(width / 2 + 16).toFixed(1)} 0)`,
+                    );
+                  }
+                }
+              }
+            }
+
             function applyCountryStatusVisual(countryId) {
               const code = String(countryId || "").trim().toUpperCase();
               const pathNode = pathByCountry.get(code) || document.getElementById(code);
               if (!pathNode) return;
+              ensureCountryData(code);
               const statusValue = normalizeStatusValue(countryStatus[code] || "no_data");
               pathNode.classList.remove(...statusClassList);
               pathNode.classList.add(`is-status-${statusValue}`);
-              const interactive = isStatusActive(statusValue) && !!countryInfo[code];
+              const interactive = isStatusActive(statusValue);
               pathNode.classList.toggle("is-hover-enabled", interactive);
               if (!interactive) {
                 pathNode.classList.remove("is-lifted");
@@ -2381,14 +2635,16 @@
                   hideCountryTrail();
                 }
               }
-              const labelNode = labelByCountry.get(code);
+              const labelNode = interactive ? createCountryLabel(code) : labelByCountry.get(code);
               if (labelNode) {
+                positionAndSizeCountryLabel(labelNode, code, labelByCountry.size - 1);
                 labelNode.classList.toggle("is-hidden", !interactive);
                 if (!interactive) {
                   labelNode.classList.remove("is-hover");
                   labelNode.classList.remove("is-loading");
                 }
               }
+              setPendingCountryHint(code, statusValue === "pending");
             }
 
             function applyAllCountryStatuses() {
@@ -2427,65 +2683,12 @@
               norwayPath.parentNode.insertBefore(norwayPath, firstCountryPath);
             }
 
-            labels.forEach((label, labelIndex) => {
+            initialLabels.forEach((label, labelIndex) => {
               const countryId = label.getAttribute("data-country");
               const countryPath = document.getElementById(countryId);
               if (!countryPath) return;
               labelByCountry.set(countryId, label);
-              label.style.setProperty(
-                "--pill-delay",
-                `${(1.48 + labelIndex * 0.045).toFixed(3)}s`,
-              );
-
-              const box = countryPath.getBBox();
-              const centerX = box.x + box.width / 2;
-              const centerY = box.y + box.height / 2;
-              label.style.setProperty("--tx", `${centerX.toFixed(1)}px`);
-              label.style.setProperty("--ty", `${centerY.toFixed(1)}px`);
-
-              const pillText = label.querySelector(".pill-text");
-              const pillBg = label.querySelector(".pill-bg");
-              if (pillText && pillBg) {
-                const textBox = pillText.getBBox();
-                const padX = 9;
-                const padY = 3;
-                const width = textBox.width + padX * 2;
-                const height = textBox.height + padY * 2;
-                pillBg.setAttribute("x", (-width / 2).toFixed(1));
-                pillBg.setAttribute("y", (-height / 2).toFixed(1));
-                pillBg.setAttribute("width", width.toFixed(1));
-                pillBg.setAttribute("height", height.toFixed(1));
-                pillBg.setAttribute("rx", (height / 2).toFixed(1));
-                pillBg.setAttribute("ry", (height / 2).toFixed(1));
-
-                const loaderGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-                loaderGroup.setAttribute("class", "country-label-loader");
-                loaderGroup.setAttribute(
-                  "transform",
-                  `translate(${(width / 2 + 16).toFixed(1)} 0)`,
-                );
-                const loaderBg = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                loaderBg.setAttribute("class", "loader-bg");
-                loaderBg.setAttribute("cx", "0");
-                loaderBg.setAttribute("cy", "0");
-                loaderBg.setAttribute("r", "7.5");
-                const loaderRing = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                loaderRing.setAttribute("class", "loader-ring");
-                loaderRing.setAttribute("cx", "0");
-                loaderRing.setAttribute("cy", "0");
-                loaderRing.setAttribute("r", "5.2");
-                loaderGroup.appendChild(loaderBg);
-                loaderGroup.appendChild(loaderRing);
-                label.appendChild(loaderGroup);
-              }
-
-              countryPath.addEventListener("click", (event) => {
-                if (!countryPath.classList.contains("is-hover-enabled")) return;
-                event.stopPropagation();
-                setLoadingCountry(countryId);
-                setHoveredCountry(null);
-                openParentModal(countryId);
-              });
+              positionAndSizeCountryLabel(label, countryId, labelIndex);
             });
 
             mapCountryPaths.forEach((pathNode) => {
@@ -2493,6 +2696,14 @@
               if (!countryId) return;
               pathNode.classList.add("is-map-country");
               pathByCountry.set(countryId, pathNode);
+              ensureCountryData(countryId);
+              pathNode.addEventListener("click", (event) => {
+                if (!pathNode.classList.contains("is-hover-enabled")) return;
+                event.stopPropagation();
+                setLoadingCountry(countryId);
+                setHoveredCountry(null);
+                openParentModal(countryId);
+              });
             });
 
             applyAllCountryStatuses();
@@ -2551,7 +2762,7 @@
               if (type === "ecva-request-country-modal-html") {
                 const countryId = String(payload.countryId || "").trim();
                 const requestId = String(payload.requestId || "").trim();
-                if (!countryInfo[countryId]) return;
+                ensureCountryData(countryId);
                 if (!isStatusActive(countryStatus[countryId])) return;
                 window.parent.postMessage(
                   {
