@@ -1796,14 +1796,19 @@
     const old = scope.querySelector('.ecva-country-flow-panel');
     if (old) old.remove();
     const inbox = getCountryInbox(countryId);
-    const next = inbox.filter((item) => {
+    const orderedInbox = [...inbox].sort((a, b) => {
+      const aTime = Date.parse(String((a && (a.updatedAt || a.createdAt)) || '')) || 0;
+      const bTime = Date.parse(String((b && (b.updatedAt || b.createdAt)) || '')) || 0;
+      return bTime - aTime;
+    });
+    const next = orderedInbox.filter((item) => {
       const status = normalizeSubmissionStatus(item.status);
       return status === 'new' || status === 'in_progress';
     });
-    const rejected = inbox.filter(
+    const rejected = orderedInbox.filter(
       (item) => normalizeSubmissionStatus(item.status) === 'rejected',
     );
-    const archived = inbox.filter(
+    const archived = orderedInbox.filter(
       (item) => normalizeSubmissionStatus(item.status) === 'archived',
     );
     const panel = document.createElement('section');
