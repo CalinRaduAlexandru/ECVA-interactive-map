@@ -159,10 +159,9 @@
 
   function getSubmissionStatusLabel(statusValue) {
     const value = normalizeSubmissionStatus(statusValue);
-    if (value === 'in_progress') return 'In progress';
     if (value === 'rejected') return 'Rejected';
-    if (value === 'archived') return 'Archived';
-    return 'New';
+    if (value === 'archived') return 'Accepted';
+    return 'Entries';
   }
 
   let activeCountries = [];
@@ -1184,6 +1183,25 @@
                 email: String(item.representativeContact.email || '').trim(),
               }
             : { name: '', role: '', email: '' },
+        representativeDraft:
+          item.representativeDraft && typeof item.representativeDraft === 'object'
+            ? {
+                name: String(item.representativeDraft.name || '').trim(),
+                title: String(item.representativeDraft.title || '').trim(),
+                organisation: String(item.representativeDraft.organisation || '').trim(),
+                image: String(item.representativeDraft.image || '').trim(),
+                sourceImage: String(item.representativeDraft.sourceImage || '').trim(),
+                crop:
+                  item.representativeDraft.crop && typeof item.representativeDraft.crop === 'object'
+                    ? {
+                        x: Number(item.representativeDraft.crop.x),
+                        y: Number(item.representativeDraft.crop.y),
+                        w: Number(item.representativeDraft.crop.w),
+                        h: Number(item.representativeDraft.crop.h),
+                      }
+                    : null,
+              }
+            : null,
         createdAt: String(item.createdAt || '').trim(),
         updatedAt: String(item.updatedAt || '').trim(),
       }));
@@ -1589,6 +1607,8 @@
 
   function buildSubmissionCardHtml(item, currentStatus) {
     const title = String(item && item.title ? item.title : '').trim() || 'Untitled suggestion';
+    const mode = String(item && item.type ? item.type : '').trim().toLowerCase();
+    const isRepresentative = mode === 'representative';
     const description = String(item && item.description ? item.description : '').trim();
     const submittedBy =
       item && item.submittedBy && typeof item.submittedBy === 'object'
@@ -1602,18 +1622,17 @@
       item && item.representativeContact && typeof item.representativeContact === 'object'
         ? item.representativeContact
         : { name: '', role: '', email: '' };
+    const representativeDraft =
+      item && item.representativeDraft && typeof item.representativeDraft === 'object'
+        ? item.representativeDraft
+        : null;
+    const representativeImage = String(
+      (representativeDraft && (representativeDraft.image || representativeDraft.sourceImage)) || '',
+    ).trim();
     const actions = [];
-    if (currentStatus === 'new') {
-      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Mark in progress</button>');
+    if (currentStatus === 'new' || currentStatus === 'in_progress') {
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived" data-action-accept="true">Accept</button>');
       actions.push('<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>');
-    } else if (currentStatus === 'in_progress') {
-      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived">Archive</button>');
-      actions.push('<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>');
-    } else if (currentStatus === 'rejected') {
-      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Re-open</button>');
-      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived">Archive</button>');
-    } else if (currentStatus === 'archived') {
-      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Restore</button>');
     }
     return `
       <article class="ecva-inbox-card" data-submission-id="${escapeHtml(item.id)}">
@@ -1621,12 +1640,23 @@
           <span class="ecva-inbox-type">${escapeHtml(getSubmissionTypeLabel(item))}</span>
           <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
         </header>
+        ${
+          isRepresentative && representativeImage
+            ? `<figure class="ecva-inbox-rep-preview">
+                 <img src="${escapeHtml(representativeImage)}" alt="${escapeHtml(title)} preview" />
+               </figure>`
+            : ''
+        }
         <h5>${escapeHtml(title)}</h5>
         ${description ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>` : ''}
         <dl class="ecva-inbox-meta">
           <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || '-')}</dd></div>
           <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || '-')}</dd></div>
-          <div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || '-')}</dd></div>
+          ${
+            isRepresentative
+              ? ''
+              : `<div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || '-')}</dd></div>`
+          }
           <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
         </dl>
         ${
@@ -1686,19 +1716,43 @@
         const card = btn.closest('.ecva-inbox-card[data-submission-id]');
         const submissionId = card ? card.getAttribute('data-submission-id') : '';
         const status = btn.getAttribute('data-action-status');
+        const isAccept = btn.getAttribute('data-action-accept') === 'true';
         if (!submissionId || !status) return;
+        if (isAccept) {
+          const inbox = getCountryInbox(countryId);
+          const item = inbox.find((next) => String(next && next.id ? next.id : '') === String(submissionId));
+          const isRepresentative =
+            item && String(item.type || '').trim().toLowerCase() === 'representative';
+          const draft =
+            isRepresentative && item && item.representativeDraft && typeof item.representativeDraft === 'object'
+              ? item.representativeDraft
+              : null;
+          if (isRepresentative && draft) {
+            const representative = {
+              name: String(draft.name || item.title || '').trim() || 'Representative Name',
+              title: String(draft.title || '').trim(),
+              organisation: String(draft.organisation || '').trim(),
+              image: String(draft.image || draft.sourceImage || '').trim(),
+              sourceImage: String(draft.sourceImage || draft.image || '').trim(),
+              crop:
+                draft.crop && typeof draft.crop === 'object'
+                  ? {
+                      x: Number(draft.crop.x),
+                      y: Number(draft.crop.y),
+                      w: Number(draft.crop.w),
+                      h: Number(draft.crop.h),
+                    }
+                  : null,
+            };
+            postToMap('ecva-editor-add-representative', {
+              countryId,
+              representative,
+            });
+          }
+        }
         updateSubmissionStatus(countryId, submissionId, status);
       });
     });
-    const archiveToggle = panel.querySelector('.ecva-inbox-archive-toggle');
-    const archiveBody = panel.querySelector('.ecva-inbox-archive-body');
-    if (archiveToggle && archiveBody) {
-      archiveToggle.addEventListener('click', () => {
-        const expanded = archiveToggle.getAttribute('aria-expanded') === 'true';
-        archiveToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-        archiveBody.hidden = expanded;
-      });
-    }
   }
 
   function renderCountryFlowPanel(scope) {
@@ -1708,10 +1762,10 @@
     const old = scope.querySelector('.ecva-country-flow-panel');
     if (old) old.remove();
     const inbox = getCountryInbox(countryId);
-    const next = inbox.filter((item) => normalizeSubmissionStatus(item.status) === 'new');
-    const inProgress = inbox.filter(
-      (item) => normalizeSubmissionStatus(item.status) === 'in_progress',
-    );
+    const next = inbox.filter((item) => {
+      const status = normalizeSubmissionStatus(item.status);
+      return status === 'new' || status === 'in_progress';
+    });
     const rejected = inbox.filter(
       (item) => normalizeSubmissionStatus(item.status) === 'rejected',
     );
@@ -1727,34 +1781,16 @@
           <h4>Country submissions inbox</h4>
         </div>
         <div class="ecva-country-flow-summary">
-          <span class="is-new">New ${next.length}</span>
-          <span class="is-progress">In progress ${inProgress.length}</span>
+          <span class="is-new">Entries ${next.length}</span>
           <span class="is-rejected">Rejected ${rejected.length}</span>
-          <span class="is-archived">Archive ${archived.length}</span>
+          <span class="is-archived">Accepted ${archived.length}</span>
         </div>
       </header>
       <div class="ecva-country-flow-grid">
-        ${buildInboxColumnHtml('New', 'new', next, 'No new submissions yet.')}
-        ${buildInboxColumnHtml(
-          'In progress',
-          'in_progress',
-          inProgress,
-          'Nothing currently in review.',
-        )}
+        ${buildInboxColumnHtml('Entries', 'new', next, 'No entries yet.')}
         ${buildInboxColumnHtml('Rejected', 'rejected', rejected, 'No rejected submissions.')}
+        ${buildInboxColumnHtml('Accepted', 'archived', archived, 'No accepted submissions yet.')}
       </div>
-      <section class="ecva-inbox-archive">
-        <button type="button" class="ecva-inbox-archive-toggle" aria-expanded="false">
-          Archive (${archived.length})
-        </button>
-        <div class="ecva-inbox-archive-body" hidden>
-          ${
-            archived.length
-              ? archived.map((item) => buildSubmissionCardHtml(item, 'archived')).join('')
-              : '<p class="ecva-inbox-empty">No archived submissions.</p>'
-          }
-        </div>
-      </section>
     `;
     const header = scope.querySelector('.country-modal-header');
     if (header && header.parentNode === scope) {
