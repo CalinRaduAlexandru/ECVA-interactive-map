@@ -2662,6 +2662,45 @@
         gap: 12px;
       }
 
+      .ecva-admin-access-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .ecva-admin-code-input {
+        height: 54px;
+        border-radius: 14px;
+        border: 1px solid rgba(108, 132, 145, 0.6);
+        background: #f6fbfd;
+        color: #27404c;
+        font-family: "Alexandria", sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        padding: 0 14px;
+        box-sizing: border-box;
+      }
+
+      .ecva-admin-code-input::placeholder {
+        color: #5f7886;
+        font-weight: 600;
+      }
+
+      .ecva-admin-code-error {
+        margin: -4px 2px 0;
+        min-height: 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #b42318;
+        opacity: 0;
+        transition: opacity 140ms ease;
+      }
+
+      .ecva-admin-code-error.is-visible {
+        opacity: 1;
+      }
+
       .ecva-admin-hub-close {
         position: absolute;
         top: 12px;
@@ -2775,6 +2814,17 @@
         background: #2f4f60;
         color: #f4fbff;
         border-color: #2f4f60;
+      }
+
+      .ecva-manage-country-tab.is-locked {
+        background: #f2f6f8;
+        color: #6a818e;
+        border-color: rgba(130, 152, 164, 0.55);
+      }
+
+      .ecva-manage-country-tab:disabled {
+        cursor: not-allowed;
+        opacity: 0.78;
       }
 
       .ecva-manage-close {
@@ -3364,13 +3414,24 @@
         </button>
         <h3>Where to?</h3>
         <div class="ecva-admin-hub-actions">
-          <button
-            id="ecva-manage-app-btn"
-            class="ecva-admin-btn secondary"
-            type="button"
-          >
-            Manage the app
-          </button>
+          <div class="ecva-admin-access-row">
+            <input
+              id="ecva-access-code-input"
+              class="ecva-admin-code-input"
+              type="text"
+              placeholder="Insert code"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button
+              id="ecva-manage-app-btn"
+              class="ecva-admin-btn secondary"
+              type="button"
+            >
+              Edit App
+            </button>
+          </div>
+          <p id="ecva-access-code-error" class="ecva-admin-code-error" aria-live="polite"></p>
           <button
             id="ecva-go-website-btn"
             class="ecva-admin-btn primary"

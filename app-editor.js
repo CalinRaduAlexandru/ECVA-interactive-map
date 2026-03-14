@@ -7,6 +7,8 @@
   const manageBody = document.getElementById('ecva-manage-body');
   const countryTabsHost = document.getElementById('ecva-manage-country-tabs');
   const manageBtn = document.getElementById('ecva-manage-app-btn');
+  const accessCodeInput = document.getElementById('ecva-access-code-input');
+  const accessCodeError = document.getElementById('ecva-access-code-error');
   const websiteBtn = document.getElementById('ecva-go-website-btn');
   const closeHubBtn = document.getElementById('ecva-close-hub-btn');
   const closeManageBtn = document.getElementById('ecva-manage-close-btn');
@@ -37,6 +39,9 @@
   const EDITOR_API = '/api/editor-data';
   const EDITOR_VERSIONS_API = '/api/editor-data/versions';
   const UPLOAD_API = '/api/upload-image';
+  const GLOBAL_ACCESS_CODES = new Set();
+  const INVALID_CODE_MESSAGE = 'Invalid code';
+
   function getCurrentLang() {
     const query = new URLSearchParams(window.location.search);
     const fromQuery = String(query.get('lang') || query.get('pa') || query.get('language') || '')
@@ -47,11 +52,50 @@
   }
 
   function canEditContent() {
-    return getCurrentLang() === 'en';
+    return true;
+  }
+
+  function normalizeManageCountryCode(rawCode) {
+    const value = String(rawCode || '').trim().toUpperCase();
+    if (!value) return '';
+    return value === 'UK' ? 'GB' : value;
+  }
+
+  function countryPrefixForAccessCode(rawCode) {
+    const normalized = normalizeManageCountryCode(rawCode);
+    if (!normalized) return '';
+    return normalized === 'GB' ? 'uk' : normalized.toLowerCase();
+  }
+
+  function displayCountryCode(rawCode) {
+    const normalized = normalizeManageCountryCode(rawCode);
+    return normalized === 'GB' ? 'UK' : normalized;
+  }
+
+  function buildCountryAccessCode(rawCode, salt) {
+    const prefix = countryPrefixForAccessCode(rawCode);
+    if (!prefix) return '';
+    const seed = `${prefix}|ecva|${Number(salt) || 0}`;
+    let hash = 2166136261;
+    for (let i = 0; i < seed.length; i += 1) {
+      hash ^= seed.charCodeAt(i);
+      hash +=
+        (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+      hash >>>= 0;
+    }
+    const digits = String(hash % 100000).padStart(5, '0');
+    const letter = String.fromCharCode(65 + (hash % 26));
+    const insertAt = hash % 6;
+    const token = `${digits.slice(0, insertAt)}${letter}${digits.slice(insertAt)}`;
+    return `${prefix}ecva${token}`;
   }
 
   let activeCountries = [];
   let selectedCountryId = '';
+  let accessScope = { mode: 'all', countryId: '' };
+  let accessCodeToCountryMap = new Map();
+  let countryAccessCodeMap = new Map();
+  let activeCountriesWaiters = [];
   let editorTarget = null;
   let editorMode = 'entry';
   let representativeImagePath = '';
@@ -74,6 +118,113 @@
   function postToMap(type, payload) {
     if (!mapFrame.contentWindow) return;
     mapFrame.contentWindow.postMessage({ type, payload: payload || {} }, '*');
+  }
+
+  function clearAccessCodeError() {
+    if (!accessCodeError) return;
+    accessCodeError.textContent = '';
+    accessCodeError.classList.remove('is-visible');
+  }
+
+  function showAccessCodeError(message) {
+    if (!accessCodeError) return;
+    accessCodeError.textContent = String(message || INVALID_CODE_MESSAGE);
+    accessCodeError.classList.add('is-visible');
+  }
+
+  function getNormalizedAccessCodeInput(rawValue) {
+    return String(rawValue || '')
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, '');
+  }
+
+  function isCountryAllowed(countryId) {
+    if (!countryId) return false;
+    if (accessScope.mode !== 'country') return true;
+    return (
+      normalizeManageCountryCode(countryId) ===
+      normalizeManageCountryCode(accessScope.countryId)
+    );
+  }
+
+  function rebuildCountryAccessMaps() {
+    accessCodeToCountryMap = new Map();
+    countryAccessCodeMap = new Map();
+    activeCountries.forEach((country, index) => {
+      const countryId = normalizeManageCountryCode(country && country.code);
+      if (!countryId) return;
+      const code = buildCountryAccessCode(countryId, index + 1).toLowerCase();
+      accessCodeToCountryMap.set(code, countryId);
+      countryAccessCodeMap.set(countryId, code);
+    });
+  }
+
+  function resolveAccessScope(inputRaw) {
+    const code = getNormalizedAccessCodeInput(inputRaw);
+    if (!code) {
+      return { mode: 'all', countryId: '' };
+    }
+    if (GLOBAL_ACCESS_CODES.has(code)) {
+      return { mode: 'all', countryId: '' };
+    }
+    const countryId = accessCodeToCountryMap.get(code);
+    if (!countryId) return null;
+    return { mode: 'country', countryId };
+  }
+
+  function resolveActiveCountriesWaiters() {
+    if (!activeCountriesWaiters.length) return;
+    activeCountriesWaiters.forEach((waiter) => {
+      if (waiter.timeout) window.clearTimeout(waiter.timeout);
+      waiter.resolve(activeCountries);
+    });
+    activeCountriesWaiters = [];
+  }
+
+  function rejectActiveCountriesWaiters() {
+    if (!activeCountriesWaiters.length) return;
+    activeCountriesWaiters.forEach((waiter) => {
+      if (waiter.timeout) window.clearTimeout(waiter.timeout);
+      waiter.reject(new Error('active_countries_timeout'));
+    });
+    activeCountriesWaiters = [];
+  }
+
+  function ensureActiveCountriesLoaded() {
+    if (activeCountries.length) return Promise.resolve(activeCountries);
+    return new Promise((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        rejectActiveCountriesWaiters();
+      }, 2500);
+      activeCountriesWaiters.push({ resolve, reject, timeout });
+      postToMap('ecva-request-active-countries');
+    });
+  }
+
+  function getFirstAllowedCountryId() {
+    const first = activeCountries.find((country) => isCountryAllowed(country && country.code));
+    return first ? String(first.code || '').trim() : '';
+  }
+
+  function ensureSelectedCountryIsAllowed() {
+    if (!activeCountries.length) {
+      selectedCountryId = '';
+      return;
+    }
+    if (
+      selectedCountryId &&
+      activeCountries.some(
+        (country) =>
+          normalizeManageCountryCode(country && country.code) ===
+          normalizeManageCountryCode(selectedCountryId),
+      ) &&
+      isCountryAllowed(selectedCountryId)
+    ) {
+      return;
+    }
+    const fallback = getFirstAllowedCountryId();
+    selectedCountryId = fallback || '';
   }
 
   function showToast(message, isError) {
@@ -111,10 +262,33 @@
     manageRoot.setAttribute('aria-hidden', 'false');
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
-    if (!canEditContent()) {
-      showToast('Read-only mode. Edit and rollback are available only in English (?lang=en).', true);
-    }
     postToMap('ecva-request-active-countries');
+  }
+
+  async function launchManageFromAccessCode() {
+    if (!manageBtn) return;
+    manageBtn.disabled = true;
+    try {
+      await ensureActiveCountriesLoaded();
+      const resolved = resolveAccessScope(accessCodeInput ? accessCodeInput.value : '');
+      if (!resolved) {
+        showAccessCodeError(INVALID_CODE_MESSAGE);
+        if (accessCodeInput) accessCodeInput.focus();
+        return;
+      }
+      clearAccessCodeError();
+      accessScope = resolved;
+      if (accessScope.mode === 'country') {
+        selectedCountryId = accessScope.countryId;
+      } else if (!selectedCountryId) {
+        selectedCountryId = getFirstAllowedCountryId();
+      }
+      openManage();
+    } catch (error) {
+      showAccessCodeError('Could not validate code');
+    } finally {
+      manageBtn.disabled = false;
+    }
   }
 
   function closeManage() {
@@ -567,21 +741,33 @@
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ecva-manage-country-tab';
-      if (country.code === selectedCountryId) {
+      const countryCode = normalizeManageCountryCode(country && country.code);
+      const allowed = isCountryAllowed(countryCode);
+      if (countryCode === normalizeManageCountryCode(selectedCountryId) && allowed) {
         btn.classList.add('is-active');
       }
-      const displayCode = String(country.code || '').toUpperCase() === 'GB' ? 'UK' : String(country.code || '').toUpperCase();
+      const displayCode =
+        String(countryCode || '').toUpperCase() === 'GB'
+          ? 'UK'
+          : String(countryCode || '').toUpperCase();
       btn.textContent = `${country.flag || ''} ${displayCode}`.trim();
       btn.title = country.name || country.code;
+      if (!allowed) {
+        btn.classList.add('is-locked');
+        btn.disabled = true;
+        btn.textContent = `🔒 ${btn.textContent}`;
+      }
       btn.addEventListener('click', () => {
-        selectCountry(country.code);
+        selectCountry(countryCode);
       });
       countryTabsHost.appendChild(btn);
     });
   }
 
   function selectCountry(countryId) {
-    selectedCountryId = String(countryId || '').trim();
+    const nextCountryId = normalizeManageCountryCode(countryId);
+    if (!nextCountryId || !isCountryAllowed(nextCountryId)) return;
+    selectedCountryId = String(nextCountryId || '').trim();
     if (!selectedCountryId) return;
     renderCountryTabs();
     postToMap('ecva-request-country-modal-html', { countryId: selectedCountryId });
@@ -958,10 +1144,10 @@
 
     if (type === 'ecva-active-countries') {
       activeCountries = Array.isArray(payload.countries) ? payload.countries : [];
-      if (!selectedCountryId && activeCountries.length) {
-        selectedCountryId = activeCountries[0].code;
-      }
+      rebuildCountryAccessMaps();
+      ensureSelectedCountryIsAllowed();
       renderCountryTabs();
+      resolveActiveCountriesWaiters();
       if (selectedCountryId) {
         selectCountry(selectedCountryId);
       }
@@ -992,7 +1178,18 @@
   });
 
   if (manageBtn) {
-    manageBtn.addEventListener('click', openManage);
+    manageBtn.addEventListener('click', launchManageFromAccessCode);
+  }
+
+  if (accessCodeInput) {
+    accessCodeInput.addEventListener('input', () => {
+      clearAccessCodeError();
+    });
+    accessCodeInput.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      launchManageFromAccessCode();
+    });
   }
 
   if (websiteBtn) {
