@@ -3210,6 +3210,10 @@
         border-top: 1px solid rgba(141, 161, 172, 0.26);
       }
 
+      .ecva-inbox-details[hidden] {
+        display: none !important;
+      }
+
       .ecva-inbox-card-head {
         display: flex;
         flex-wrap: wrap;
@@ -3233,7 +3237,7 @@
       .ecva-inbox-rep-preview {
         margin: 0;
         width: 100%;
-        max-width: 220px;
+        max-width: 180px;
         aspect-ratio: 700 / 520;
         border-radius: 10px;
         overflow: hidden;
@@ -3246,6 +3250,36 @@
         height: 100%;
         object-fit: cover;
         display: block;
+      }
+
+      .ecva-inbox-rep-layout {
+        display: grid;
+        grid-template-columns: minmax(120px, 180px) minmax(0, 1fr);
+        gap: 10px;
+        align-items: start;
+      }
+
+      .ecva-inbox-rep-body {
+        display: grid;
+        gap: 4px;
+        align-content: start;
+      }
+
+      .ecva-inbox-rep-body h6 {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 800;
+        color: #1f3743;
+      }
+
+      .ecva-inbox-rep-role,
+      .ecva-inbox-rep-org {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.35;
+        color: #31505f;
+        font-weight: 700;
       }
 
       .ecva-inbox-description {

@@ -187,7 +187,6 @@
   let persistTimer = null;
   let inboxRequestCounter = 0;
   let pendingInboxRequests = new Map();
-  let roTestInboxPurged = false;
   let versionHistoryBtn = null;
   let versionHistoryModal = null;
   let versionHistoryList = null;
@@ -1206,10 +1205,6 @@
         createdAt: String(item.createdAt || '').trim(),
         updatedAt: String(item.updatedAt || '').trim(),
       }));
-    if (code === 'RO' && !roTestInboxPurged && normalized.length) {
-      normalized = [];
-      roTestInboxPurged = true;
-    }
     inboxByCountry[code] = normalized;
   }
 
@@ -1647,6 +1642,15 @@
     const representativeImage = String(
       (representativeDraft && (representativeDraft.image || representativeDraft.sourceImage)) || '',
     ).trim();
+    const representativeName = String(
+      (representativeDraft && representativeDraft.name) || title || 'Representative Name',
+    ).trim();
+    const representativeTitle = String(
+      (representativeDraft && representativeDraft.title) || '',
+    ).trim();
+    const representativeOrganisation = String(
+      (representativeDraft && representativeDraft.organisation) || '',
+    ).trim();
     const actions = [];
     if (currentStatus === 'new' || currentStatus === 'in_progress') {
       actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived" data-action-accept="true">Accept</button>');
@@ -1660,17 +1664,44 @@
           <span class="ecva-inbox-chevron" aria-hidden="true">⌄</span>
         </button>
         <div class="ecva-inbox-details" hidden>
-          <header class="ecva-inbox-card-head">
-            <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
-          </header>
           ${
-            isRepresentative && representativeImage
-              ? `<figure class="ecva-inbox-rep-preview">
-                   <img src="${escapeHtml(representativeImage)}" alt="${escapeHtml(title)} preview" />
-                 </figure>`
+            isRepresentative
+              ? ''
+              : `<header class="ecva-inbox-card-head">
+                   <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
+                 </header>`
+          }
+          ${
+            isRepresentative
+              ? `<div class="ecva-inbox-rep-layout">
+                   ${
+                     representativeImage
+                       ? `<figure class="ecva-inbox-rep-preview">
+                            <img src="${escapeHtml(representativeImage)}" alt="${escapeHtml(title)} preview" />
+                          </figure>`
+                       : ''
+                   }
+                   <div class="ecva-inbox-rep-body">
+                     <h6>${escapeHtml(representativeName || title)}</h6>
+                     ${
+                       representativeTitle
+                         ? `<p class="ecva-inbox-rep-role">${escapeHtml(representativeTitle)}</p>`
+                         : ''
+                     }
+                     ${
+                       representativeOrganisation
+                         ? `<p class="ecva-inbox-rep-org">${escapeHtml(representativeOrganisation)}</p>`
+                         : ''
+                     }
+                   </div>
+                 </div>`
               : ''
           }
-          ${description ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>` : ''}
+          ${
+            !isRepresentative && description
+              ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>`
+              : ''
+          }
           <dl class="ecva-inbox-meta">
             <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || '-')}</dd></div>
             <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || '-')}</dd></div>
@@ -1703,7 +1734,7 @@
               : ''
           }
           ${
-            contact.name || contact.role || contact.email
+            !isRepresentative && (contact.name || contact.role || contact.email)
               ? `<p class="ecva-inbox-contact"><strong>Representative:</strong> ${escapeHtml(
                   [contact.name, contact.role, contact.email].filter(Boolean).join(' • ') || '-',
                 )}</p>`

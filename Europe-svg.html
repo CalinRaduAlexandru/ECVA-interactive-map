@@ -1192,6 +1192,7 @@
             };
 
             const countryInboxByCountry = {};
+            const EDITOR_STATE_META = { inboxSchemaVersion: 2 };
 
             const pillarTemplate = [
               { id: "resources", bottom: "Resources" },
@@ -2204,11 +2205,17 @@
               snapshot.__representatives = JSON.parse(JSON.stringify(representativesByCountry));
               snapshot.__countryStatus = JSON.parse(JSON.stringify(countryStatus));
               snapshot.__countryInbox = JSON.parse(JSON.stringify(countryInboxByCountry));
+              snapshot.__meta = { ...EDITOR_STATE_META };
               return snapshot;
             }
 
             function applyEditorState(nextState) {
               if (!nextState || typeof nextState !== "object") return;
+              const nextMeta =
+                nextState.__meta && typeof nextState.__meta === "object"
+                  ? nextState.__meta
+                  : {};
+              const storedInboxSchemaVersion = Number(nextMeta.inboxSchemaVersion || 0);
               const countryStatusState =
                 nextState.__countryStatus && typeof nextState.__countryStatus === "object"
                   ? nextState.__countryStatus
@@ -2252,7 +2259,11 @@
                 nextState.__countryInbox && typeof nextState.__countryInbox === "object"
                   ? nextState.__countryInbox
                   : null;
-              if (inboxState) {
+              if (storedInboxSchemaVersion < EDITOR_STATE_META.inboxSchemaVersion) {
+                Object.keys(countryInboxByCountry).forEach((countryId) => {
+                  delete countryInboxByCountry[countryId];
+                });
+              } else if (inboxState) {
                 Object.keys(countryInboxByCountry).forEach((countryId) => {
                   delete countryInboxByCountry[countryId];
                 });
