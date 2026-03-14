@@ -3145,11 +3145,62 @@
 
       .ecva-inbox-card {
         display: grid;
-        gap: 8px;
+        gap: 0;
         border: 1px solid rgba(141, 161, 172, 0.38);
         border-radius: 11px;
         background: rgba(255, 255, 255, 0.92);
-        padding: 10px;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .ecva-inbox-summary {
+        width: 100%;
+        border: 0;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 11px;
+        cursor: pointer;
+        min-width: 0;
+      }
+
+      .ecva-inbox-summary:focus-visible {
+        outline: 2px solid rgba(74, 129, 158, 0.55);
+        outline-offset: -2px;
+      }
+
+      .ecva-inbox-summary-title {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-align: left;
+        font-size: 13px;
+        font-weight: 800;
+        color: #1f3743;
+      }
+
+      .ecva-inbox-chevron {
+        flex: 0 0 auto;
+        font-size: 15px;
+        font-weight: 900;
+        color: #4a6573;
+        line-height: 1;
+        transform: rotate(0deg);
+        transition: transform 180ms ease;
+      }
+
+      .ecva-inbox-card.is-expanded .ecva-inbox-chevron {
+        transform: rotate(180deg);
+      }
+
+      .ecva-inbox-details {
+        padding: 0 10px 10px;
+        display: grid;
+        gap: 8px;
+        border-top: 1px solid rgba(141, 161, 172, 0.26);
       }
 
       .ecva-inbox-card-head {
@@ -3161,22 +3212,15 @@
       .ecva-inbox-type,
       .ecva-inbox-pillar {
         display: inline-flex;
-        min-height: 24px;
+        min-height: 21px;
         align-items: center;
         padding: 0 8px;
         border-radius: 999px;
         border: 1px solid rgba(121, 145, 157, 0.45);
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
         color: #2b4451;
         background: rgba(236, 245, 250, 0.9);
-      }
-
-      .ecva-inbox-card h5 {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 800;
-        color: #1f3743;
       }
 
       .ecva-inbox-rep-preview {

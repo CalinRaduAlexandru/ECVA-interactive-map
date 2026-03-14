@@ -187,6 +187,7 @@
   let persistTimer = null;
   let inboxRequestCounter = 0;
   let pendingInboxRequests = new Map();
+  let roTestInboxPurged = false;
   let versionHistoryBtn = null;
   let versionHistoryModal = null;
   let versionHistoryList = null;
@@ -1139,7 +1140,7 @@
     const code = normalizeManageCountryCode(countryId);
     if (!code) return;
     const list = Array.isArray(inbox) ? inbox : [];
-    inboxByCountry[code] = list
+    let normalized = list
       .filter((item) => item && typeof item === 'object')
       .map((item) => ({
         id:
@@ -1205,6 +1206,11 @@
         createdAt: String(item.createdAt || '').trim(),
         updatedAt: String(item.updatedAt || '').trim(),
       }));
+    if (code === 'RO' && !roTestInboxPurged && normalized.length) {
+      normalized = [];
+      roTestInboxPurged = true;
+    }
+    inboxByCountry[code] = normalized;
   }
 
   function getCountryInbox(countryId) {
@@ -1605,6 +1611,18 @@
     return pillarId;
   }
 
+  function getSubmissionCompactPillLabel(item) {
+    const mode = String(item && item.type ? item.type : '').trim().toLowerCase();
+    if (mode === 'representative') return 'Representative';
+    const pillarId = String(item && item.pillarId ? item.pillarId : '').trim().toLowerCase();
+    if (pillarId === 'resources') return 'Resource';
+    if (pillarId === 'events') return 'Event';
+    if (pillarId === 'research') return 'Research';
+    if (pillarId === 'organisations') return 'Organisation';
+    if (pillarId === 'government') return 'Government';
+    return 'Article';
+  }
+
   function buildSubmissionCardHtml(item, currentStatus) {
     const title = String(item && item.title ? item.title : '').trim() || 'Untitled suggestion';
     const mode = String(item && item.type ? item.type : '').trim().toLowerCase();
@@ -1635,59 +1653,64 @@
       actions.push('<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>');
     }
     return `
-      <article class="ecva-inbox-card" data-submission-id="${escapeHtml(item.id)}">
-        <header class="ecva-inbox-card-head">
-          <span class="ecva-inbox-type">${escapeHtml(getSubmissionTypeLabel(item))}</span>
-          <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
-        </header>
-        ${
-          isRepresentative && representativeImage
-            ? `<figure class="ecva-inbox-rep-preview">
-                 <img src="${escapeHtml(representativeImage)}" alt="${escapeHtml(title)} preview" />
-               </figure>`
-            : ''
-        }
-        <h5>${escapeHtml(title)}</h5>
-        ${description ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>` : ''}
-        <dl class="ecva-inbox-meta">
-          <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || '-')}</dd></div>
-          <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || '-')}</dd></div>
+      <article class="ecva-inbox-card ecva-inbox-item" data-submission-id="${escapeHtml(item.id)}">
+        <button type="button" class="ecva-inbox-summary" data-inbox-toggle aria-expanded="false">
+          <span class="ecva-inbox-type">${escapeHtml(getSubmissionCompactPillLabel(item))}</span>
+          <span class="ecva-inbox-summary-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
+          <span class="ecva-inbox-chevron" aria-hidden="true">⌄</span>
+        </button>
+        <div class="ecva-inbox-details" hidden>
+          <header class="ecva-inbox-card-head">
+            <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
+          </header>
           ${
-            isRepresentative
-              ? ''
-              : `<div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || '-')}</dd></div>`
+            isRepresentative && representativeImage
+              ? `<figure class="ecva-inbox-rep-preview">
+                   <img src="${escapeHtml(representativeImage)}" alt="${escapeHtml(title)} preview" />
+                 </figure>`
+              : ''
           }
-          <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
-        </dl>
-        ${
-          links.length
-            ? `<div class="ecva-inbox-links">${links
-                .slice(0, 3)
-                .map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`)
-                .join('')}</div>`
-            : ''
-        }
-        ${
-          attachments.length
-            ? `<div class="ecva-inbox-attachments">${attachments
-                .slice(0, 4)
-                .map((item) => {
-                  const label = escapeHtml(item.name || item.url || 'Attachment');
-                  const href = escapeHtml(item.url || '#');
-                  if (!item.url) return `<span>${label}</span>`;
-                  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-                })
-                .join('')}</div>`
-            : ''
-        }
-        ${
-          contact.name || contact.role || contact.email
-            ? `<p class="ecva-inbox-contact"><strong>Representative:</strong> ${escapeHtml(
-                [contact.name, contact.role, contact.email].filter(Boolean).join(' • ') || '-',
-              )}</p>`
-            : ''
-        }
-        ${actions.length ? `<div class="ecva-inbox-actions">${actions.join('')}</div>` : ''}
+          ${description ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>` : ''}
+          <dl class="ecva-inbox-meta">
+            <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || '-')}</dd></div>
+            <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || '-')}</dd></div>
+            ${
+              isRepresentative
+                ? ''
+                : `<div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || '-')}</dd></div>`
+            }
+            <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
+          </dl>
+          ${
+            links.length
+              ? `<div class="ecva-inbox-links">${links
+                  .slice(0, 3)
+                  .map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`)
+                  .join('')}</div>`
+              : ''
+          }
+          ${
+            attachments.length
+              ? `<div class="ecva-inbox-attachments">${attachments
+                  .slice(0, 4)
+                  .map((item) => {
+                    const label = escapeHtml(item.name || item.url || 'Attachment');
+                    const href = escapeHtml(item.url || '#');
+                    if (!item.url) return `<span>${label}</span>`;
+                    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                  })
+                  .join('')}</div>`
+              : ''
+          }
+          ${
+            contact.name || contact.role || contact.email
+              ? `<p class="ecva-inbox-contact"><strong>Representative:</strong> ${escapeHtml(
+                  [contact.name, contact.role, contact.email].filter(Boolean).join(' • ') || '-',
+                )}</p>`
+              : ''
+          }
+          ${actions.length ? `<div class="ecva-inbox-actions">${actions.join('')}</div>` : ''}
+        </div>
       </article>
     `;
   }
@@ -1711,6 +1734,17 @@
 
   function wireCountryFlowActions(panel, countryId) {
     if (!panel) return;
+    panel.querySelectorAll('.ecva-inbox-summary[data-inbox-toggle]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.ecva-inbox-card[data-submission-id]');
+        const details = card ? card.querySelector('.ecva-inbox-details') : null;
+        if (!card || !details) return;
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        details.hidden = expanded;
+        card.classList.toggle('is-expanded', !expanded);
+      });
+    });
     panel.querySelectorAll('.ecva-inbox-action[data-action-status]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const card = btn.closest('.ecva-inbox-card[data-submission-id]');
