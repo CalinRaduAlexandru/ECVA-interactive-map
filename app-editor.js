@@ -90,6 +90,30 @@
     return `${prefix}ecva${token}`;
   }
 
+  function getAccessCodeForCountry(rawCode) {
+    const normalized = normalizeManageCountryCode(rawCode);
+    if (!normalized) return '';
+    return (
+      countryAccessCodeMap.get(normalized) ||
+      buildCountryAccessCode(normalized, 1).toLowerCase()
+    );
+  }
+
+  function maskAccessCode(value) {
+    const code = String(value || '').trim();
+    if (!code) return '';
+    return '•'.repeat(Math.max(8, code.length));
+  }
+
+  function normalizeStatus(rawStatus) {
+    const value = String(rawStatus || '').trim().toLowerCase();
+    if (value.includes('lead')) return { label: 'Leading', className: 'is-leading' };
+    if (value.includes('moment')) {
+      return { label: 'High Momentum', className: 'is-momentum' };
+    }
+    return { label: 'In Development', className: 'is-development' };
+  }
+
   let activeCountries = [];
   let selectedCountryId = '';
   let accessScope = { mode: 'all', countryId: '' };
@@ -225,6 +249,88 @@
     }
     const fallback = getFirstAllowedCountryId();
     selectedCountryId = fallback || '';
+  }
+
+  function wireAccessPanel(panel) {
+    if (!panel) return;
+    const rows = panel.querySelectorAll('.ecva-manage-access-row-item');
+    rows.forEach((row) => {
+      const code = String(row.getAttribute('data-access-code') || '').trim();
+      const codeText = row.querySelector('.ecva-manage-access-code');
+      const eyeBtn = row.querySelector('.ecva-manage-access-eye');
+      const copyBtn = row.querySelector('.ecva-manage-access-copy');
+      if (!code || !codeText || !eyeBtn || !copyBtn) return;
+
+      const setRevealState = (revealed) => {
+        row.setAttribute('data-revealed', revealed ? 'true' : 'false');
+        codeText.textContent = revealed ? code : maskAccessCode(code);
+        eyeBtn.textContent = revealed ? '👁' : '🙈';
+        eyeBtn.setAttribute('aria-label', revealed ? 'Hide app access code' : 'Show app access code');
+      };
+
+      setRevealState(false);
+      eyeBtn.addEventListener('click', () => {
+        const revealed = row.getAttribute('data-revealed') === 'true';
+        setRevealState(!revealed);
+      });
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(code);
+          showToast('App access code copied.');
+        } catch (error) {
+          showToast('Could not copy code.', true);
+        }
+      });
+    });
+  }
+
+  function renderGeneralAccessPanel() {
+    if (!manageBody) return;
+    const previous = manageBody.querySelector('.ecva-manage-access-panel');
+    if (previous) previous.remove();
+    if (accessScope.mode !== 'all' || !activeCountries.length) return;
+
+    const panel = document.createElement('section');
+    panel.className = 'ecva-manage-access-panel';
+    panel.innerHTML = `
+      <header class="ecva-manage-access-head">
+        <h4>General management</h4>
+      </header>
+      <div class="ecva-manage-access-table">
+        <div class="ecva-manage-access-table-head">
+          <span>Country</span>
+          <span>Status</span>
+          <span>App access*</span>
+        </div>
+      </div>
+    `;
+    const table = panel.querySelector('.ecva-manage-access-table');
+    const sortedCountries = [...activeCountries].sort((a, b) =>
+      String(a && a.name ? a.name : '').localeCompare(String(b && b.name ? b.name : '')),
+    );
+    sortedCountries.forEach((country) => {
+      const countryCode = normalizeManageCountryCode(country && country.code);
+      if (!countryCode) return;
+      const displayCode = displayCountryCode(countryCode);
+      const statusMeta = normalizeStatus(country && country.status);
+      const code = getAccessCodeForCountry(countryCode);
+      const row = document.createElement('article');
+      row.className = 'ecva-manage-access-row-item';
+      row.setAttribute('data-access-code', code);
+      row.setAttribute('data-revealed', 'false');
+      row.innerHTML = `
+        <span class="ecva-manage-access-country">${country.flag || ''} ${displayCode}</span>
+        <span class="ecva-manage-access-status ${statusMeta.className}">${statusMeta.label}</span>
+        <span class="ecva-manage-access-controls">
+          <code class="ecva-manage-access-code">${maskAccessCode(code)}</code>
+          <button type="button" class="ecva-manage-access-eye" aria-label="Show app access code">🙈</button>
+          <button type="button" class="ecva-manage-access-copy" aria-label="Copy app access code">⧉</button>
+        </span>
+      `;
+      table.appendChild(row);
+    });
+    manageBody.prepend(panel);
+    wireAccessPanel(panel);
   }
 
   function showToast(message, isError) {
@@ -1158,6 +1264,7 @@
       const countryId = String(payload.countryId || '').trim();
       if (!countryId || countryId !== selectedCountryId || !manageBody) return;
       manageBody.innerHTML = payload.html || '';
+      renderGeneralAccessPanel();
       enhanceManageContent();
       return;
     }
@@ -1166,6 +1273,7 @@
       const countryId = String(payload.countryId || '').trim();
       if (countryId && countryId === selectedCountryId && manageBody) {
         manageBody.innerHTML = payload.html || '';
+        renderGeneralAccessPanel();
         enhanceManageContent();
       }
       showToast(type === 'ecva-editor-entry-updated' ? 'Text updated in the app.' : 'Representative updated in the app.');

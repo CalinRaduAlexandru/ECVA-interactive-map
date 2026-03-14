@@ -2845,6 +2845,136 @@
         padding: 16px;
       }
 
+      .ecva-manage-access-panel {
+        border: 1px solid rgba(132, 153, 165, 0.42);
+        border-radius: 14px;
+        background: linear-gradient(
+          140deg,
+          rgba(238, 246, 250, 0.96),
+          rgba(229, 239, 244, 0.92)
+        );
+        padding: 14px;
+        margin: 0 0 16px;
+      }
+
+      .ecva-manage-access-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 0 0 10px;
+      }
+
+      .ecva-manage-access-head h4 {
+        margin: 0;
+        font-size: 18px;
+        line-height: 1.2;
+        color: #233c48;
+      }
+
+      .ecva-manage-access-table {
+        display: grid;
+        gap: 8px;
+      }
+
+      .ecva-manage-access-table-head,
+      .ecva-manage-access-row-item {
+        display: grid;
+        grid-template-columns: minmax(140px, 0.9fr) minmax(140px, 1fr) minmax(220px, 1.3fr);
+        gap: 10px;
+        align-items: center;
+      }
+
+      .ecva-manage-access-table-head {
+        padding: 0 6px;
+        color: #506a78;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+
+      .ecva-manage-access-row-item {
+        padding: 10px 12px;
+        border: 1px solid rgba(142, 161, 171, 0.35);
+        border-radius: 12px;
+        background: rgba(251, 254, 255, 0.92);
+      }
+
+      .ecva-manage-access-country {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1f3642;
+      }
+
+      .ecva-manage-access-status {
+        display: inline-flex;
+        width: fit-content;
+        min-height: 30px;
+        align-items: center;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(106, 130, 143, 0.45);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .ecva-manage-access-status.is-leading {
+        color: #e9f7ff;
+        background: #254454;
+        border-color: #254454;
+      }
+
+      .ecva-manage-access-status.is-momentum {
+        color: #183543;
+        background: #bfd7e3;
+      }
+
+      .ecva-manage-access-status.is-development {
+        color: #27414d;
+        background: #dce9ef;
+      }
+
+      .ecva-manage-access-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ecva-manage-access-code {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        border-radius: 10px;
+        padding: 0 10px;
+        border: 1px solid rgba(130, 152, 164, 0.55);
+        background: #f4fafc;
+        color: #29424e;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+        font-family: "Alexandria", sans-serif;
+      }
+
+      .ecva-manage-access-eye,
+      .ecva-manage-access-copy {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(112, 135, 148, 0.56);
+        background: #eaf2f6;
+        color: #27414d;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .ecva-manage-access-eye:hover,
+      .ecva-manage-access-copy:hover {
+        filter: brightness(1.06);
+      }
+
       .ecva-manage-body .country-modal-close {
         display: none;
       }
@@ -3019,6 +3149,19 @@
           width: 100%;
           height: auto;
           border-radius: 0;
+        }
+
+        .ecva-manage-access-table-head,
+        .ecva-manage-access-row-item {
+          grid-template-columns: 1fr;
+        }
+
+        .ecva-manage-access-table-head {
+          display: none;
+        }
+
+        .ecva-manage-access-row-item {
+          gap: 8px;
         }
       }
 
