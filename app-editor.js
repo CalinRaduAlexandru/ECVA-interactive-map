@@ -569,8 +569,45 @@
     document.body.classList.toggle('ecva-scroll-locked', isLocked);
   }
 
+  function jumpToCountryWindowTopAcrossContexts() {
+    try {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    } catch (_error) {
+      window.scrollTo(0, 0);
+    }
+    try {
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+    } catch (_error) {
+      // no-op
+    }
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'ecva-scroll-parent-top' }, '*');
+    }
+  }
+
+  function getCountryWindowTopOffset() {
+    const shell = document.querySelector('.country-modal-shell');
+    const modalRoot = document.getElementById('country-modal-root');
+    if (!shell || !modalRoot || !modalRoot.classList.contains('is-visible')) return null;
+    const rect = shell.getBoundingClientRect();
+    if (!Number.isFinite(rect.top)) return null;
+    return Math.max(12, Math.min(window.innerHeight * 0.24, rect.top + 12));
+  }
+
+  function setAdminOverlayTopOffset(modalNode, fallbackPx) {
+    if (!modalNode) return;
+    const anchoredTop = getCountryWindowTopOffset();
+    const resolved = Number.isFinite(anchoredTop)
+      ? Math.round(anchoredTop)
+      : Math.max(12, Number(fallbackPx) || 24);
+    modalNode.style.setProperty('--overlay-top', `${resolved}px`);
+  }
+
   function openHub() {
     if (!adminHub) return;
+    jumpToCountryWindowTopAcrossContexts();
+    setAdminOverlayTopOffset(adminHub, 22);
     adminHub.classList.add('is-visible');
     adminHub.setAttribute('aria-hidden', 'false');
     syncAdminOverlayScrollLock();
@@ -585,6 +622,7 @@
 
   function openManage() {
     if (!manageRoot) return;
+    jumpToCountryWindowTopAcrossContexts();
     closeHub();
     manageRoot.classList.add('is-visible');
     manageRoot.setAttribute('aria-hidden', 'false');
@@ -637,6 +675,8 @@
 
   function openEditorModal() {
     if (!editorModal) return;
+    jumpToCountryWindowTopAcrossContexts();
+    setAdminOverlayTopOffset(editorModal, 24);
     editorModal.classList.add('is-visible');
     editorModal.setAttribute('aria-hidden', 'false');
     syncAdminOverlayScrollLock();
@@ -658,7 +698,7 @@
 
     const style = document.createElement('style');
     style.textContent = `
-      .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:clamp(20px,8vh,72px);padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
+      .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
       .ecva-version-modal.is-visible{display:flex}
       .ecva-version-dialog{width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px}
       .ecva-version-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
@@ -821,6 +861,8 @@
       showToast('Choose a country first.');
       return;
     }
+    jumpToCountryWindowTopAcrossContexts();
+    setAdminOverlayTopOffset(versionHistoryModal, 24);
     versionHistoryModal.classList.add('is-visible');
     versionHistoryModal.setAttribute('aria-hidden', 'false');
     syncAdminOverlayScrollLock();
