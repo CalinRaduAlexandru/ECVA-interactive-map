@@ -220,7 +220,7 @@
         border-radius: 0;
         border: 0;
         background: rgba(252, 253, 254, 0.98);
-        box-shadow: 0 24px 56px rgba(10, 24, 31, 0.26);
+        box-shadow: none;
         padding: clamp(16px, 2.7vw, 34px);
         transform: translateY(28px) scale(0.972);
         opacity: 0;
@@ -825,12 +825,14 @@
 
       .country-modal-header {
         margin-right: 0;
+        display: grid;
+        gap: var(--country-card-gap);
       }
 
       .country-modal-top {
         display: grid;
         grid-template-columns: minmax(240px, 28%) minmax(0, 1fr);
-        align-items: start;
+        align-items: center;
         column-gap: clamp(20px, 2.6vw, 38px);
         padding: clamp(20px, 2.6vw, 30px);
         border-radius: 22px;
@@ -941,12 +943,12 @@
       }
 
       .country-modal-pillar-dot {
-        width: clamp(102px, 10.8vw, 172px);
-        height: clamp(102px, 10.8vw, 172px);
+        width: clamp(142px, 20vw, 172px);
+        height: clamp(142px, 20vw, 172px);
         border-radius: 999px;
         background: transparent;
         border: none;
-        margin-bottom: 10px;
+        margin-bottom: 4px;
         flex: 0 0 auto;
         display: inline-flex;
         align-items: center;
@@ -1158,13 +1160,13 @@
       }
 
       .country-modal-outlook-inline {
-        margin-top: 14px;
+        margin-top: 0;
       }
 
       .country-modal-outlook-panel {
         display: grid;
         grid-template-columns: minmax(280px, 28%) minmax(0, 1fr);
-        gap: clamp(14px, 2vw, 26px);
+        gap: var(--country-card-gap);
         align-items: stretch;
       }
 
@@ -1172,7 +1174,7 @@
         min-height: 560px;
         display: grid;
         grid-template-rows: 1fr 1fr;
-        gap: 12px;
+        gap: var(--country-card-gap);
       }
 
       .country-modal-outlook-main {
@@ -1654,6 +1656,7 @@
       .country-modal-grid {
         display: grid;
         grid-template-columns: 1fr;
+        margin-top: var(--country-card-gap);
         gap: var(--country-card-gap);
       }
 
