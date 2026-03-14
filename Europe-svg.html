@@ -1097,6 +1097,9 @@
               if (!Array.isArray(representativesByCountry[code])) {
                 representativesByCountry[code] = [];
               }
+              if (!Array.isArray(countryInboxByCountry[code])) {
+                countryInboxByCountry[code] = [];
+              }
               return countryInfo[code];
             }
 
@@ -1187,6 +1190,8 @@
                 },
               ],
             };
+
+            const countryInboxByCountry = {};
 
             const pillarTemplate = [
               { id: "resources", bottom: "Resources" },
@@ -1809,7 +1814,15 @@
                     </div>
                     <div class="country-modal-rep-footer">
                       <div class="country-modal-rep-dots" data-rep-dots aria-label="Carousel position"></div>
-                      <button class="country-modal-rep-recommend-btn" type="button">Recommend a representative</button>
+                      <button
+                        class="country-modal-rep-recommend-btn"
+                        type="button"
+                        data-contribute-mode="representative"
+                        data-contribute-country="${escapeHtml(countryId)}"
+                        data-contribute-country-name="${escapeHtml(countryLabel)}"
+                      >
+                        Recommend a representative
+                      </button>
                     </div>
                   </aside>
                 </section>
@@ -2043,7 +2056,16 @@
                     <section class="country-modal-detail-card" data-pillar-card="${escapeHtml(pillar.id)}" id="pillar-${escapeHtml(pillar.id)}">
                       <div class="country-modal-detail-header">
                         <h4>${escapeHtml(pillar.bottom)}</h4>
-                        <button class="country-modal-detail-post-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Post</button>
+                        <button
+                          class="country-modal-detail-post-btn"
+                          type="button"
+                          data-contribute-mode="article"
+                          data-contribute-country="${escapeHtml(countryId)}"
+                          data-contribute-label="${escapeHtml(pillar.bottom)}"
+                          data-contribute-pillar="${escapeHtml(pillar.id)}"
+                        >
+                          Suggest an article
+                        </button>
                       </div>
                       <div class="country-modal-entry-list">
                         ${entryHtml || `<p class="country-modal-detail-empty">No articles have been uploaded yet for this section.</p>`}
@@ -2171,10 +2193,17 @@
               );
             }
 
+            function getCountryInboxPayload(countryId) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code) return [];
+              return JSON.parse(JSON.stringify(getCountryInbox(code)));
+            }
+
             function getEditorStateSnapshot() {
               const snapshot = JSON.parse(JSON.stringify(pillarConfigByCountry));
               snapshot.__representatives = JSON.parse(JSON.stringify(representativesByCountry));
               snapshot.__countryStatus = JSON.parse(JSON.stringify(countryStatus));
+              snapshot.__countryInbox = JSON.parse(JSON.stringify(countryInboxByCountry));
               return snapshot;
             }
 
@@ -2219,6 +2248,23 @@
                 });
               }
 
+              const inboxState =
+                nextState.__countryInbox && typeof nextState.__countryInbox === "object"
+                  ? nextState.__countryInbox
+                  : null;
+              if (inboxState) {
+                Object.keys(countryInboxByCountry).forEach((countryId) => {
+                  delete countryInboxByCountry[countryId];
+                });
+                Object.entries(inboxState).forEach(([countryId, items]) => {
+                  const code = String(countryId || "").trim().toUpperCase();
+                  if (!code || !Array.isArray(items)) return;
+                  countryInboxByCountry[code] = items
+                    .map((item) => normalizeSubmissionRecord(code, item))
+                    .filter(Boolean);
+                });
+              }
+
               Object.entries(nextState).forEach(([countryId, countryValue]) => {
                 if (countryId.startsWith("__")) return;
                 if (!countryValue || typeof countryValue !== "object") return;
@@ -2242,6 +2288,110 @@
                 });
               });
               applyAllCountryStatuses();
+            }
+
+            function normalizeSubmissionStatus(rawStatus) {
+              const value = String(rawStatus || "").trim().toLowerCase();
+              if (value === "in_progress" || value === "in progress" || value === "processing")
+                return "in_progress";
+              if (value === "rejected" || value === "declined") return "rejected";
+              if (value === "archived" || value === "done" || value === "used") return "archived";
+              return "new";
+            }
+
+            function getCountryInbox(countryId) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code) return [];
+              if (!Array.isArray(countryInboxByCountry[code])) {
+                countryInboxByCountry[code] = [];
+              }
+              return countryInboxByCountry[code];
+            }
+
+            function normalizeSubmissionRecord(countryId, rawSubmission) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code || !rawSubmission || typeof rawSubmission !== "object") return null;
+              const submittedBy =
+                rawSubmission.submittedBy && typeof rawSubmission.submittedBy === "object"
+                  ? {
+                      name: String(rawSubmission.submittedBy.name || "").trim(),
+                      email: String(rawSubmission.submittedBy.email || "").trim(),
+                    }
+                  : { name: "", email: "" };
+              const representativeContact =
+                rawSubmission.representativeContact &&
+                typeof rawSubmission.representativeContact === "object"
+                  ? {
+                      name: String(rawSubmission.representativeContact.name || "").trim(),
+                      role: String(rawSubmission.representativeContact.role || "").trim(),
+                      email: String(rawSubmission.representativeContact.email || "").trim(),
+                    }
+                  : { name: "", role: "", email: "" };
+              const links = Array.isArray(rawSubmission.links)
+                ? rawSubmission.links
+                    .map((item) => String(item || "").trim())
+                    .filter(Boolean)
+                : [];
+              const attachments = Array.isArray(rawSubmission.attachments)
+                ? rawSubmission.attachments
+                    .filter((item) => item && typeof item === "object")
+                    .map((item) => ({
+                      name: String(item.name || "").trim(),
+                      url: String(item.url || "").trim(),
+                    }))
+                    .filter((item) => item.name || item.url)
+                : [];
+              return {
+                id:
+                  String(rawSubmission.id || "").trim() ||
+                  `${code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                countryId: code,
+                type:
+                  String(rawSubmission.type || "").trim().toLowerCase() === "representative"
+                    ? "representative"
+                    : "article",
+                status: normalizeSubmissionStatus(rawSubmission.status),
+                pillarId: String(rawSubmission.pillarId || "").trim().toLowerCase(),
+                pillarLabel: String(rawSubmission.pillarLabel || "").trim(),
+                title: String(rawSubmission.title || "").trim(),
+                description: String(rawSubmission.description || "").trim(),
+                languageAvailability: String(rawSubmission.languageAvailability || "").trim(),
+                links,
+                attachments,
+                submittedBy,
+                representativeContact,
+                createdAt:
+                  String(rawSubmission.createdAt || "").trim() ||
+                  new Date().toISOString(),
+                updatedAt:
+                  String(rawSubmission.updatedAt || "").trim() ||
+                  new Date().toISOString(),
+              };
+            }
+
+            function addSubmissionFromFrontend(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              if (!countryId || !document.getElementById(countryId)) return null;
+              ensureCountryData(countryId);
+              const submission = normalizeSubmissionRecord(countryId, payload.submission);
+              if (!submission) return null;
+              const inbox = getCountryInbox(countryId);
+              inbox.unshift(submission);
+              return { countryId, submissionId: submission.id };
+            }
+
+            function updateSubmissionStatusFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              const submissionId = String(payload.submissionId || "").trim();
+              if (!countryId || !submissionId) return null;
+              const inbox = getCountryInbox(countryId);
+              const record = inbox.find((item) => String(item && item.id || "") === submissionId);
+              if (!record) return null;
+              record.status = normalizeSubmissionStatus(payload.status);
+              record.updatedAt = new Date().toISOString();
+              return { countryId, submissionId };
             }
 
             function normalizeRepresentative(rep) {
@@ -2955,6 +3105,20 @@
                 return;
               }
 
+              if (type === "ecva-request-country-inbox") {
+                const countryId = String(payload.countryId || "").trim();
+                const requestId = String(payload.requestId || "").trim();
+                const inbox = getCountryInboxPayload(countryId);
+                window.parent.postMessage(
+                  {
+                    type: "ecva-country-inbox",
+                    payload: { countryId, requestId, inbox },
+                  },
+                  "*",
+                );
+                return;
+              }
+
               if (type === "ecva-editor-update-country-status") {
                 const updated = updateCountryStatusFromEditor(payload);
                 if (!updated) return;
@@ -3001,6 +3165,52 @@
                     payload: {
                       countryId: updated.countryId,
                       html: renderModalHtml(updated.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-add-submission") {
+                const added = addSubmissionFromFrontend(payload);
+                if (!added) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-country-inbox-updated",
+                    payload: {
+                      countryId: added.countryId,
+                      inbox: getCountryInboxPayload(added.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: added.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-update-submission-status") {
+                const updated = updateSubmissionStatusFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-country-inbox-updated",
+                    payload: {
+                      countryId: updated.countryId,
+                      inbox: getCountryInboxPayload(updated.countryId),
                     },
                   },
                   "*",

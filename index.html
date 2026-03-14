@@ -53,13 +53,13 @@
       }
 
       .map-ui-left {
-        transform: translate(60px, -12px);
+        transform: translate(60px, -32px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
 
       .map-ui-right {
-        transform: translate(-104px, -12px);
+        transform: translate(-104px, -32px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.94s forwards;
       }
@@ -745,7 +745,6 @@
       }
 
       .contribute-form input,
-      .contribute-form select,
       .contribute-form textarea {
         width: 100%;
         border-radius: 10px;
@@ -761,6 +760,41 @@
       .contribute-form textarea {
         min-height: 110px;
         resize: vertical;
+      }
+
+      .contribute-form-contact {
+        margin: 0;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(132, 153, 165, 0.42);
+        background: rgba(250, 253, 255, 0.88);
+        display: grid;
+        gap: 10px;
+      }
+
+      .contribute-form-contact legend {
+        padding: 0 6px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #2b4451;
+      }
+
+      .contribute-form-status {
+        min-height: 18px;
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #3d5a68;
+      }
+
+      .contribute-form-status.is-error {
+        color: #8d2d33;
+      }
+
+      .contribute-form-status.is-success {
+        color: #1f7f4b;
       }
 
       .contribute-form-actions {
@@ -2846,6 +2880,309 @@
         padding: 16px;
       }
 
+      .ecva-country-flow-panel {
+        display: grid;
+        gap: 12px;
+        border: 1px solid rgba(132, 153, 165, 0.42);
+        border-radius: 14px;
+        background: linear-gradient(
+          145deg,
+          rgba(241, 248, 252, 0.96),
+          rgba(232, 242, 247, 0.92)
+        );
+        padding: 14px;
+        margin: 0 0 16px;
+      }
+
+      .ecva-country-flow-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .ecva-country-flow-kicker {
+        margin: 0 0 3px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: #5f7b89;
+      }
+
+      .ecva-country-flow-head h4 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.1;
+        color: #1f3845;
+      }
+
+      .ecva-country-flow-summary {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      .ecva-country-flow-summary span {
+        display: inline-flex;
+        min-height: 28px;
+        align-items: center;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(126, 147, 159, 0.45);
+        font-size: 12px;
+        font-weight: 800;
+        color: #2c4551;
+        background: rgba(246, 251, 253, 0.94);
+      }
+
+      .ecva-country-flow-summary .is-new {
+        background: #f0f8ff;
+      }
+
+      .ecva-country-flow-summary .is-progress {
+        background: #ecf6ff;
+      }
+
+      .ecva-country-flow-summary .is-rejected {
+        background: #fdeff1;
+      }
+
+      .ecva-country-flow-summary .is-archived {
+        background: #f1f3f5;
+      }
+
+      .ecva-country-flow-grid {
+        display: grid;
+        gap: 10px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .ecva-inbox-column {
+        min-width: 0;
+        border: 1px solid rgba(136, 156, 167, 0.36);
+        border-radius: 12px;
+        background: rgba(252, 254, 255, 0.86);
+        padding: 10px;
+        display: grid;
+        gap: 9px;
+      }
+
+      .ecva-inbox-column > header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .ecva-inbox-column > header h5 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        color: #243d49;
+      }
+
+      .ecva-inbox-column > header span {
+        display: inline-flex;
+        min-width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #28424e;
+        background: rgba(222, 235, 242, 0.95);
+      }
+
+      .ecva-inbox-column-list {
+        display: grid;
+        gap: 8px;
+        align-content: start;
+      }
+
+      .ecva-inbox-card {
+        display: grid;
+        gap: 8px;
+        border: 1px solid rgba(141, 161, 172, 0.38);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.92);
+        padding: 10px;
+      }
+
+      .ecva-inbox-card-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .ecva-inbox-type,
+      .ecva-inbox-pillar {
+        display: inline-flex;
+        min-height: 24px;
+        align-items: center;
+        padding: 0 8px;
+        border-radius: 999px;
+        border: 1px solid rgba(121, 145, 157, 0.45);
+        font-size: 11px;
+        font-weight: 800;
+        color: #2b4451;
+        background: rgba(236, 245, 250, 0.9);
+      }
+
+      .ecva-inbox-card h5 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+        color: #1f3743;
+      }
+
+      .ecva-inbox-description {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #2f4b59;
+      }
+
+      .ecva-inbox-meta {
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px 10px;
+      }
+
+      .ecva-inbox-meta div {
+        min-width: 0;
+      }
+
+      .ecva-inbox-meta dt {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64808e;
+      }
+
+      .ecva-inbox-meta dd {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2b4552;
+        overflow-wrap: anywhere;
+      }
+
+      .ecva-inbox-links,
+      .ecva-inbox-attachments {
+        display: grid;
+        gap: 4px;
+      }
+
+      .ecva-inbox-links a,
+      .ecva-inbox-attachments a {
+        font-size: 12px;
+        font-weight: 700;
+        color: #25546f;
+        text-decoration: none;
+        overflow-wrap: anywhere;
+      }
+
+      .ecva-inbox-attachments span {
+        font-size: 12px;
+        font-weight: 700;
+        color: #456675;
+      }
+
+      .ecva-inbox-contact {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2d4a57;
+      }
+
+      .ecva-inbox-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .ecva-inbox-action {
+        min-height: 32px;
+        border-radius: 10px;
+        border: 1px solid rgba(108, 132, 145, 0.54);
+        background: #eaf2f6;
+        color: #27404c;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 0 10px;
+        cursor: pointer;
+      }
+
+      .ecva-inbox-action.is-reject {
+        background: #fbe8eb;
+        color: #7a2e35;
+        border-color: rgba(161, 91, 102, 0.45);
+      }
+
+      .ecva-inbox-empty {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        color: #5e7a88;
+      }
+
+      .ecva-inbox-archive {
+        border: 1px solid rgba(137, 158, 169, 0.36);
+        border-radius: 12px;
+        background: rgba(246, 250, 252, 0.84);
+        padding: 10px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .ecva-inbox-archive-toggle {
+        justify-self: flex-start;
+        min-height: 34px;
+        border-radius: 10px;
+        border: 1px solid rgba(120, 143, 156, 0.56);
+        background: #edf3f6;
+        color: #28434f;
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .ecva-inbox-archive-body {
+        display: grid;
+        gap: 8px;
+      }
+
+      @media (max-width: 1180px) {
+        .ecva-country-flow-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 860px) {
+        .ecva-country-flow-head {
+          flex-direction: column;
+        }
+
+        .ecva-country-flow-summary {
+          justify-content: flex-start;
+        }
+
+        .ecva-country-flow-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .ecva-inbox-meta {
+          grid-template-columns: 1fr;
+        }
+      }
+
       .ecva-manage-access-panel {
         display: grid;
         gap: 14px;
@@ -2888,7 +3225,9 @@
       .ecva-manage-access-table-head,
       .ecva-manage-access-row-item {
         display: grid;
-        grid-template-columns: minmax(120px, 0.75fr) minmax(130px, 0.9fr) minmax(170px, 1fr) minmax(260px, 1.35fr);
+        grid-template-columns:
+          minmax(120px, 0.75fr) minmax(130px, 0.9fr)
+          minmax(170px, 1fr) minmax(260px, 1.35fr);
         gap: 10px;
         align-items: center;
       }
@@ -3435,21 +3774,24 @@
             <div id="contribute-modal-info-body"></div>
           </article>
           <form class="contribute-form" id="contribute-form">
+            <input type="hidden" name="mode" />
+            <input type="hidden" name="countryId" />
+            <input type="hidden" name="pillarId" />
             <div class="contribute-form-row">
               <label>
-                Full Name
+                Your Name
                 <input
                   type="text"
-                  name="name"
-                  placeholder="Your name"
+                  name="submitterName"
+                  placeholder="Your full name"
                   required
                 />
               </label>
               <label>
-                Email
+                Your Email
                 <input
                   type="email"
-                  name="email"
+                  name="submitterEmail"
                   placeholder="you@example.org"
                   required
                 />
@@ -3457,31 +3799,97 @@
             </div>
             <div class="contribute-form-row">
               <label>
-                Organisation
+                Country
                 <input
                   type="text"
-                  name="organisation"
-                  placeholder="Institution / NGO / School"
+                  name="countryCode"
+                  placeholder="Country code"
+                  readonly
                 />
               </label>
               <label>
-                Contribution Type
-                <select name="type">
-                  <option value="resource">Resource</option>
-                  <option value="event">Event</option>
-                  <option value="research">Research</option>
-                  <option value="organisation">Organisation</option>
-                  <option value="policy">Policy / Government</option>
-                </select>
+                Languages available for reading
+                <input
+                  type="text"
+                  name="languageAvailability"
+                  placeholder="e.g. Romanian, English, German"
+                />
+              </label>
+            </div>
+            <div class="contribute-form-row">
+              <label>
+                Pillar
+                <input
+                  type="text"
+                  name="pillarLabel"
+                  placeholder="Auto selected"
+                  readonly
+                />
+              </label>
+              <label>
+                <span id="contribute-title-label">Title</span>
+                <input
+                  id="contribute-title-input"
+                  type="text"
+                  name="title"
+                  placeholder="Article title"
+                  required
+                />
               </label>
             </div>
             <label>
-              Contribution Details
+              Description
               <textarea
-                name="details"
-                placeholder="Title, subtitle, available languages, short description, links, and contact data."
+                name="description"
+                placeholder="Summary, scope, impact, and any verification details."
+                required
               ></textarea>
             </label>
+            <label>
+              Links
+              <textarea
+                name="links"
+                placeholder="One link per line (article, source, profile, institution, etc.)"
+              ></textarea>
+            </label>
+            <label>
+              Attachments
+              <input
+                type="file"
+                name="attachments"
+                multiple
+              />
+            </label>
+            <fieldset class="contribute-form-contact">
+              <legend>Contact representative</legend>
+              <div class="contribute-form-row">
+                <label>
+                  Name
+                  <input
+                    type="text"
+                    name="contactName"
+                    placeholder="Representative name"
+                  />
+                </label>
+                <label>
+                  Role
+                  <input
+                    type="text"
+                    name="contactRole"
+                    placeholder="Representative role"
+                  />
+                </label>
+              </div>
+              <label>
+                Email
+                <input
+                  type="email"
+                  name="contactEmail"
+                  placeholder="representative@example.org"
+                />
+              </label>
+            </fieldset>
+            <p id="contribute-form-status" class="contribute-form-status" aria-live="polite"></p>
             <div class="contribute-form-actions">
               <button
                 class="contribute-form-btn secondary"
@@ -3491,7 +3899,7 @@
                 Cancel
               </button>
               <button class="contribute-form-btn primary" type="submit">
-                Submit
+                Send for review
               </button>
             </div>
           </form>
@@ -3546,71 +3954,27 @@
             </article>
           </section>
           <section class="tepace-modal-contact">
-            <h4>Contact Area</h4>
-            <form id="tepace-form" class="tepace-form">
-              <div class="tepace-form-row">
-                <label>
-                  Full Name
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="Your name"
-                    required
-                  />
-                </label>
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    name="email"
-                    placeholder="you@example.org"
-                    required
-                  />
-                </label>
-              </div>
-              <div class="tepace-form-row">
-                <label>
-                  Country
-                  <input
-                    id="tepace-country-input"
-                    type="text"
-                    name="country"
-                    placeholder="Country code"
-                  />
-                </label>
-                <label>
-                  Organisation
-                  <input
-                    type="text"
-                    name="organisation"
-                    placeholder="School / University / NGO"
-                  />
-                </label>
-              </div>
-              <label>
-                Message
-                <textarea
-                  name="message"
-                  placeholder="Tell us why you want to contribute to this research."
-                ></textarea>
-              </label>
-              <div class="tepace-form-actions">
-                <button
-                  id="tepace-cancel-btn"
-                  class="tepace-form-btn secondary"
-                  type="button"
-                >
-                  Cancel
-                </button>
-                <button
-                  id="tepace-download-btn"
-                  class="tepace-form-btn primary"
-                  type="button"
-                >
-                  Download Questionnaire
-                </button>
-              </div>
-            </form>
+            <h4>Questionnaire access</h4>
+            <p>
+              Download the questionnaire template and use it to collect local
+              perspectives from teachers and parents.
+            </p>
+            <div class="tepace-form-actions">
+              <button
+                id="tepace-cancel-btn"
+                class="tepace-form-btn secondary"
+                type="button"
+              >
+                Cancel
+              </button>
+              <button
+                id="tepace-download-btn"
+                class="tepace-form-btn primary"
+                type="button"
+              >
+                Download Questionnaire
+              </button>
+            </div>
           </section>
         </section>
       </div>
@@ -3650,7 +4014,11 @@
               Edit App
             </button>
           </div>
-          <p id="ecva-access-code-error" class="ecva-admin-code-error" aria-live="polite"></p>
+          <p
+            id="ecva-access-code-error"
+            class="ecva-admin-code-error"
+            aria-live="polite"
+          ></p>
           <button
             id="ecva-go-website-btn"
             class="ecva-admin-btn primary"
@@ -4479,16 +4847,29 @@
       );
       const contributeForm = document.getElementById("contribute-form");
       const contributeConfetti = document.getElementById("contribute-confetti");
+      const contributeFormStatus = document.getElementById(
+        "contribute-form-status",
+      );
+      const contributeTitleLabel = document.getElementById(
+        "contribute-title-label",
+      );
+      const contributeTitleInput = document.getElementById(
+        "contribute-title-input",
+      );
       const tepaceModal = document.getElementById("tepace-modal");
       const tepaceModalClose = document.getElementById("tepace-modal-close");
       const tepaceModalTitle = document.getElementById("tepace-modal-title");
       const tepaceModalLead = document.getElementById("tepace-modal-lead");
-      const tepaceCountryInput = document.getElementById(
-        "tepace-country-input",
-      );
       const tepaceCancelBtn = document.getElementById("tepace-cancel-btn");
       const tepaceDownloadBtn = document.getElementById("tepace-download-btn");
-      const tepaceForm = document.getElementById("tepace-form");
+      const ATTACHMENT_UPLOAD_API = "/api/upload-attachment";
+      let contributeContext = {
+        mode: "article",
+        countryId: "",
+        countryName: "",
+        pillarId: "",
+        pillarLabel: "",
+      };
       const contributeInfoByPillar = {
         resources: {
           title: "Dedicated Resources",
@@ -4528,6 +4909,14 @@
             "This section documents Character Education presence in national or regional education policy.",
             "Contributors may submit policy frameworks, curriculum strategies, official programs, funding initiatives, reports, and legislative actions related to character development and adjacent goals.",
             "Relevant evidence includes ministry programs, curriculum guidelines, and government funded educational projects.",
+          ],
+        },
+        representative: {
+          title: "Country Representatives",
+          paragraphs: [
+            "Recommend a representative with verified role and contact details for this country.",
+            "Submissions should include professional context, organization affiliation, and public profile or references when available.",
+            "All suggestions are reviewed before appearing publicly.",
           ],
         },
       };
@@ -4752,14 +5141,85 @@
         }, 1400);
       }
 
-      function openContributeModal(pillarId, pillarLabel) {
+      function setContributeStatus(message, tone) {
+        if (!contributeFormStatus) return;
+        contributeFormStatus.textContent = String(message || "");
+        contributeFormStatus.classList.remove("is-error", "is-success");
+        if (tone === "error") {
+          contributeFormStatus.classList.add("is-error");
+        } else if (tone === "success") {
+          contributeFormStatus.classList.add("is-success");
+        }
+      }
+
+      async function uploadContributeAttachments(files) {
+        const list = Array.isArray(files) ? files : [];
+        if (!list.length) return [];
+        const uploads = [];
+        for (const file of list) {
+          const nextFile = file instanceof File ? file : null;
+          if (!nextFile) continue;
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error("attachment_read_failed"));
+            reader.onload = () => resolve(String(reader.result || ""));
+            reader.readAsDataURL(nextFile);
+          });
+          const response = await fetch(ATTACHMENT_UPLOAD_API, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filename: nextFile.name || "attachment.bin",
+              dataUrl,
+            }),
+          });
+          const payload = await response.json().catch(() => null);
+          if (!response.ok || !payload || payload.ok === false) {
+            const detail = payload && payload.details ? ` (${payload.details})` : "";
+            throw new Error(`attachment_upload_failed${detail}`);
+          }
+          uploads.push({
+            name: String(nextFile.name || "").trim() || "Attachment",
+            url: String(payload.path || "").trim(),
+          });
+        }
+        return uploads;
+      }
+
+      function postToMapFrame(type, payload) {
+        if (!frame || !frame.contentWindow) return false;
+        frame.contentWindow.postMessage({ type, payload: payload || {} }, "*");
+        return true;
+      }
+
+      function openContributeModal(config) {
         if (!contributeModal || !contributeModalInfoBody) return;
-        const info = contributeInfoByPillar[pillarId] || {
+        const mode =
+          config && config.mode === "representative"
+            ? "representative"
+            : "article";
+        const pillarId = String((config && config.pillarId) || "").trim();
+        const pillarLabel = String((config && config.pillarLabel) || "").trim();
+        const countryId = String((config && config.countryId) || "").trim();
+        const countryName = String((config && config.countryName) || "").trim();
+        contributeContext = {
+          mode,
+          pillarId,
+          pillarLabel,
+          countryId,
+          countryName,
+        };
+        const infoKey = mode === "representative" ? "representative" : pillarId;
+        const info = contributeInfoByPillar[infoKey] || {
           title: `${pillarLabel || "Section"} Contribution`,
           paragraphs: ["Provide verified details to enrich this section."],
         };
+        const modeTitle =
+          mode === "representative"
+            ? "Recommend a representative"
+            : "Suggest an article";
         if (contributeModalTitle) {
-          contributeModalTitle.textContent = `${pillarLabel || "Section"} Contribution`;
+          contributeModalTitle.textContent = modeTitle;
         }
         if (contributeModalInfoTitle) {
           contributeModalInfoTitle.textContent = info.title;
@@ -4767,6 +5227,46 @@
         contributeModalInfoBody.innerHTML = info.paragraphs
           .map((p) => `<p>${p}</p>`)
           .join("");
+        if (contributeForm) {
+          contributeForm.reset();
+          const modeInput = contributeForm.querySelector('[name="mode"]');
+          const countryInput = contributeForm.querySelector('[name="countryId"]');
+          const countryCodeInput = contributeForm.querySelector(
+            '[name="countryCode"]',
+          );
+          const pillarIdInput = contributeForm.querySelector('[name="pillarId"]');
+          const pillarLabelInput = contributeForm.querySelector(
+            '[name="pillarLabel"]',
+          );
+          if (modeInput) modeInput.value = mode;
+          if (countryInput) countryInput.value = countryId;
+          if (countryCodeInput) countryCodeInput.value = countryId;
+          if (pillarIdInput) pillarIdInput.value = pillarId;
+          if (pillarLabelInput)
+            pillarLabelInput.value =
+              mode === "representative"
+                ? "Representatives"
+                : (pillarLabel || "Pillar");
+
+          if (contributeTitleLabel) {
+            contributeTitleLabel.textContent =
+              mode === "representative" ? "Representative Name" : "Title";
+          }
+          if (contributeTitleInput) {
+            contributeTitleInput.placeholder =
+              mode === "representative"
+                ? "Representative full name"
+                : "Article title";
+          }
+        }
+        const leadCountry = countryName || countryId || "this country";
+        const leadText =
+          mode === "representative"
+            ? `Share a representative suggestion for ${leadCountry}.`
+            : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
+        const leadNode = contributeModal.querySelector(".contribute-modal-lead");
+        if (leadNode) leadNode.textContent = leadText;
+        setContributeStatus("");
         contributeModal.classList.add("is-visible");
         contributeModal.setAttribute("aria-hidden", "false");
         runContributeConfetti();
@@ -4776,6 +5276,7 @@
         if (!contributeModal) return;
         contributeModal.classList.remove("is-visible");
         contributeModal.setAttribute("aria-hidden", "true");
+        setContributeStatus("");
       }
 
       function openTepaceModal(countryLabel, countryFlag) {
@@ -4787,9 +5288,6 @@
         }
         if (tepaceModalLead) {
           tepaceModalLead.textContent = `Contribute to TEPACE insights for ${code}${flag ? ` ${flag}` : ""} by sharing local perspectives from teachers and parents.`;
-        }
-        if (tepaceCountryInput) {
-          tepaceCountryInput.value = code;
         }
         tepaceModal.classList.add("is-visible");
         tepaceModal.setAttribute("aria-hidden", "false");
@@ -4959,8 +5457,36 @@
             const pillarId = btn.getAttribute("data-contribute-pillar");
             const pillarLabel =
               btn.getAttribute("data-contribute-label") || "Section";
+            const countryId = btn.getAttribute("data-contribute-country") || "";
             if (!pillarId) return;
-            openContributeModal(pillarId, pillarLabel);
+            const countryName =
+              modalContent.querySelector(".country-modal-hero-name")
+                ?.textContent || "";
+            openContributeModal({
+              mode: "article",
+              pillarId,
+              pillarLabel,
+              countryId,
+              countryName,
+            });
+          });
+        });
+
+        const representativeButtons = modalContent.querySelectorAll(
+          ".country-modal-rep-recommend-btn[data-contribute-mode='representative']",
+        );
+        representativeButtons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const countryId = btn.getAttribute("data-contribute-country") || "";
+            const countryName =
+              btn.getAttribute("data-contribute-country-name") ||
+              modalContent.querySelector(".country-modal-hero-name")?.textContent ||
+              "";
+            openContributeModal({
+              mode: "representative",
+              countryId,
+              countryName,
+            });
           });
         });
 
@@ -5082,9 +5608,94 @@
       }
 
       if (contributeForm) {
-        contributeForm.addEventListener("submit", (event) => {
+        contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
-          closeContributeModal();
+          const formData = new FormData(contributeForm);
+          const mode = String(formData.get("mode") || "article").trim();
+          const countryId = String(formData.get("countryId") || "")
+            .trim()
+            .toUpperCase();
+          const pillarId = String(formData.get("pillarId") || "")
+            .trim()
+            .toLowerCase();
+          const pillarLabel = String(formData.get("pillarLabel") || "").trim();
+          const title = String(formData.get("title") || "").trim();
+          const description = String(formData.get("description") || "").trim();
+          if (!countryId) {
+            setContributeStatus("Missing country context.", "error");
+            return;
+          }
+          if (mode !== "representative" && !pillarId) {
+            setContributeStatus("Missing pillar context.", "error");
+            return;
+          }
+          if (!title || !description) {
+            setContributeStatus("Please complete title and description.", "error");
+            return;
+          }
+          setContributeStatus("Uploading attachments...", "");
+          const submitBtn = contributeForm.querySelector('[type="submit"]');
+          if (submitBtn) submitBtn.disabled = true;
+          try {
+            const attachmentFiles = (
+              formData.getAll("attachments") || []
+            ).filter(
+              (file) => file instanceof File && file.size > 0 && file.name,
+            );
+            const attachments = await uploadContributeAttachments(attachmentFiles);
+            const links = String(formData.get("links") || "")
+              .split(/\r?\n/)
+              .map((item) => item.trim())
+              .filter(Boolean);
+            const submission = {
+              id: `${countryId}-${Date.now()}-${Math.random()
+                .toString(36)
+                .slice(2, 7)}`,
+              type: mode === "representative" ? "representative" : "article",
+              status: "new",
+              pillarId: mode === "representative" ? "representatives" : pillarId,
+              pillarLabel:
+                mode === "representative"
+                  ? "Representatives"
+                  : (pillarLabel || "Pillar"),
+              title,
+              description,
+              languageAvailability: String(
+                formData.get("languageAvailability") || "",
+              ).trim(),
+              links,
+              attachments,
+              submittedBy: {
+                name: String(formData.get("submitterName") || "").trim(),
+                email: String(formData.get("submitterEmail") || "").trim(),
+              },
+              representativeContact: {
+                name: String(formData.get("contactName") || "").trim(),
+                role: String(formData.get("contactRole") || "").trim(),
+                email: String(formData.get("contactEmail") || "").trim(),
+              },
+              createdAt: new Date().toISOString(),
+            };
+            if (
+              !postToMapFrame("ecva-editor-add-submission", {
+                countryId,
+                submission,
+              })
+            ) {
+              throw new Error("map_frame_not_ready");
+            }
+            setContributeStatus("Suggestion sent for review.", "success");
+            window.setTimeout(() => {
+              closeContributeModal();
+            }, 260);
+          } catch (error) {
+            setContributeStatus(
+              "Could not submit your suggestion. Please try again.",
+              "error",
+            );
+          } finally {
+            if (submitBtn) submitBtn.disabled = false;
+          }
         });
       }
 
@@ -5118,12 +5729,6 @@
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
-        });
-      }
-
-      if (tepaceForm) {
-        tepaceForm.addEventListener("submit", (event) => {
-          event.preventDefault();
         });
       }
 

@@ -147,8 +147,27 @@
     return value === 'leading' || value === 'high_momentum' || value === 'development';
   }
 
+  function normalizeSubmissionStatus(rawStatus) {
+    const value = String(rawStatus || '').trim().toLowerCase();
+    if (value === 'in_progress' || value === 'in progress' || value === 'processing') {
+      return 'in_progress';
+    }
+    if (value === 'rejected' || value === 'declined') return 'rejected';
+    if (value === 'archived' || value === 'used' || value === 'done') return 'archived';
+    return 'new';
+  }
+
+  function getSubmissionStatusLabel(statusValue) {
+    const value = normalizeSubmissionStatus(statusValue);
+    if (value === 'in_progress') return 'In progress';
+    if (value === 'rejected') return 'Rejected';
+    if (value === 'archived') return 'Archived';
+    return 'New';
+  }
+
   let activeCountries = [];
   let countryCatalog = [];
+  let inboxByCountry = {};
   let selectedCountryId = '';
   let accessScope = { mode: 'all', countryId: '' };
   let accessCodeToCountryMap = new Map();
@@ -167,6 +186,8 @@
   let cropPointerState = null;
   let toastTimer = null;
   let persistTimer = null;
+  let inboxRequestCounter = 0;
+  let pendingInboxRequests = new Map();
   let versionHistoryBtn = null;
   let versionHistoryModal = null;
   let versionHistoryList = null;
@@ -176,6 +197,15 @@
   function postToMap(type, payload) {
     if (!mapFrame.contentWindow) return;
     mapFrame.contentWindow.postMessage({ type, payload: payload || {} }, '*');
+  }
+
+  function escapeHtml(value) {
+    return String(value || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
   }
 
   function clearAccessCodeError() {
@@ -583,6 +613,10 @@
     if (!manageRoot) return;
     closeEditorModal();
     closeVersionHistoryModal();
+    pendingInboxRequests.forEach((pending) => {
+      if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+    });
+    pendingInboxRequests.clear();
     manageRoot.classList.remove('is-visible');
     manageRoot.setAttribute('aria-hidden', 'true');
     if (manageBody) manageBody.innerHTML = '';
@@ -1099,6 +1133,98 @@
     updateVersionHistoryButtonVisibility();
     if (manageBody) manageBody.innerHTML = '';
     postToMap('ecva-request-country-modal-html', { countryId: selectedCountryId });
+    requestCountryInbox(selectedCountryId).catch(() => {});
+  }
+
+  function setCountryInbox(countryId, inbox) {
+    const code = normalizeManageCountryCode(countryId);
+    if (!code) return;
+    const list = Array.isArray(inbox) ? inbox : [];
+    inboxByCountry[code] = list
+      .filter((item) => item && typeof item === 'object')
+      .map((item) => ({
+        id:
+          String(item.id || '').trim() ||
+          `${code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        countryId: code,
+        type:
+          String(item.type || '').trim().toLowerCase() === 'representative'
+            ? 'representative'
+            : 'article',
+        status: normalizeSubmissionStatus(item.status),
+        pillarId: String(item.pillarId || '').trim().toLowerCase(),
+        pillarLabel: String(item.pillarLabel || '').trim(),
+        title: String(item.title || '').trim(),
+        description: String(item.description || '').trim(),
+        languageAvailability: String(item.languageAvailability || '').trim(),
+        links: Array.isArray(item.links)
+          ? item.links.map((next) => String(next || '').trim()).filter(Boolean)
+          : [],
+        attachments: Array.isArray(item.attachments)
+          ? item.attachments
+              .filter((next) => next && typeof next === 'object')
+              .map((next) => ({
+                name: String(next.name || '').trim(),
+                url: String(next.url || '').trim(),
+              }))
+              .filter((next) => next.name || next.url)
+          : [],
+        submittedBy:
+          item.submittedBy && typeof item.submittedBy === 'object'
+            ? {
+                name: String(item.submittedBy.name || '').trim(),
+                email: String(item.submittedBy.email || '').trim(),
+              }
+            : { name: '', email: '' },
+        representativeContact:
+          item.representativeContact && typeof item.representativeContact === 'object'
+            ? {
+                name: String(item.representativeContact.name || '').trim(),
+                role: String(item.representativeContact.role || '').trim(),
+                email: String(item.representativeContact.email || '').trim(),
+              }
+            : { name: '', role: '', email: '' },
+        createdAt: String(item.createdAt || '').trim(),
+        updatedAt: String(item.updatedAt || '').trim(),
+      }));
+  }
+
+  function getCountryInbox(countryId) {
+    const code = normalizeManageCountryCode(countryId);
+    if (!code) return [];
+    if (!Array.isArray(inboxByCountry[code])) {
+      inboxByCountry[code] = [];
+    }
+    return inboxByCountry[code];
+  }
+
+  function requestCountryInbox(countryId) {
+    const code = normalizeManageCountryCode(countryId);
+    if (!code) return Promise.resolve([]);
+    return new Promise((resolve, reject) => {
+      if (!mapFrame.contentWindow) {
+        reject(new Error('map_not_ready'));
+        return;
+      }
+      const requestId = `inbox-${Date.now()}-${inboxRequestCounter += 1}`;
+      const timeout = window.setTimeout(() => {
+        pendingInboxRequests.delete(requestId);
+        reject(new Error('inbox_timeout'));
+      }, 2600);
+      pendingInboxRequests.set(requestId, { resolve, reject, timeout, countryId: code });
+      postToMap('ecva-request-country-inbox', { countryId: code, requestId });
+    });
+  }
+
+  function updateSubmissionStatus(countryId, submissionId, status) {
+    const code = normalizeManageCountryCode(countryId);
+    const nextStatus = normalizeSubmissionStatus(status);
+    if (!code || !submissionId) return;
+    postToMap('ecva-editor-update-submission-status', {
+      countryId: code,
+      submissionId: String(submissionId),
+      status: nextStatus,
+    });
   }
 
   function wireManageEntryExpanders(scope) {
@@ -1419,8 +1545,212 @@
     footer.appendChild(addBtn);
   }
 
+  function formatSubmissionDate(value) {
+    const parsed = new Date(String(value || ''));
+    if (!Number.isFinite(parsed.getTime())) return 'Just now';
+    return parsed.toLocaleString();
+  }
+
+  function getSubmissionTypeLabel(item) {
+    const mode = String(item && item.type ? item.type : '').trim().toLowerCase();
+    return mode === 'representative' ? 'Representative' : 'Article';
+  }
+
+  function getSubmissionPillarLabel(item) {
+    const explicit = String(item && item.pillarLabel ? item.pillarLabel : '').trim();
+    if (explicit) return explicit;
+    const pillarId = String(item && item.pillarId ? item.pillarId : '').trim().toLowerCase();
+    if (!pillarId) return 'General';
+    if (pillarId === 'organisations') return 'Organisations';
+    if (pillarId === 'resources') return 'Resources';
+    if (pillarId === 'events') return 'Events';
+    if (pillarId === 'research') return 'Research';
+    if (pillarId === 'government') return 'Government';
+    if (pillarId === 'representatives') return 'Representatives';
+    return pillarId;
+  }
+
+  function buildSubmissionCardHtml(item, currentStatus) {
+    const title = String(item && item.title ? item.title : '').trim() || 'Untitled suggestion';
+    const description = String(item && item.description ? item.description : '').trim();
+    const submittedBy =
+      item && item.submittedBy && typeof item.submittedBy === 'object'
+        ? item.submittedBy
+        : { name: '', email: '' };
+    const links = Array.isArray(item && item.links) ? item.links.filter(Boolean) : [];
+    const attachments = Array.isArray(item && item.attachments)
+      ? item.attachments.filter((next) => next && (next.name || next.url))
+      : [];
+    const contact =
+      item && item.representativeContact && typeof item.representativeContact === 'object'
+        ? item.representativeContact
+        : { name: '', role: '', email: '' };
+    const actions = [];
+    if (currentStatus === 'new') {
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Mark in progress</button>');
+      actions.push('<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>');
+    } else if (currentStatus === 'in_progress') {
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived">Archive</button>');
+      actions.push('<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>');
+    } else if (currentStatus === 'rejected') {
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Re-open</button>');
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="archived">Archive</button>');
+    } else if (currentStatus === 'archived') {
+      actions.push('<button type="button" class="ecva-inbox-action" data-action-status="in_progress">Restore</button>');
+    }
+    return `
+      <article class="ecva-inbox-card" data-submission-id="${escapeHtml(item.id)}">
+        <header class="ecva-inbox-card-head">
+          <span class="ecva-inbox-type">${escapeHtml(getSubmissionTypeLabel(item))}</span>
+          <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
+        </header>
+        <h5>${escapeHtml(title)}</h5>
+        ${description ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>` : ''}
+        <dl class="ecva-inbox-meta">
+          <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || '-')}</dd></div>
+          <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || '-')}</dd></div>
+          <div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || '-')}</dd></div>
+          <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
+        </dl>
+        ${
+          links.length
+            ? `<div class="ecva-inbox-links">${links
+                .slice(0, 3)
+                .map((url) => `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`)
+                .join('')}</div>`
+            : ''
+        }
+        ${
+          attachments.length
+            ? `<div class="ecva-inbox-attachments">${attachments
+                .slice(0, 4)
+                .map((item) => {
+                  const label = escapeHtml(item.name || item.url || 'Attachment');
+                  const href = escapeHtml(item.url || '#');
+                  if (!item.url) return `<span>${label}</span>`;
+                  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
+                })
+                .join('')}</div>`
+            : ''
+        }
+        ${
+          contact.name || contact.role || contact.email
+            ? `<p class="ecva-inbox-contact"><strong>Representative:</strong> ${escapeHtml(
+                [contact.name, contact.role, contact.email].filter(Boolean).join(' • ') || '-',
+              )}</p>`
+            : ''
+        }
+        ${actions.length ? `<div class="ecva-inbox-actions">${actions.join('')}</div>` : ''}
+      </article>
+    `;
+  }
+
+  function buildInboxColumnHtml(title, status, items, emptyText) {
+    const cards = items
+      .map((item) => buildSubmissionCardHtml(item, status))
+      .join('');
+    return `
+      <section class="ecva-inbox-column" data-inbox-column="${status}">
+        <header>
+          <h5>${escapeHtml(title)}</h5>
+          <span>${items.length}</span>
+        </header>
+        <div class="ecva-inbox-column-list">
+          ${cards || `<p class="ecva-inbox-empty">${escapeHtml(emptyText)}</p>`}
+        </div>
+      </section>
+    `;
+  }
+
+  function wireCountryFlowActions(panel, countryId) {
+    if (!panel) return;
+    panel.querySelectorAll('.ecva-inbox-action[data-action-status]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.ecva-inbox-card[data-submission-id]');
+        const submissionId = card ? card.getAttribute('data-submission-id') : '';
+        const status = btn.getAttribute('data-action-status');
+        if (!submissionId || !status) return;
+        updateSubmissionStatus(countryId, submissionId, status);
+      });
+    });
+    const archiveToggle = panel.querySelector('.ecva-inbox-archive-toggle');
+    const archiveBody = panel.querySelector('.ecva-inbox-archive-body');
+    if (archiveToggle && archiveBody) {
+      archiveToggle.addEventListener('click', () => {
+        const expanded = archiveToggle.getAttribute('aria-expanded') === 'true';
+        archiveToggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+        archiveBody.hidden = expanded;
+      });
+    }
+  }
+
+  function renderCountryFlowPanel(scope) {
+    if (!scope || !selectedCountryId) return;
+    const countryId = normalizeManageCountryCode(selectedCountryId);
+    if (!countryId) return;
+    const old = scope.querySelector('.ecva-country-flow-panel');
+    if (old) old.remove();
+    const inbox = getCountryInbox(countryId);
+    const next = inbox.filter((item) => normalizeSubmissionStatus(item.status) === 'new');
+    const inProgress = inbox.filter(
+      (item) => normalizeSubmissionStatus(item.status) === 'in_progress',
+    );
+    const rejected = inbox.filter(
+      (item) => normalizeSubmissionStatus(item.status) === 'rejected',
+    );
+    const archived = inbox.filter(
+      (item) => normalizeSubmissionStatus(item.status) === 'archived',
+    );
+    const panel = document.createElement('section');
+    panel.className = 'ecva-country-flow-panel';
+    panel.innerHTML = `
+      <header class="ecva-country-flow-head">
+        <div>
+          <p class="ecva-country-flow-kicker">Information flow</p>
+          <h4>Country submissions inbox</h4>
+        </div>
+        <div class="ecva-country-flow-summary">
+          <span class="is-new">New ${next.length}</span>
+          <span class="is-progress">In progress ${inProgress.length}</span>
+          <span class="is-rejected">Rejected ${rejected.length}</span>
+          <span class="is-archived">Archive ${archived.length}</span>
+        </div>
+      </header>
+      <div class="ecva-country-flow-grid">
+        ${buildInboxColumnHtml('New', 'new', next, 'No new submissions yet.')}
+        ${buildInboxColumnHtml(
+          'In progress',
+          'in_progress',
+          inProgress,
+          'Nothing currently in review.',
+        )}
+        ${buildInboxColumnHtml('Rejected', 'rejected', rejected, 'No rejected submissions.')}
+      </div>
+      <section class="ecva-inbox-archive">
+        <button type="button" class="ecva-inbox-archive-toggle" aria-expanded="false">
+          Archive (${archived.length})
+        </button>
+        <div class="ecva-inbox-archive-body" hidden>
+          ${
+            archived.length
+              ? archived.map((item) => buildSubmissionCardHtml(item, 'archived')).join('')
+              : '<p class="ecva-inbox-empty">No archived submissions.</p>'
+          }
+        </div>
+      </section>
+    `;
+    const header = scope.querySelector('.country-modal-header');
+    if (header && header.parentNode === scope) {
+      scope.insertBefore(panel, header);
+    } else {
+      scope.prepend(panel);
+    }
+    wireCountryFlowActions(panel, countryId);
+  }
+
   function enhanceManageContent() {
     if (!manageBody) return;
+    renderCountryFlowPanel(manageBody);
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
@@ -1516,6 +1846,33 @@
       } else if (manageBody) {
         manageBody.innerHTML = '';
         renderGeneralAccessPanel();
+      }
+      return;
+    }
+
+    if (type === 'ecva-country-inbox') {
+      const countryId = normalizeManageCountryCode(payload.countryId);
+      const requestId = String(payload.requestId || '').trim();
+      if (requestId && pendingInboxRequests.has(requestId)) {
+        const pending = pendingInboxRequests.get(requestId);
+        pendingInboxRequests.delete(requestId);
+        if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+        setCountryInbox(countryId, payload.inbox);
+        pending.resolve(getCountryInbox(countryId));
+      } else {
+        setCountryInbox(countryId, payload.inbox);
+      }
+      if (countryId && normalizeManageCountryCode(selectedCountryId) === countryId && manageBody) {
+        renderCountryFlowPanel(manageBody);
+      }
+      return;
+    }
+
+    if (type === 'ecva-country-inbox-updated') {
+      const countryId = normalizeManageCountryCode(payload.countryId);
+      setCountryInbox(countryId, payload.inbox);
+      if (countryId && normalizeManageCountryCode(selectedCountryId) === countryId && manageBody) {
+        renderCountryFlowPanel(manageBody);
       }
       return;
     }

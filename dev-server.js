@@ -16,6 +16,7 @@ const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8081);
 const DATA_FILE = path.join(ROOT, 'editor-data.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
+const ASSETS_ATTACHMENTS_DIR = path.join(ASSETS_UPLOAD_DIR, 'attachments');
 const TRANSLATION_CACHE_FILE = path.join(ROOT, 'translations-cache.json');
 const EDITOR_STATE_KEY = 'global';
 const GLOBAL_SCOPE_KEY = 'global';
@@ -210,6 +211,7 @@ function readJsonBody(req, maxBytes, callback) {
 
 function ensureUploadDir() {
   fs.mkdirSync(ASSETS_UPLOAD_DIR, { recursive: true });
+  fs.mkdirSync(ASSETS_ATTACHMENTS_DIR, { recursive: true });
 }
 
 function safeUploadFileName(inputName) {
@@ -223,8 +225,37 @@ function safeUploadFileName(inputName) {
   return `${stem}-${stamp}-${rand}${finalExt}`;
 }
 
+function safeAttachmentFileName(inputName) {
+  const base = String(inputName || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '-');
+  const ext = path.extname(base).toLowerCase();
+  const allowed = new Set([
+    '.png',
+    '.jpg',
+    '.jpeg',
+    '.webp',
+    '.gif',
+    '.pdf',
+    '.doc',
+    '.docx',
+    '.xls',
+    '.xlsx',
+    '.ppt',
+    '.pptx',
+    '.txt',
+    '.csv',
+    '.zip',
+    '.rar',
+    '.7z',
+  ]);
+  const finalExt = allowed.has(ext) ? ext : '.bin';
+  const stem = path.basename(base, ext).slice(0, 60) || 'attachment';
+  const stamp = Date.now();
+  const rand = Math.random().toString(36).slice(2, 8);
+  return `${stem}-${stamp}-${rand}${finalExt}`;
+}
+
 function parseDataUrl(dataUrl) {
-  const match = String(dataUrl || '').match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,([A-Za-z0-9+/=]+)$/);
+  const match = String(dataUrl || '').match(/^data:([a-zA-Z0-9.+/-]+);base64,([A-Za-z0-9+/=]+)$/);
   if (!match) return null;
   const mime = match[1].toLowerCase();
   const base64 = match[2];
@@ -245,7 +276,7 @@ function buildCloudinaryPublicId(inputName) {
   return path.basename(safeName, ext);
 }
 
-async function uploadImageToCloudinary(dataUrl, inputName) {
+async function uploadAssetToCloudinary(dataUrl, inputName, resourceType) {
   const cloudName = String(process.env.CLOUDINARY_CLOUD_NAME || '').trim();
   const apiKey = String(process.env.CLOUDINARY_API_KEY || '').trim();
   const apiSecret = String(process.env.CLOUDINARY_API_SECRET || '').trim();
@@ -264,7 +295,8 @@ async function uploadImageToCloudinary(dataUrl, inputName) {
   form.append('folder', folder);
   form.append('public_id', publicId);
 
-  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`;
+  const targetResourceType = String(resourceType || 'image').trim() || 'image';
+  const endpoint = `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/${encodeURIComponent(targetResourceType)}/upload`;
   const response = await fetch(endpoint, { method: 'POST', body: form });
   if (!response.ok) {
     const details = await response.text().catch(() => '');
@@ -276,6 +308,10 @@ async function uploadImageToCloudinary(dataUrl, inputName) {
     throw new Error('cloudinary_upload_missing_url');
   }
   return imageUrl;
+}
+
+async function uploadImageToCloudinary(dataUrl, inputName) {
+  return uploadAssetToCloudinary(dataUrl, inputName, 'image');
 }
 
 function createPostgresClient() {
@@ -801,6 +837,51 @@ const server = http.createServer(async (req, res) => {
       } catch (writeError) {
         // eslint-disable-next-line no-console
         console.error('Upload failed:', writeError);
+        return sendJson(res, 500, {
+          ok: false,
+          error: 'write_failed',
+          details: String(writeError && writeError.message ? writeError.message : ''),
+        });
+      }
+    });
+    return;
+  }
+
+  if (pathname === '/api/upload-attachment') {
+    if (req.method !== 'POST') {
+      return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
+    }
+    readJsonBody(req, 20 * 1024 * 1024, async (error, parsedBody) => {
+      if (error) {
+        return sendJson(res, 400, { ok: false, error: 'invalid_json' });
+      }
+      const filename = safeAttachmentFileName(parsedBody && parsedBody.filename);
+      const dataUrl = String(parsedBody && parsedBody.dataUrl ? parsedBody.dataUrl : '');
+      const parsedDataUrl = parseDataUrl(dataUrl);
+      if (!parsedDataUrl) {
+        return sendJson(res, 400, { ok: false, error: 'invalid_data_url' });
+      }
+      try {
+        if (isCloudinaryConfigured()) {
+          const assetUrl = await uploadAssetToCloudinary(dataUrl, filename, 'auto');
+          return sendJson(res, 200, {
+            ok: true,
+            path: assetUrl,
+            provider: 'cloudinary',
+          });
+        }
+        ensureUploadDir();
+        const outPath = path.join(ASSETS_ATTACHMENTS_DIR, filename);
+        const bytes = Buffer.from(parsedDataUrl.base64, 'base64');
+        fs.writeFileSync(outPath, bytes);
+        return sendJson(res, 200, {
+          ok: true,
+          path: `/assets/uploads/attachments/${filename}`,
+          provider: 'local',
+        });
+      } catch (writeError) {
+        // eslint-disable-next-line no-console
+        console.error('Attachment upload failed:', writeError);
         return sendJson(res, 500, {
           ok: false,
           error: 'write_failed',
