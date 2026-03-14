@@ -1179,7 +1179,22 @@
 
       let index = 0;
       const len = slides.length;
+      const hasMultiple = len > 1;
       let dots = [];
+
+      if (prevBtn) {
+        prevBtn.style.display = hasMultiple ? '' : 'none';
+        prevBtn.disabled = !hasMultiple;
+        prevBtn.setAttribute('aria-hidden', hasMultiple ? 'false' : 'true');
+      }
+      if (nextBtn) {
+        nextBtn.style.display = hasMultiple ? '' : 'none';
+        nextBtn.disabled = !hasMultiple;
+        nextBtn.setAttribute('aria-hidden', hasMultiple ? 'false' : 'true');
+      }
+      if (dotsHost) {
+        dotsHost.style.display = hasMultiple ? 'inline-flex' : 'none';
+      }
 
       const getCircularOffset = (i, active, total) => {
         let diff = i - active;
@@ -1221,13 +1236,13 @@
         });
       }
 
-      if (prevBtn) {
+      if (prevBtn && hasMultiple) {
         prevBtn.addEventListener('click', () => {
           index = (index - 1 + len) % len;
           apply();
         });
       }
-      if (nextBtn) {
+      if (nextBtn && hasMultiple) {
         nextBtn.addEventListener('click', () => {
           index = (index + 1) % len;
           apply();
@@ -1236,6 +1251,7 @@
 
       slides.forEach((slide, i) => {
         slide.addEventListener('click', () => {
+          if (!hasMultiple) return;
           if (i === index) return;
           index = i;
           apply();
@@ -1408,6 +1424,9 @@
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
+    manageBody.querySelectorAll('.country-modal-rep-recommend-btn').forEach((btn) => {
+      btn.style.display = 'none';
+    });
     if (canEditContent()) {
       addEditButtons(manageBody);
       addRepresentativeControls(manageBody);

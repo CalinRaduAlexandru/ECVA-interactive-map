@@ -918,8 +918,8 @@
       }
 
       .country-modal-pillar.is-resources {
-        --pillar-color-a: #4d87de;
-        --pillar-color-b: #2d66c5;
+        --pillar-color-a: #c96da0;
+        --pillar-color-b: #b2558a;
       }
 
       .country-modal-pillar.is-events {
@@ -1693,10 +1693,10 @@
       }
 
       .country-modal-detail-card[data-pillar-card="resources"] {
-        --card-a: rgba(245, 250, 253, 0.9);
-        --card-b: rgba(239, 246, 250, 0.9);
-        --pill-a: #4d87de;
-        --pill-b: #2d66c5;
+        --card-a: rgba(248, 238, 245, 0.92);
+        --card-b: rgba(242, 229, 239, 0.92);
+        --pill-a: #c96da0;
+        --pill-b: #b2558a;
       }
 
       .country-modal-detail-card[data-pillar-card="events"] {
@@ -4824,7 +4824,22 @@
 
           let index = 0;
           const len = slides.length;
+          const hasMultiple = len > 1;
           let dots = [];
+
+          if (prevBtn) {
+            prevBtn.style.display = hasMultiple ? "" : "none";
+            prevBtn.disabled = !hasMultiple;
+            prevBtn.setAttribute("aria-hidden", hasMultiple ? "false" : "true");
+          }
+          if (nextBtn) {
+            nextBtn.style.display = hasMultiple ? "" : "none";
+            nextBtn.disabled = !hasMultiple;
+            nextBtn.setAttribute("aria-hidden", hasMultiple ? "false" : "true");
+          }
+          if (dotsHost) {
+            dotsHost.style.display = hasMultiple ? "inline-flex" : "none";
+          }
 
           const getCircularOffset = (i, active, total) => {
             let diff = i - active;
@@ -4866,13 +4881,13 @@
             });
           }
 
-          if (prevBtn) {
+          if (prevBtn && hasMultiple) {
             prevBtn.addEventListener("click", () => {
               index = (index - 1 + len) % len;
               apply();
             });
           }
-          if (nextBtn) {
+          if (nextBtn && hasMultiple) {
             nextBtn.addEventListener("click", () => {
               index = (index + 1) % len;
               apply();
@@ -4881,6 +4896,7 @@
 
           slides.forEach((slide, i) => {
             slide.addEventListener("click", () => {
+              if (!hasMultiple) return;
               if (i === index) return;
               index = i;
               apply();

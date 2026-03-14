@@ -176,6 +176,7 @@
       pointer-events: all;
       opacity: 0.92;
       animation: pillFadeIn 0.28s ease both;
+      cursor: help;
     }
 
     .pending-country-hint .hint-bg {
@@ -189,6 +190,32 @@
       font-family: "Alexandria", sans-serif;
       font-size: 12px;
       font-weight: 800;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      user-select: none;
+    }
+
+    .pending-country-tooltip {
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 70ms linear;
+    }
+
+    .pending-country-tooltip.is-visible {
+      opacity: 1;
+    }
+
+    .pending-country-tooltip .tooltip-bg {
+      fill: rgba(38, 57, 68, 0.96);
+      stroke: rgba(198, 214, 223, 0.58);
+      stroke-width: 1.1;
+    }
+
+    .pending-country-tooltip .tooltip-text {
+      fill: #f2f8fb;
+      font-family: "Alexandria", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
       text-anchor: middle;
       dominant-baseline: middle;
       user-select: none;
@@ -2327,6 +2354,10 @@
             const labelByCountry = new Map();
             const pathByCountry = new Map();
             const pendingHintByCountry = new Map();
+            let pendingTooltipNode = null;
+            let pendingTooltipRect = null;
+            let pendingTooltipText = null;
+            let pendingTooltipCountry = "";
             const statusClassList = [
               "is-status-leading",
               "is-status-high_momentum",
@@ -2448,6 +2479,105 @@
               return layer;
             }
 
+            function ensurePendingTooltipNode() {
+              if (pendingTooltipNode) return pendingTooltipNode;
+              if (!mapRoot || !labelsLayer) return null;
+              const node = document.createElementNS("http://www.w3.org/2000/svg", "g");
+              node.setAttribute("id", "pending-country-tooltip");
+              node.setAttribute("class", "pending-country-tooltip");
+
+              const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              bg.setAttribute("class", "tooltip-bg");
+
+              const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+              text.setAttribute("class", "tooltip-text");
+              text.setAttribute("x", "0");
+              text.setAttribute("y", "0");
+
+              node.appendChild(bg);
+              node.appendChild(text);
+              mapRoot.appendChild(node);
+              pendingTooltipNode = node;
+              pendingTooltipRect = bg;
+              pendingTooltipText = text;
+              return pendingTooltipNode;
+            }
+
+            function hidePendingCountryTooltip() {
+              pendingTooltipCountry = "";
+              if (!pendingTooltipNode) return;
+              pendingTooltipNode.classList.remove("is-visible");
+            }
+
+            function setPendingTooltipLines(textValue) {
+              if (!pendingTooltipText || !pendingTooltipRect) return;
+              const words = String(textValue || "").trim().split(/\s+/).filter(Boolean);
+              const lines = [];
+              let current = "";
+              words.forEach((word) => {
+                const candidate = current ? `${current} ${word}` : word;
+                if (candidate.length <= 52) {
+                  current = candidate;
+                } else {
+                  if (current) lines.push(current);
+                  current = word;
+                }
+              });
+              if (current) lines.push(current);
+              const safeLines = lines.length ? lines.slice(0, 2) : [textValue];
+              if (lines.length > 2) {
+                safeLines[1] = `${safeLines[1].replace(/\s+$/, "")}...`;
+              }
+              pendingTooltipText.textContent = "";
+              safeLines.forEach((line, index) => {
+                const tspan = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+                tspan.textContent = line;
+                tspan.setAttribute("x", "0");
+                tspan.setAttribute("dy", index === 0 ? "0" : "1.22em");
+                pendingTooltipText.appendChild(tspan);
+              });
+
+              const width = 352;
+              const lineCount = safeLines.length;
+              const height = lineCount > 1 ? 43 : 30;
+              pendingTooltipRect.setAttribute("x", String(-width / 2));
+              pendingTooltipRect.setAttribute("y", String(-height / 2));
+              pendingTooltipRect.setAttribute("width", String(width));
+              pendingTooltipRect.setAttribute("height", String(height));
+              pendingTooltipRect.setAttribute("rx", "9");
+              pendingTooltipRect.setAttribute("ry", "9");
+              pendingTooltipText.setAttribute("y", lineCount > 1 ? "-7.5" : "0");
+            }
+
+            function showPendingCountryTooltip(countryId) {
+              const code = String(countryId || "").trim().toUpperCase();
+              if (!code) return;
+              const info = ensureCountryData(code);
+              const pathNode = pathByCountry.get(code) || document.getElementById(code);
+              if (!info || !pathNode) return;
+              const tooltipNode = ensurePendingTooltipNode();
+              if (!tooltipNode || !pendingTooltipRect || !pendingTooltipText) return;
+
+              const textValue = `${info.name} is preparing to enter the ECVA family and new information will be available soon!`;
+              setPendingTooltipLines(textValue);
+
+              const box = pathNode.getBBox();
+              const centerX = box.x + box.width / 2;
+              let tooltipY = box.y - 12;
+              if (tooltipY < 26) {
+                tooltipY = box.y + box.height + 16;
+              }
+              const minX = frameBox.x + 182;
+              const maxX = frameBox.x + frameBox.width - 182;
+              const clampedX = Math.max(minX, Math.min(maxX, centerX));
+              tooltipNode.setAttribute(
+                "transform",
+                `translate(${clampedX.toFixed(1)} ${tooltipY.toFixed(1)})`,
+              );
+              pendingTooltipCountry = code;
+              tooltipNode.classList.add("is-visible");
+            }
+
             function setPendingCountryHint(countryId, visible) {
               const code = String(countryId || "").trim().toUpperCase();
               if (!code) return;
@@ -2455,6 +2585,9 @@
               if (!visible) {
                 if (existing && existing.parentNode) {
                   existing.parentNode.removeChild(existing);
+                }
+                if (pendingTooltipCountry === code) {
+                  hidePendingCountryTooltip();
                 }
                 pendingHintByCountry.delete(code);
                 return;
@@ -2500,10 +2633,43 @@
               );
               const tipText = `${info.name} is preparing to enter the ECVA family and new information will be available soon!`;
               marker.setAttribute("aria-label", tipText);
-              const titleNode = marker.querySelector("title") || document.createElementNS("http://www.w3.org/2000/svg", "title");
-              titleNode.textContent = tipText;
-              if (!titleNode.parentNode) {
-                marker.appendChild(titleNode);
+              marker.setAttribute("tabindex", "0");
+              if (marker.dataset.tooltipWired !== "1") {
+                marker.dataset.tooltipWired = "1";
+                marker.addEventListener("mouseenter", () => {
+                  showPendingCountryTooltip(code);
+                });
+                marker.addEventListener("mousemove", () => {
+                  showPendingCountryTooltip(code);
+                });
+                marker.addEventListener("mouseleave", () => {
+                  hidePendingCountryTooltip();
+                });
+                marker.addEventListener("focus", () => {
+                  showPendingCountryTooltip(code);
+                });
+                marker.addEventListener("blur", () => {
+                  hidePendingCountryTooltip();
+                });
+              }
+
+              if (pathNode.dataset.pendingTooltipWired !== "1") {
+                pathNode.dataset.pendingTooltipWired = "1";
+                pathNode.addEventListener("mouseenter", () => {
+                  if (pathNode.classList.contains("is-status-pending")) {
+                    showPendingCountryTooltip(code);
+                  }
+                });
+                pathNode.addEventListener("mousemove", () => {
+                  if (pathNode.classList.contains("is-status-pending")) {
+                    showPendingCountryTooltip(code);
+                  }
+                });
+                pathNode.addEventListener("mouseleave", () => {
+                  if (pendingTooltipCountry === code) {
+                    hidePendingCountryTooltip();
+                  }
+                });
               }
             }
 
@@ -2713,14 +2879,29 @@
                 const target = event.target;
                 if (!(target instanceof Element)) return;
                 const pathNode = target.closest("path[id].is-map-country");
+                if (
+                  pathNode &&
+                  pathNode.classList.contains("is-status-pending")
+                ) {
+                  const code = String(pathNode.getAttribute("id") || "").trim().toUpperCase();
+                  if (code) {
+                    showPendingCountryTooltip(code);
+                  }
+                } else if (
+                  !(target.closest && target.closest(".pending-country-hint"))
+                ) {
+                  hidePendingCountryTooltip();
+                }
                 setHoveredCountry(pathNode || null);
               });
               mapRoot.addEventListener("mouseleave", () => {
+                hidePendingCountryTooltip();
                 setHoveredCountry(null);
               });
             }
 
             window.addEventListener("blur", () => {
+              hidePendingCountryTooltip();
               setHoveredCountry(null);
             });
 
