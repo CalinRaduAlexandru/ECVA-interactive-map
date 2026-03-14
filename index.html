@@ -4858,6 +4858,7 @@
       }
       const EMBED_HEIGHT_EVENT = "ecva-embed-height";
       let heightPostTimer = null;
+      let lastPostedEmbedHeight = 0;
 
       function postEmbedHeightToParent() {
         if (window.parent === window) return;
@@ -4882,11 +4883,27 @@
         );
         let height = 0;
         if (isManageOpen) {
-          const shellHeight = manageShell ? manageShell.scrollHeight : 0;
+          const topbar = manageShell
+            ? manageShell.querySelector(".ecva-manage-topbar")
+            : null;
+          const body = manageShell
+            ? manageShell.querySelector(".ecva-manage-body")
+            : null;
+          const shellStyle = manageShell
+            ? window.getComputedStyle(manageShell)
+            : null;
+          const shellPaddingY = shellStyle
+            ? (parseFloat(shellStyle.paddingTop || "0") || 0) +
+              (parseFloat(shellStyle.paddingBottom || "0") || 0)
+            : 0;
+          const manageContentHeight =
+            (topbar ? topbar.scrollHeight || 0 : 0) +
+            (body ? body.scrollHeight || 0 : 0) +
+            shellPaddingY +
+            16;
           height = Math.max(
             520,
-            Math.ceil(shellHeight + 24),
-            Math.ceil(docHeight),
+            Math.ceil(manageContentHeight),
           );
         } else if (isCountryModalOpen) {
           const shell = document.querySelector(".country-modal-shell");
@@ -4903,6 +4920,8 @@
           height = Math.max(520, Math.ceil(mainHeight), Math.ceil(docHeight));
         }
         if (!Number.isFinite(height) || height < 320) return;
+        if (Math.abs(height - lastPostedEmbedHeight) < 2) return;
+        lastPostedEmbedHeight = height;
         window.parent.postMessage(
           {
             type: EMBED_HEIGHT_EVENT,
