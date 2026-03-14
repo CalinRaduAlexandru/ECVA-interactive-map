@@ -558,24 +558,37 @@
     }, 2200);
   }
 
+  function syncAdminOverlayScrollLock() {
+    const isLocked = Boolean(
+      (adminHub && adminHub.classList.contains('is-visible')) ||
+        (manageRoot && manageRoot.classList.contains('is-visible')) ||
+        (editorModal && editorModal.classList.contains('is-visible')) ||
+        (versionHistoryModal && versionHistoryModal.classList.contains('is-visible')),
+    );
+    document.documentElement.classList.toggle('ecva-scroll-locked', isLocked);
+    document.body.classList.toggle('ecva-scroll-locked', isLocked);
+  }
+
   function openHub() {
     if (!adminHub) return;
     adminHub.classList.add('is-visible');
     adminHub.setAttribute('aria-hidden', 'false');
+    syncAdminOverlayScrollLock();
   }
 
   function closeHub() {
     if (!adminHub) return;
     adminHub.classList.remove('is-visible');
     adminHub.setAttribute('aria-hidden', 'true');
+    syncAdminOverlayScrollLock();
   }
 
   function openManage() {
     if (!manageRoot) return;
     closeHub();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
     manageRoot.classList.add('is-visible');
     manageRoot.setAttribute('aria-hidden', 'false');
+    syncAdminOverlayScrollLock();
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
     updateVersionHistoryButtonVisibility();
@@ -619,12 +632,14 @@
     manageRoot.classList.remove('is-visible');
     manageRoot.setAttribute('aria-hidden', 'true');
     if (manageBody) manageBody.innerHTML = '';
+    syncAdminOverlayScrollLock();
   }
 
   function openEditorModal() {
     if (!editorModal) return;
     editorModal.classList.add('is-visible');
     editorModal.setAttribute('aria-hidden', 'false');
+    syncAdminOverlayScrollLock();
   }
 
   function closeEditorModal() {
@@ -635,6 +650,7 @@
     editorMode = 'entry';
     clearEditorFields();
     setEditorMode('entry');
+    syncAdminOverlayScrollLock();
   }
 
   function ensureVersionHistoryUi() {
@@ -642,9 +658,9 @@
 
     const style = document.createElement('style');
     style.textContent = `
-      .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:center;justify-content:center;background:rgba(15,26,34,.52);padding:16px}
+      .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:clamp(20px,8vh,72px);padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
       .ecva-version-modal.is-visible{display:flex}
-      .ecva-version-dialog{width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - 28px);overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px}
+      .ecva-version-dialog{width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px}
       .ecva-version-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
       .ecva-version-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
       .ecva-version-sub{margin:0 0 10px;color:#45616f;font:600 13px/1.4 "Alexandria",sans-serif}
@@ -712,6 +728,7 @@
     if (!versionHistoryModal) return;
     versionHistoryModal.classList.remove('is-visible');
     versionHistoryModal.setAttribute('aria-hidden', 'true');
+    syncAdminOverlayScrollLock();
   }
 
   function formatVersionDate(value) {
@@ -806,6 +823,7 @@
     }
     versionHistoryModal.classList.add('is-visible');
     versionHistoryModal.setAttribute('aria-hidden', 'false');
+    syncAdminOverlayScrollLock();
     versionHistoryList.innerHTML = '<div class="ecva-version-empty">Loading versions...</div>';
     try {
       const versions = await fetchVersions(scopeCountryId);
