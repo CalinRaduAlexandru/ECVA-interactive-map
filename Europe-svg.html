@@ -60,121 +60,77 @@
       stroke-linejoin: round;
       stroke-linecap: round;
       paint-order: stroke fill;
-      transition: fill 0.2s ease;
       transform-origin: center;
     }
 
-    #GB {
-      fill: #253a46;
-      stroke: #6f8894;
-      stroke-width: 1;
+    path.is-map-country {
       vector-effect: non-scaling-stroke;
       filter: brightness(1) saturate(1);
       transition:
         fill 0.24s ease,
         stroke 0.24s ease,
+        opacity 0.24s ease,
         filter 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
         stroke-width 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
         transform 0.44s cubic-bezier(0.22, 0.61, 0.36, 1);
       will-change: transform, filter, stroke-width;
+      cursor: default;
+    }
+
+    path.is-map-country.is-status-leading {
+      fill: #253a46 !important;
+      stroke: #6f8894 !important;
+      stroke-width: 1 !important;
+      opacity: 1;
+    }
+
+    path.is-map-country.is-status-high_momentum {
+      fill: #395563 !important;
+      stroke: #6f8894 !important;
+      stroke-width: 1 !important;
+      opacity: 1;
+    }
+
+    path.is-map-country.is-status-development {
+      fill: #537686 !important;
+      stroke: #6f8894 !important;
+      stroke-width: 3 !important;
+      opacity: 1;
+    }
+
+    path.is-map-country.is-status-pending {
+      fill: #537686 !important;
+      stroke: #6f8894 !important;
+      stroke-width: 2 !important;
+      opacity: 0.42;
+    }
+
+    path.is-map-country.is-status-no_data {
+      fill: #e6e6e6 !important;
+      stroke: #aeb8bd !important;
+      stroke-width: 0.35 !important;
+      opacity: 1;
+    }
+
+    path.is-map-country.is-hover-enabled {
       cursor: pointer;
     }
 
-    #ES,
-    #AT,
-    #CZ,
-    #DK {
-      fill: #395563;
-      stroke: #6f8894;
-      stroke-width: 1;
-      vector-effect: non-scaling-stroke;
-      filter: brightness(1) saturate(1);
-      transition:
-        fill 0.24s ease,
-        stroke 0.24s ease,
-        filter 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
-        stroke-width 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
-        transform 0.44s cubic-bezier(0.22, 0.61, 0.36, 1);
-      will-change: transform, filter, stroke-width;
-      cursor: pointer;
+    path.is-map-country.is-status-leading.is-hover-enabled:hover {
+      fill: #1d2f39 !important;
     }
 
-    #EE,
-    #FI,
-    #FR,
-    #DE,
-    #GR,
-    #IS,
-    #RO,
-    #SE {
-      fill: #537686;
-      stroke: #6f8894;
-      stroke-width: 3;
-      vector-effect: non-scaling-stroke;
-      filter: brightness(1) saturate(1);
-      transition:
-        fill 0.24s ease,
-        stroke 0.24s ease,
-        filter 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
-        stroke-width 0.44s cubic-bezier(0.22, 0.61, 0.36, 1),
-        transform 0.44s cubic-bezier(0.22, 0.61, 0.36, 1);
-      will-change: transform, filter, stroke-width;
-      cursor: pointer;
+    path.is-map-country.is-status-high_momentum.is-hover-enabled:hover {
+      fill: #395867 !important;
     }
 
-    #GB:hover {
-      fill: #1d2f39;
+    path.is-map-country.is-status-development.is-hover-enabled:hover {
+      fill: #55798a !important;
     }
 
-    #ES:hover,
-    #AT:hover,
-    #CZ:hover,
-    #DK:hover {
-      fill: #395867;
-    }
-
-    #EE:hover,
-    #FI:hover,
-    #FR:hover,
-    #DE:hover,
-    #GR:hover,
-    #IS:hover,
-    #RO:hover,
-    #SE:hover {
-      fill: #55798a;
-    }
-
-    :is(
-      #GB,
-      #ES,
-      #AT,
-      #CZ,
-      #DK,
-      #EE,
-      #FI,
-      #FR,
-      #DE,
-      #GR,
-      #IS,
-      #RO,
-      #SE
-    ).is-lifted,
-    :is(
-        #GB,
-        #ES,
-        #AT,
-        #CZ,
-        #DK,
-        #EE,
-        #FI,
-        #FR,
-        #DE,
-        #GR,
-        #IS,
-        #RO,
-        #SE
-      ).is-lifted:hover {
-      stroke: #9fb3bd;
+    path.is-map-country.is-lifted,
+    path.is-map-country.is-lifted:hover {
+      stroke: #9fb3bd !important;
     }
 
     .country-trail {
@@ -210,6 +166,10 @@
     .country-label.is-hover {
       filter: brightness(1.1);
       transform: translate(var(--tx, 0px), var(--ty, 0px)) scale(1.015);
+    }
+
+    .country-label.is-hidden {
+      display: none;
     }
 
     .country-label .pill-bg {
@@ -1002,20 +962,54 @@
             ).toLowerCase();
             const frameBox = { x: 94, y: 10, width: 986 };
 
+            function normalizeStatusValue(rawStatus) {
+              const value = String(rawStatus || "").trim().toLowerCase();
+              if (value === "high_momentum" || value === "momentum" || value === "high momentum") {
+                return "high_momentum";
+              }
+              if (value === "in development" || value === "development" || value === "dev") {
+                return "development";
+              }
+              if (value === "leading" || value === "leader") return "leading";
+              if (value === "pending") return "pending";
+              if (value === "no_data" || value === "no data" || value === "nodata") return "no_data";
+              return "no_data";
+            }
+
+            function getStatusLabel(statusValue) {
+              const value = normalizeStatusValue(statusValue);
+              if (value === "leading") return "Leading";
+              if (value === "high_momentum") return "High Momentum";
+              if (value === "development") return "In Development";
+              if (value === "pending") return "Pending";
+              return "No data";
+            }
+
+            function isStatusActive(statusValue) {
+              const value = normalizeStatusValue(statusValue);
+              return value === "leading" || value === "high_momentum" || value === "development";
+            }
+
+            function toFlagEmoji(countryCode) {
+              const normalized = String(countryCode || "").trim().toUpperCase();
+              if (!/^[A-Z]{2}$/.test(normalized)) return "";
+              return String.fromCodePoint(...normalized.split("").map((char) => 127397 + char.charCodeAt(0)));
+            }
+
             const countryStatus = {
-              GB: "Leading",
-              ES: "High Momentum",
-              AT: "High Momentum",
-              CZ: "High Momentum",
-              DK: "High Momentum",
-              EE: "In Development",
-              FI: "In Development",
-              FR: "In Development",
-              DE: "In Development",
-              GR: "In Development",
-              IS: "In Development",
-              RO: "In Development",
-              SE: "In Development",
+              GB: "leading",
+              ES: "high_momentum",
+              AT: "high_momentum",
+              CZ: "high_momentum",
+              DK: "high_momentum",
+              EE: "development",
+              FI: "development",
+              FR: "development",
+              DE: "development",
+              GR: "development",
+              IS: "development",
+              RO: "development",
+              SE: "development",
             };
 
             async function translateMapLegendIfNeeded() {
@@ -1997,7 +1991,7 @@
                     <div class="country-modal-identity">
                       <span class="country-modal-hero-flag">${escapeHtml(info.flag)}</span>
                       <span class="country-modal-hero-name">${escapeHtml(info.name)}</span>
-                      <span class="country-modal-hero-status">(${escapeHtml(countryStatus[countryId] || "-")})</span>
+                      <span class="country-modal-hero-status">(${escapeHtml(getStatusLabel(countryStatus[countryId]))})</span>
                     </div>
                     <div class="country-modal-pillars">
                       ${renderPillarItems(countryId)}
@@ -2015,6 +2009,7 @@
 
             function openParentModal(countryId) {
               if (!countryInfo[countryId]) return;
+              if (!isStatusActive(countryStatus[countryId])) return;
               window.parent.postMessage(
                 {
                   type: "ecva-scroll-parent-top",
@@ -2033,35 +2028,59 @@
               );
             }
 
-            function getActiveCountriesPayload() {
+            function buildCountryPayload(code) {
+              const normalizedCode = String(code || "").trim().toUpperCase();
+              if (!normalizedCode) return null;
+              const pathNode = document.getElementById(normalizedCode);
+              if (!pathNode) return null;
+              const info = countryInfo[normalizedCode] || {};
+              const statusValue = normalizeStatusValue(countryStatus[normalizedCode] || "no_data");
+              return {
+                code: normalizedCode,
+                name: String(info.name || pathNode.getAttribute("name") || normalizedCode),
+                flag: String(info.flag || toFlagEmoji(normalizedCode)),
+                status: getStatusLabel(statusValue),
+                statusValue,
+              };
+            }
+
+            function getAllCountriesPayload() {
               const codes = Array.from(
                 new Set(
-                  Array.from(document.querySelectorAll("#country-labels .country-label"))
-                    .map((node) => String(node.getAttribute("data-country") || "").trim())
+                  Array.from(document.querySelectorAll("path[id][name]"))
+                    .map((node) => String(node.getAttribute("id") || "").trim().toUpperCase())
                     .filter(Boolean),
                 ),
               );
-              return codes
-                .filter((code) => countryInfo[code])
-                .map((code) => {
-                  const info = countryInfo[code];
-                  return {
-                    code,
-                    name: String(info.name || code),
-                    flag: String(info.flag || ""),
-                    status: String(countryStatus[code] || ""),
-                  };
-                });
+              return codes.map((code) => buildCountryPayload(code)).filter(Boolean);
+            }
+
+            function getActiveCountriesPayload() {
+              return getAllCountriesPayload().filter(
+                (country) => isStatusActive(country.statusValue) && !!countryInfo[country.code],
+              );
             }
 
             function getEditorStateSnapshot() {
               const snapshot = JSON.parse(JSON.stringify(pillarConfigByCountry));
               snapshot.__representatives = JSON.parse(JSON.stringify(representativesByCountry));
+              snapshot.__countryStatus = JSON.parse(JSON.stringify(countryStatus));
               return snapshot;
             }
 
             function applyEditorState(nextState) {
               if (!nextState || typeof nextState !== "object") return;
+              const countryStatusState =
+                nextState.__countryStatus && typeof nextState.__countryStatus === "object"
+                  ? nextState.__countryStatus
+                  : null;
+              if (countryStatusState) {
+                Object.entries(countryStatusState).forEach(([countryId, statusValue]) => {
+                  const normalizedCountry = String(countryId || "").trim().toUpperCase();
+                  if (!normalizedCountry || !document.getElementById(normalizedCountry)) return;
+                  countryStatus[normalizedCountry] = normalizeStatusValue(statusValue);
+                });
+              }
               const representativeState =
                 nextState.__representatives && typeof nextState.__representatives === "object"
                   ? nextState.__representatives
@@ -2112,6 +2131,7 @@
                   }
                 });
               });
+              applyAllCountryStatuses();
             }
 
             function normalizeRepresentative(rep) {
@@ -2215,10 +2235,19 @@
             }
 
             const labels = document.querySelectorAll("#country-labels .country-label");
+            const mapCountryPaths = Array.from(document.querySelectorAll("path[id][name]"));
             const labelsLayer = document.getElementById("country-labels");
             const trailLayer = document.getElementById("country-trail-layer");
             const mapRoot = document.querySelector("svg");
             const labelByCountry = new Map();
+            const pathByCountry = new Map();
+            const statusClassList = [
+              "is-status-leading",
+              "is-status-high_momentum",
+              "is-status-development",
+              "is-status-pending",
+              "is-status-no_data",
+            ];
             let hoveredCountryPath = null;
             let activeTrail = null;
             let loadingCountryCode = "";
@@ -2273,6 +2302,11 @@
 
             function setHoveredCountry(pathNode) {
               if (hoveredCountryPath === pathNode) return;
+              if (pathNode && !pathNode.classList.contains("is-hover-enabled")) {
+                clearAllCountryHoverStates(null);
+                hoveredCountryPath = null;
+                return;
+              }
               clearAllCountryHoverStates(pathNode || null);
               hoveredCountryPath = pathNode || null;
               if (!pathNode) return;
@@ -2309,6 +2343,50 @@
               }, 4500);
             }
 
+            function applyCountryStatusVisual(countryId) {
+              const code = String(countryId || "").trim().toUpperCase();
+              const pathNode = pathByCountry.get(code) || document.getElementById(code);
+              if (!pathNode) return;
+              const statusValue = normalizeStatusValue(countryStatus[code] || "no_data");
+              pathNode.classList.remove(...statusClassList);
+              pathNode.classList.add(`is-status-${statusValue}`);
+              const interactive = isStatusActive(statusValue) && !!countryInfo[code];
+              pathNode.classList.toggle("is-hover-enabled", interactive);
+              if (!interactive) {
+                pathNode.classList.remove("is-lifted");
+                if (hoveredCountryPath === pathNode) {
+                  hoveredCountryPath = null;
+                  hideCountryTrail();
+                }
+              }
+              const labelNode = labelByCountry.get(code);
+              if (labelNode) {
+                labelNode.classList.toggle("is-hidden", !interactive);
+                if (!interactive) {
+                  labelNode.classList.remove("is-hover");
+                  labelNode.classList.remove("is-loading");
+                }
+              }
+            }
+
+            function applyAllCountryStatuses() {
+              mapCountryPaths.forEach((pathNode) => {
+                const code = String(pathNode.getAttribute("id") || "").trim().toUpperCase();
+                if (!code) return;
+                applyCountryStatusVisual(code);
+              });
+            }
+
+            function updateCountryStatusFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              if (!countryId || !pathByCountry.has(countryId)) return null;
+              const nextStatus = normalizeStatusValue(payload.status);
+              countryStatus[countryId] = nextStatus;
+              applyCountryStatusVisual(countryId);
+              return { countryId, statusValue: nextStatus };
+            }
+
             ["RO", "AT", "CZ", "SE", "EE"].forEach((countryCode) => {
               const priorityPath = document.getElementById(countryCode);
               if (priorityPath) {
@@ -2332,7 +2410,6 @@
               const countryPath = document.getElementById(countryId);
               if (!countryPath) return;
               labelByCountry.set(countryId, label);
-              countryPath.classList.add("is-map-country");
               label.style.setProperty(
                 "--pill-delay",
                 `${(1.48 + labelIndex * 0.045).toFixed(3)}s`,
@@ -2381,12 +2458,22 @@
               }
 
               countryPath.addEventListener("click", (event) => {
+                if (!countryPath.classList.contains("is-hover-enabled")) return;
                 event.stopPropagation();
                 setLoadingCountry(countryId);
                 setHoveredCountry(null);
                 openParentModal(countryId);
               });
             });
+
+            mapCountryPaths.forEach((pathNode) => {
+              const countryId = String(pathNode.getAttribute("id") || "").trim().toUpperCase();
+              if (!countryId) return;
+              pathNode.classList.add("is-map-country");
+              pathByCountry.set(countryId, pathNode);
+            });
+
+            applyAllCountryStatuses();
 
             if (mapRoot) {
               mapRoot.addEventListener("pointermove", (event) => {
@@ -2427,7 +2514,13 @@
 
               if (type === "ecva-request-active-countries") {
                 window.parent.postMessage(
-                  { type: "ecva-active-countries", payload: { countries: getActiveCountriesPayload() } },
+                  {
+                    type: "ecva-active-countries",
+                    payload: {
+                      countries: getActiveCountriesPayload(),
+                      allCountries: getAllCountriesPayload(),
+                    },
+                  },
                   "*",
                 );
                 return;
@@ -2437,11 +2530,32 @@
                 const countryId = String(payload.countryId || "").trim();
                 const requestId = String(payload.requestId || "").trim();
                 if (!countryInfo[countryId]) return;
+                if (!isStatusActive(countryStatus[countryId])) return;
                 window.parent.postMessage(
                   {
                     type: "ecva-country-modal-html",
                     payload: { countryId, requestId, html: renderModalHtml(countryId) },
                   },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-update-country-status") {
+                const updated = updateCountryStatusFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-active-countries",
+                    payload: {
+                      countries: getActiveCountriesPayload(),
+                      allCountries: getAllCountriesPayload(),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
                   "*",
                 );
                 return;

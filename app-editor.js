@@ -111,10 +111,44 @@
     if (value.includes('moment')) {
       return { label: 'High Momentum', className: 'is-momentum' };
     }
+    if (value.includes('pending')) return { label: 'Pending', className: 'is-pending' };
+    if (value.includes('no data') || value === 'no_data' || value === 'nodata') {
+      return { label: 'No data', className: 'is-no-data' };
+    }
     return { label: 'In Development', className: 'is-development' };
   }
 
+  function normalizeStatusValue(rawStatus) {
+    const value = String(rawStatus || '').trim().toLowerCase();
+    if (!value) return 'no_data';
+    if (value === 'high_momentum' || value === 'momentum' || value === 'high momentum') {
+      return 'high_momentum';
+    }
+    if (value === 'in development' || value === 'development' || value === 'dev') {
+      return 'development';
+    }
+    if (value === 'leading' || value === 'leader') return 'leading';
+    if (value === 'pending') return 'pending';
+    if (value === 'no_data' || value === 'no data' || value === 'nodata') return 'no_data';
+    return 'no_data';
+  }
+
+  function getStatusLabelFromValue(statusValue) {
+    const value = normalizeStatusValue(statusValue);
+    if (value === 'leading') return 'Leading';
+    if (value === 'high_momentum') return 'High Momentum';
+    if (value === 'development') return 'In Development';
+    if (value === 'pending') return 'Pending';
+    return 'No data';
+  }
+
+  function isActiveStatusValue(statusValue) {
+    const value = normalizeStatusValue(statusValue);
+    return value === 'leading' || value === 'high_momentum' || value === 'development';
+  }
+
   let activeCountries = [];
+  let countryCatalog = [];
   let selectedCountryId = '';
   let accessScope = { mode: 'all', countryId: '' };
   let accessCodeToCountryMap = new Map();
@@ -175,9 +209,12 @@
   function rebuildCountryAccessMaps() {
     accessCodeToCountryMap = new Map();
     countryAccessCodeMap = new Map();
-    activeCountries.forEach((country, index) => {
+    const source = Array.isArray(countryCatalog) && countryCatalog.length ? countryCatalog : activeCountries;
+    source.forEach((country, index) => {
       const countryId = normalizeManageCountryCode(country && country.code);
       if (!countryId) return;
+      const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
+      if (!(isActiveStatusValue(statusValue) || statusValue === 'pending')) return;
       const code = buildCountryAccessCode(countryId, index + 1).toLowerCase();
       accessCodeToCountryMap.set(code, countryId);
       countryAccessCodeMap.set(countryId, code);
@@ -216,7 +253,7 @@
   }
 
   function ensureActiveCountriesLoaded() {
-    if (activeCountries.length) return Promise.resolve(activeCountries);
+    if (activeCountries.length || countryCatalog.length) return Promise.resolve(activeCountries);
     return new Promise((resolve, reject) => {
       const timeout = window.setTimeout(() => {
         rejectActiveCountriesWaiters();
@@ -232,23 +269,23 @@
   }
 
   function ensureSelectedCountryIsAllowed() {
-    if (!activeCountries.length) {
-      selectedCountryId = '';
-      return;
-    }
+    if (!selectedCountryId) return;
     if (
-      selectedCountryId &&
       activeCountries.some(
         (country) =>
           normalizeManageCountryCode(country && country.code) ===
-          normalizeManageCountryCode(selectedCountryId),
-      ) &&
-      isCountryAllowed(selectedCountryId)
+            normalizeManageCountryCode(selectedCountryId) &&
+          isCountryAllowed(selectedCountryId),
+      )
     ) {
       return;
     }
-    const fallback = getFirstAllowedCountryId();
-    selectedCountryId = fallback || '';
+    if (accessScope.mode === 'country') {
+      const fallback = getFirstAllowedCountryId();
+      selectedCountryId = fallback || '';
+      return;
+    }
+    selectedCountryId = '';
   }
 
   function wireAccessPanel(panel) {
@@ -259,12 +296,13 @@
       const codeText = row.querySelector('.ecva-manage-access-code');
       const eyeBtn = row.querySelector('.ecva-manage-access-eye');
       const copyBtn = row.querySelector('.ecva-manage-access-copy');
+      const copiedMsg = row.querySelector('.ecva-manage-access-copied');
       if (!code || !codeText || !eyeBtn || !copyBtn) return;
 
       const setRevealState = (revealed) => {
         row.setAttribute('data-revealed', revealed ? 'true' : 'false');
         codeText.textContent = revealed ? code : maskAccessCode(code);
-        eyeBtn.textContent = revealed ? '👁' : '🙈';
+        eyeBtn.textContent = revealed ? '👁' : '👁‍🗨';
         eyeBtn.setAttribute('aria-label', revealed ? 'Hide app access code' : 'Show app access code');
       };
 
@@ -274,9 +312,39 @@
         setRevealState(!revealed);
       });
       copyBtn.addEventListener('click', async () => {
+        const fallbackCopy = () => {
+          const area = document.createElement('textarea');
+          area.value = code;
+          area.setAttribute('readonly', '');
+          area.style.position = 'fixed';
+          area.style.top = '-9999px';
+          document.body.appendChild(area);
+          area.select();
+          area.setSelectionRange(0, area.value.length);
+          const ok = document.execCommand('copy');
+          document.body.removeChild(area);
+          return ok;
+        };
         try {
-          await navigator.clipboard.writeText(code);
-          showToast('App access code copied.');
+          let copied = false;
+          if (navigator.clipboard) {
+            try {
+              await navigator.clipboard.writeText(code);
+              copied = true;
+            } catch (error) {
+              copied = false;
+            }
+          }
+          if (!copied) copied = fallbackCopy();
+          if (!copied) {
+            throw new Error('copy_failed');
+          }
+          if (copiedMsg) {
+            copiedMsg.classList.add('is-visible');
+            window.setTimeout(() => {
+              copiedMsg.classList.remove('is-visible');
+            }, 1500);
+          }
         } catch (error) {
           showToast('Could not copy code.', true);
         }
@@ -284,53 +352,146 @@
     });
   }
 
+  function wireStatusSelects(panel) {
+    if (!panel) return;
+    const selects = panel.querySelectorAll('.ecva-manage-status-select[data-country-id]');
+    selects.forEach((selectEl) => {
+      if (selectEl.dataset.wired === '1') return;
+      selectEl.dataset.wired = '1';
+      selectEl.addEventListener('change', () => {
+        const countryId = normalizeManageCountryCode(selectEl.getAttribute('data-country-id'));
+        const nextStatus = normalizeStatusValue(selectEl.value);
+        if (!countryId) return;
+        postToMap('ecva-editor-update-country-status', {
+          countryId,
+          status: nextStatus,
+        });
+      });
+    });
+  }
+
+  function buildStatusSelectHtml(countryId, currentStatus, variant) {
+    const value = normalizeStatusValue(currentStatus);
+    const country = normalizeManageCountryCode(countryId);
+    const allOptions = [
+      { value: 'leading', label: 'Leading' },
+      { value: 'high_momentum', label: 'High Momentum' },
+      { value: 'development', label: 'In Development' },
+      { value: 'pending', label: 'Pending' },
+      { value: 'no_data', label: 'No data' },
+    ];
+    const otherOptions = [
+      { value: 'no_data', label: 'No data' },
+      { value: 'pending', label: 'Pending' },
+    ];
+    const options = variant === 'active' ? allOptions : otherOptions;
+    const optionsHtml = options
+      .map((option) => {
+        const selected = option.value === value ? ' selected' : '';
+        return `<option value="${option.value}"${selected}>${option.label}</option>`;
+      })
+      .join('');
+    return `<select class="ecva-manage-status-select" data-country-id="${country}">${optionsHtml}</select>`;
+  }
+
+  function buildCodeControlsHtml(countryId, statusValue) {
+    const hasCode = isActiveStatusValue(statusValue) || normalizeStatusValue(statusValue) === 'pending';
+    if (!hasCode) {
+      return `<span class="ecva-manage-access-empty">-</span>`;
+    }
+    const code = getAccessCodeForCountry(countryId);
+    return `
+      <span class="ecva-manage-access-controls">
+        <code class="ecva-manage-access-code">${maskAccessCode(code)}</code>
+        <button type="button" class="ecva-manage-access-eye" aria-label="Show app access code">👁‍🗨</button>
+        <button type="button" class="ecva-manage-access-copy" aria-label="Copy app access code">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M8 4.8A2.8 2.8 0 0 1 10.8 2h7.4A2.8 2.8 0 0 1 21 4.8v7.4a2.8 2.8 0 0 1-2.8 2.8H16v1.2A2.8 2.8 0 0 1 13.2 19H5.8A2.8 2.8 0 0 1 3 16.2V8.8A2.8 2.8 0 0 1 5.8 6H8V4.8Zm2-.8v8.2c0 .44.36.8.8.8H19c.44 0 .8-.36.8-.8V4.8c0-.44-.36-.8-.8-.8h-8.2c-.44 0-.8.36-.8.8ZM8 8H5.8c-.44 0-.8.36-.8.8v7.4c0 .44.36.8.8.8h7.4c.44 0 .8-.36.8-.8V15h-3.2A2.8 2.8 0 0 1 8 12.2V8Z"></path>
+          </svg>
+        </button>
+        <span class="ecva-manage-access-copied" aria-live="polite">Copied</span>
+      </span>
+    `;
+  }
+
+  function buildOverviewCountryRow(country, variant) {
+    const countryCode = normalizeManageCountryCode(country && country.code);
+    if (!countryCode) return '';
+    const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
+    const statusMeta = normalizeStatus(getStatusLabelFromValue(statusValue));
+    const displayCode = displayCountryCode(countryCode);
+    return `
+      <article class="ecva-manage-access-row-item" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
+        <span class="ecva-manage-access-country">${String(country.flag || '')} ${displayCode}</span>
+        <span class="ecva-manage-access-status ${statusMeta.className}">${getStatusLabelFromValue(statusValue)}</span>
+        ${buildStatusSelectHtml(countryCode, statusValue, variant)}
+        ${buildCodeControlsHtml(countryCode, statusValue)}
+      </article>
+    `;
+  }
+
   function renderGeneralAccessPanel() {
     if (!manageBody) return;
     const previous = manageBody.querySelector('.ecva-manage-access-panel');
     if (previous) previous.remove();
-    if (accessScope.mode !== 'all' || !activeCountries.length) return;
+    if (selectedCountryId || !countryCatalog.length) return;
 
     const panel = document.createElement('section');
     panel.className = 'ecva-manage-access-panel';
-    panel.innerHTML = `
-      <header class="ecva-manage-access-head">
-        <h4>General management</h4>
-      </header>
-      <div class="ecva-manage-access-table">
-        <div class="ecva-manage-access-table-head">
-          <span>Country</span>
-          <span>Status</span>
-          <span>App access*</span>
-        </div>
-      </div>
-    `;
-    const table = panel.querySelector('.ecva-manage-access-table');
-    const sortedCountries = [...activeCountries].sort((a, b) =>
-      String(a && a.name ? a.name : '').localeCompare(String(b && b.name ? b.name : '')),
+    const sortedCatalog = [...countryCatalog]
+      .filter((country) =>
+        accessScope.mode === 'all' ? true : isCountryAllowed(country && country.code),
+      )
+      .sort((a, b) =>
+        String(a && a.name ? a.name : '').localeCompare(String(b && b.name ? b.name : '')),
+      );
+    const managedRows = sortedCatalog.filter(
+      (country) => normalizeStatusValue(country && (country.statusValue || country.status)) !== 'no_data',
     );
-    sortedCountries.forEach((country) => {
-      const countryCode = normalizeManageCountryCode(country && country.code);
-      if (!countryCode) return;
-      const displayCode = displayCountryCode(countryCode);
-      const statusMeta = normalizeStatus(country && country.status);
-      const code = getAccessCodeForCountry(countryCode);
-      const row = document.createElement('article');
-      row.className = 'ecva-manage-access-row-item';
-      row.setAttribute('data-access-code', code);
-      row.setAttribute('data-revealed', 'false');
-      row.innerHTML = `
-        <span class="ecva-manage-access-country">${country.flag || ''} ${displayCode}</span>
-        <span class="ecva-manage-access-status ${statusMeta.className}">${statusMeta.label}</span>
-        <span class="ecva-manage-access-controls">
-          <code class="ecva-manage-access-code">${maskAccessCode(code)}</code>
-          <button type="button" class="ecva-manage-access-eye" aria-label="Show app access code">🙈</button>
-          <button type="button" class="ecva-manage-access-copy" aria-label="Copy app access code">⧉</button>
-        </span>
-      `;
-      table.appendChild(row);
-    });
+    const otherRows = sortedCatalog.filter(
+      (country) => normalizeStatusValue(country && (country.statusValue || country.status)) === 'no_data',
+    );
+    panel.innerHTML = `
+      <article class="ecva-manage-access-card">
+        <header class="ecva-manage-access-head">
+          <h4>General management</h4>
+        </header>
+        <div class="ecva-manage-access-table">
+          <div class="ecva-manage-access-table-head">
+            <span>Country</span>
+            <span>Status</span>
+            <span>Edit status</span>
+            <span>App access*</span>
+          </div>
+          ${
+            managedRows.length
+              ? managedRows.map((country) => buildOverviewCountryRow(country, 'active')).join('')
+              : '<div class="ecva-manage-access-empty-row">No countries are in management yet.</div>'
+          }
+        </div>
+      </article>
+      <article class="ecva-manage-access-card is-secondary">
+        <header class="ecva-manage-access-head">
+          <h4>Other countries</h4>
+        </header>
+        <div class="ecva-manage-access-table">
+          <div class="ecva-manage-access-table-head">
+            <span>Country</span>
+            <span>Status</span>
+            <span>Edit status</span>
+            <span>App access*</span>
+          </div>
+          ${
+            otherRows.length
+              ? otherRows.map((country) => buildOverviewCountryRow(country, 'other')).join('')
+              : '<div class="ecva-manage-access-empty-row">No remaining countries.</div>'
+          }
+        </div>
+      </article>
+    `;
     manageBody.prepend(panel);
     wireAccessPanel(panel);
+    wireStatusSelects(panel);
   }
 
   function showToast(message, isError) {
@@ -386,8 +547,8 @@
       accessScope = resolved;
       if (accessScope.mode === 'country') {
         selectedCountryId = accessScope.countryId;
-      } else if (!selectedCountryId) {
-        selectedCountryId = getFirstAllowedCountryId();
+      } else {
+        selectedCountryId = '';
       }
       openManage();
     } catch (error) {
@@ -843,6 +1004,23 @@
   function renderCountryTabs() {
     if (!countryTabsHost) return;
     countryTabsHost.innerHTML = '';
+    const overviewBtn = document.createElement('button');
+    overviewBtn.type = 'button';
+    overviewBtn.className = 'ecva-manage-country-tab is-overview';
+    overviewBtn.textContent = 'Overview';
+    if (!selectedCountryId) {
+      overviewBtn.classList.add('is-active');
+    }
+    overviewBtn.addEventListener('click', () => {
+      selectedCountryId = '';
+      renderCountryTabs();
+      if (manageBody) {
+        manageBody.innerHTML = '';
+        renderGeneralAccessPanel();
+      }
+    });
+    countryTabsHost.appendChild(overviewBtn);
+
     activeCountries.forEach((country) => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -876,6 +1054,7 @@
     selectedCountryId = String(nextCountryId || '').trim();
     if (!selectedCountryId) return;
     renderCountryTabs();
+    if (manageBody) manageBody.innerHTML = '';
     postToMap('ecva-request-country-modal-html', { countryId: selectedCountryId });
   }
 
@@ -1250,12 +1429,22 @@
 
     if (type === 'ecva-active-countries') {
       activeCountries = Array.isArray(payload.countries) ? payload.countries : [];
+      countryCatalog = Array.isArray(payload.allCountries) ? payload.allCountries : [];
+      if (!countryCatalog.length) {
+        countryCatalog = activeCountries.map((country) => ({
+          ...country,
+          statusValue: normalizeStatusValue(country && country.status),
+        }));
+      }
       rebuildCountryAccessMaps();
       ensureSelectedCountryIsAllowed();
       renderCountryTabs();
       resolveActiveCountriesWaiters();
       if (selectedCountryId) {
         selectCountry(selectedCountryId);
+      } else if (manageBody) {
+        manageBody.innerHTML = '';
+        renderGeneralAccessPanel();
       }
       return;
     }
