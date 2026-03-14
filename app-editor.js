@@ -206,6 +206,26 @@
     );
   }
 
+  function getVersionScopeCountryId(explicitCountryId) {
+    const fromExplicit = normalizeManageCountryCode(explicitCountryId);
+    if (fromExplicit) return fromExplicit;
+    const fromSelected = normalizeManageCountryCode(selectedCountryId);
+    if (fromSelected) return fromSelected;
+    if (accessScope.mode === 'country') {
+      return normalizeManageCountryCode(accessScope.countryId);
+    }
+    return '';
+  }
+
+  function updateVersionHistoryButtonVisibility() {
+    if (!versionHistoryBtn) return;
+    const hasCountryScope = Boolean(getVersionScopeCountryId());
+    versionHistoryBtn.style.display = hasCountryScope ? 'inline-flex' : 'none';
+    if (!hasCountryScope) {
+      closeVersionHistoryModal();
+    }
+  }
+
   function rebuildCountryAccessMaps() {
     accessCodeToCountryMap = new Map();
     countryAccessCodeMap = new Map();
@@ -529,6 +549,7 @@
     manageRoot.setAttribute('aria-hidden', 'false');
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
+    updateVersionHistoryButtonVisibility();
     postToMap('ecva-request-active-countries');
   }
 
@@ -632,7 +653,11 @@
   }
 
   function ensureVersionHistoryButton() {
-    if (!manageRoot || versionHistoryBtn) return;
+    if (!manageRoot) return;
+    if (versionHistoryBtn) {
+      updateVersionHistoryButtonVisibility();
+      return;
+    }
     const topbar = manageRoot.querySelector('.ecva-manage-topbar');
     if (!topbar) return;
     const btn = document.createElement('button');
@@ -647,6 +672,7 @@
       topbar.appendChild(btn);
     }
     versionHistoryBtn = btn;
+    updateVersionHistoryButtonVisibility();
   }
 
   function closeVersionHistoryModal() {
@@ -661,18 +687,26 @@
     return d.toLocaleString();
   }
 
-  async function fetchVersions() {
-    const response = await fetch(`${EDITOR_VERSIONS_API}?limit=30`, { cache: 'no-store' });
+  async function fetchVersions(scopeCountryId) {
+    const scopedCountry = getVersionScopeCountryId(scopeCountryId);
+    if (!scopedCountry) return [];
+    const scope = `country:${scopedCountry}`;
+    const response = await fetch(
+      `${EDITOR_VERSIONS_API}?limit=30&scope=${encodeURIComponent(scope)}`,
+      { cache: 'no-store' },
+    );
     if (!response.ok) throw new Error('versions_fetch_failed');
     const payload = await response.json();
     return Array.isArray(payload && payload.versions) ? payload.versions : [];
   }
 
-  async function rollbackToVersion(versionId) {
+  async function rollbackToVersion(versionId, scopeCountryId) {
+    const scopedCountry = getVersionScopeCountryId(scopeCountryId);
+    if (!scopedCountry) throw new Error('missing_scope');
     const response = await fetch(EDITOR_VERSIONS_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ versionId }),
+      body: JSON.stringify({ versionId, scope: `country:${scopedCountry}` }),
     });
     if (!response.ok) throw new Error('rollback_failed');
     const payload = await response.json();
@@ -732,11 +766,16 @@
   async function openVersionHistoryModal() {
     ensureVersionHistoryUi();
     if (!versionHistoryModal || !versionHistoryList) return;
+    const scopeCountryId = getVersionScopeCountryId();
+    if (!scopeCountryId) {
+      showToast('Choose a country first.');
+      return;
+    }
     versionHistoryModal.classList.add('is-visible');
     versionHistoryModal.setAttribute('aria-hidden', 'false');
     versionHistoryList.innerHTML = '<div class="ecva-version-empty">Loading versions...</div>';
     try {
-      const versions = await fetchVersions();
+      const versions = await fetchVersions(scopeCountryId);
       renderVersionHistory(versions);
     } catch (error) {
       versionHistoryList.innerHTML = '<div class="ecva-version-empty">Could not load version history.</div>';
@@ -1004,22 +1043,24 @@
   function renderCountryTabs() {
     if (!countryTabsHost) return;
     countryTabsHost.innerHTML = '';
-    const overviewBtn = document.createElement('button');
-    overviewBtn.type = 'button';
-    overviewBtn.className = 'ecva-manage-country-tab is-overview';
-    overviewBtn.textContent = 'Overview';
-    if (!selectedCountryId) {
-      overviewBtn.classList.add('is-active');
-    }
-    overviewBtn.addEventListener('click', () => {
-      selectedCountryId = '';
-      renderCountryTabs();
-      if (manageBody) {
-        manageBody.innerHTML = '';
-        renderGeneralAccessPanel();
+    if (accessScope.mode === 'all') {
+      const overviewBtn = document.createElement('button');
+      overviewBtn.type = 'button';
+      overviewBtn.className = 'ecva-manage-country-tab is-overview';
+      overviewBtn.textContent = 'Overview';
+      if (!selectedCountryId) {
+        overviewBtn.classList.add('is-active');
       }
-    });
-    countryTabsHost.appendChild(overviewBtn);
+      overviewBtn.addEventListener('click', () => {
+        selectedCountryId = '';
+        renderCountryTabs();
+        if (manageBody) {
+          manageBody.innerHTML = '';
+          renderGeneralAccessPanel();
+        }
+      });
+      countryTabsHost.appendChild(overviewBtn);
+    }
 
     activeCountries.forEach((country) => {
       const btn = document.createElement('button');
@@ -1046,6 +1087,7 @@
       });
       countryTabsHost.appendChild(btn);
     });
+    updateVersionHistoryButtonVisibility();
   }
 
   function selectCountry(countryId) {
@@ -1054,6 +1096,7 @@
     selectedCountryId = String(nextCountryId || '').trim();
     if (!selectedCountryId) return;
     renderCountryTabs();
+    updateVersionHistoryButtonVisibility();
     if (manageBody) manageBody.innerHTML = '';
     postToMap('ecva-request-country-modal-html', { countryId: selectedCountryId });
   }
@@ -1371,14 +1414,19 @@
     }
   }
 
-  async function persistEditorState(state) {
+  async function persistEditorState(state, scopeCountryId) {
     if (!canEditContent()) return;
     if (window.__ecvaLanguageSwitching) return;
+    const scopeCountry = getVersionScopeCountryId(scopeCountryId);
     try {
+      const body = { state };
+      if (scopeCountry) {
+        body.scope = `country:${scopeCountry}`;
+      }
       const response = await fetch(EDITOR_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ state }),
+        body: JSON.stringify(body),
       });
       if (!response.ok) throw new Error('persist failed');
       const payload = await response.json().catch(() => null);
@@ -1393,13 +1441,13 @@
     }
   }
 
-  function schedulePersist(state) {
+  function schedulePersist(state, scopeCountryId) {
     if (!state || typeof state !== 'object') return;
     if (persistTimer) {
       window.clearTimeout(persistTimer);
     }
     persistTimer = window.setTimeout(() => {
-      persistEditorState(state);
+      persistEditorState(state, scopeCountryId);
       persistTimer = null;
     }, 160);
   }
@@ -1437,6 +1485,10 @@
         }));
       }
       rebuildCountryAccessMaps();
+      if (accessScope.mode === 'country') {
+        selectedCountryId =
+          normalizeManageCountryCode(accessScope.countryId) || getFirstAllowedCountryId() || '';
+      }
       ensureSelectedCountryIsAllowed();
       renderCountryTabs();
       resolveActiveCountriesWaiters();
@@ -1470,7 +1522,7 @@
     }
 
     if (type === 'ecva-editor-state-changed') {
-      schedulePersist(payload.state);
+      schedulePersist(payload.state, payload.countryId || '');
     }
   });
 

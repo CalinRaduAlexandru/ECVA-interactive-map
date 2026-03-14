@@ -18,6 +18,7 @@ const DATA_FILE = path.join(ROOT, 'editor-data.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const TRANSLATION_CACHE_FILE = path.join(ROOT, 'translations-cache.json');
 const EDITOR_STATE_KEY = 'global';
+const GLOBAL_SCOPE_KEY = 'global';
 const VERSION_LIMIT_DEFAULT = 25;
 const VERSION_LIMIT_MAX = 80;
 
@@ -55,6 +56,86 @@ function hashState(state) {
     .digest('hex');
 }
 
+function normalizeScopeKey(rawScope) {
+  const value = String(rawScope || '').trim().toLowerCase();
+  if (!value || value === GLOBAL_SCOPE_KEY) return GLOBAL_SCOPE_KEY;
+  if (value.startsWith('country:')) {
+    const code = value.slice('country:'.length).trim().toUpperCase();
+    return code ? `country:${code}` : GLOBAL_SCOPE_KEY;
+  }
+  if (/^[a-z]{2,3}$/i.test(value)) {
+    return `country:${value.toUpperCase()}`;
+  }
+  return GLOBAL_SCOPE_KEY;
+}
+
+function extractScopeCountry(scopeKey) {
+  const normalized = normalizeScopeKey(scopeKey);
+  if (!normalized.startsWith('country:')) return '';
+  return normalized.slice('country:'.length).trim().toUpperCase();
+}
+
+function cloneJson(value) {
+  return value && typeof value === 'object' ? JSON.parse(JSON.stringify(value)) : {};
+}
+
+function buildScopedVersionState(state, scopeKey) {
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  const source = state && typeof state === 'object' ? state : {};
+  if (normalizedScope === GLOBAL_SCOPE_KEY) {
+    return cloneJson(source);
+  }
+  const countryId = extractScopeCountry(normalizedScope);
+  if (!countryId) return cloneJson(source);
+
+  const scoped = {};
+  if (Object.prototype.hasOwnProperty.call(source, countryId)) {
+    scoped[countryId] = cloneJson(source[countryId]);
+  } else {
+    scoped[countryId] = {};
+  }
+  if (source.__countryStatus && typeof source.__countryStatus === 'object') {
+    scoped.__countryStatus = {
+      [countryId]: source.__countryStatus[countryId],
+    };
+  }
+  if (source.__representatives && typeof source.__representatives === 'object') {
+    scoped.__representatives = {
+      [countryId]: cloneJson(source.__representatives[countryId] || []),
+    };
+  }
+  return scoped;
+}
+
+function applyScopedVersionState(currentState, versionState, scopeKey) {
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  const current = currentState && typeof currentState === 'object' ? cloneJson(currentState) : {};
+  const scoped = versionState && typeof versionState === 'object' ? versionState : {};
+  if (normalizedScope === GLOBAL_SCOPE_KEY) {
+    return cloneJson(scoped);
+  }
+  const countryId = extractScopeCountry(normalizedScope);
+  if (!countryId) return current;
+
+  current[countryId] = cloneJson(scoped[countryId] || {});
+
+  if (!current.__countryStatus || typeof current.__countryStatus !== 'object') {
+    current.__countryStatus = {};
+  }
+  if (scoped.__countryStatus && Object.prototype.hasOwnProperty.call(scoped.__countryStatus, countryId)) {
+    current.__countryStatus[countryId] = scoped.__countryStatus[countryId];
+  }
+
+  if (!current.__representatives || typeof current.__representatives !== 'object') {
+    current.__representatives = {};
+  }
+  if (scoped.__representatives && Object.prototype.hasOwnProperty.call(scoped.__representatives, countryId)) {
+    current.__representatives[countryId] = cloneJson(scoped.__representatives[countryId] || []);
+  }
+
+  return current;
+}
+
 function makeVersionSnapshot(state, note) {
   return {
     id: Date.now(),
@@ -70,17 +151,26 @@ function readEditorDataFromFile() {
     const parsed = JSON.parse(raw);
     if (parsed && typeof parsed === 'object') {
       if (!Array.isArray(parsed.versions)) parsed.versions = [];
+      if (!parsed.versionsByScope || typeof parsed.versionsByScope !== 'object') {
+        parsed.versionsByScope = {};
+      }
       return parsed;
     }
   } catch (error) {
     // fall through
   }
-  return { state: {}, versions: [] };
+  return { state: {}, versions: [], versionsByScope: {} };
 }
 
 function writeEditorDataToFile(data) {
-  const next = data && typeof data === 'object' ? data : { state: {}, versions: [] };
+  const next =
+    data && typeof data === 'object'
+      ? data
+      : { state: {}, versions: [], versionsByScope: {} };
   if (!Array.isArray(next.versions)) next.versions = [];
+  if (!next.versionsByScope || typeof next.versionsByScope !== 'object') {
+    next.versionsByScope = {};
+  }
   fs.writeFileSync(DATA_FILE, JSON.stringify(next, null, 2), 'utf8');
 }
 
@@ -215,6 +305,7 @@ async function ensurePostgresReady() {
         pgPool.query(`
           CREATE TABLE IF NOT EXISTS ecva_app_state_versions (
             id BIGSERIAL PRIMARY KEY,
+            scope_key TEXT NOT NULL DEFAULT '${GLOBAL_SCOPE_KEY}',
             state JSONB NOT NULL DEFAULT '{}'::jsonb,
             state_hash TEXT NOT NULL,
             note TEXT NOT NULL DEFAULT 'save',
@@ -224,8 +315,20 @@ async function ensurePostgresReady() {
       )
       .then(() =>
         pgPool.query(`
+          ALTER TABLE ecva_app_state_versions
+          ADD COLUMN IF NOT EXISTS scope_key TEXT NOT NULL DEFAULT '${GLOBAL_SCOPE_KEY}'
+        `),
+      )
+      .then(() =>
+        pgPool.query(`
           CREATE INDEX IF NOT EXISTS idx_ecva_app_state_versions_created_at
           ON ecva_app_state_versions (created_at DESC)
+        `),
+      )
+      .then(() =>
+        pgPool.query(`
+          CREATE INDEX IF NOT EXISTS idx_ecva_app_state_versions_scope_created
+          ON ecva_app_state_versions (scope_key, created_at DESC)
         `),
       )
       .then(() => true)
@@ -255,16 +358,22 @@ async function readEditorDataFromPostgres() {
   };
 }
 
-async function writeEditorDataToPostgres(data) {
+async function writeEditorDataToPostgres(data, scopeKey) {
   const ready = await ensurePostgresReady();
   if (!ready || !pgPool) return false;
   const state = data && data.state && typeof data.state === 'object' ? data.state : {};
   const updatedAt = data && data.updatedAt ? String(data.updatedAt) : new Date().toISOString();
   const note = data && data.note ? String(data.note) : 'save';
-  const stateHash = hashState(state);
-  const latest = await pgPool.query(
-    'SELECT state_hash FROM ecva_app_state_versions ORDER BY id DESC LIMIT 1',
-  );
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  const scopedState = buildScopedVersionState(state, normalizedScope);
+  const stateHash = hashState(scopedState);
+  const latest =
+    normalizedScope === GLOBAL_SCOPE_KEY
+      ? { rows: [] }
+      : await pgPool.query(
+          'SELECT state_hash FROM ecva_app_state_versions WHERE scope_key = $1 ORDER BY id DESC LIMIT 1',
+          [normalizedScope],
+        );
 
   await pgPool.query(
     `
@@ -279,47 +388,53 @@ async function writeEditorDataToPostgres(data) {
     latest && latest.rows && latest.rows[0] && latest.rows[0].state_hash
       ? String(latest.rows[0].state_hash)
       : '';
-  if (latestHash !== stateHash) {
+  if (normalizedScope !== GLOBAL_SCOPE_KEY && latestHash !== stateHash) {
     await pgPool.query(
       `
-        INSERT INTO ecva_app_state_versions (state, state_hash, note)
-        VALUES ($1::jsonb, $2, $3)
+        INSERT INTO ecva_app_state_versions (scope_key, state, state_hash, note)
+        VALUES ($1, $2::jsonb, $3, $4)
       `,
-      [JSON.stringify(state), stateHash, note],
+      [normalizedScope, JSON.stringify(scopedState), stateHash, note],
     );
   }
   return true;
 }
 
-async function listEditorVersionsFromPostgres(limit) {
+async function listEditorVersionsFromPostgres(limit, scopeKey) {
   const ready = await ensurePostgresReady();
   if (!ready || !pgPool) return [];
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  if (normalizedScope === GLOBAL_SCOPE_KEY) return [];
   const safeLimit = parseLimit(limit);
   const result = await pgPool.query(
     `
-      SELECT id, created_at, note
+      SELECT id, created_at, note, scope_key
       FROM ecva_app_state_versions
+      WHERE scope_key = $1
       ORDER BY id DESC
-      LIMIT $1
+      LIMIT $2
     `,
-    [safeLimit],
+    [normalizedScope, safeLimit],
   );
   return (result.rows || []).map((row) => ({
     versionId: Number(row.id),
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : '',
     note: String((row && row.note) || 'save'),
+    scope: String((row && row.scope_key) || normalizedScope),
     store: 'postgres',
   }));
 }
 
-async function readVersionStateFromPostgres(versionId) {
+async function readVersionStateFromPostgres(versionId, scopeKey) {
   const ready = await ensurePostgresReady();
   if (!ready || !pgPool) return null;
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  if (normalizedScope === GLOBAL_SCOPE_KEY) return null;
   const idNum = Number(versionId);
   if (!Number.isInteger(idNum) || idNum <= 0) return null;
   const result = await pgPool.query(
-    'SELECT id, state, created_at FROM ecva_app_state_versions WHERE id = $1 LIMIT 1',
-    [idNum],
+    'SELECT id, state, created_at, scope_key FROM ecva_app_state_versions WHERE id = $1 AND scope_key = $2 LIMIT 1',
+    [idNum, normalizedScope],
   );
   if (!result.rows.length) return null;
   const row = result.rows[0];
@@ -327,13 +442,22 @@ async function readVersionStateFromPostgres(versionId) {
     versionId: Number(row.id),
     state: row && row.state && typeof row.state === 'object' ? row.state : {},
     createdAt: row.created_at ? new Date(row.created_at).toISOString() : '',
+    scope: String((row && row.scope_key) || normalizedScope),
   };
 }
 
-function listEditorVersionsFromFile(limit) {
+function listEditorVersionsFromFile(limit, scopeKey) {
   const safeLimit = parseLimit(limit);
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  if (normalizedScope === GLOBAL_SCOPE_KEY) return [];
   const data = readEditorDataFromFile();
-  const versions = Array.isArray(data.versions) ? data.versions : [];
+  const scopedCollection =
+    data.versionsByScope && typeof data.versionsByScope === 'object'
+      ? data.versionsByScope
+      : {};
+  const versions = Array.isArray(scopedCollection[normalizedScope])
+    ? scopedCollection[normalizedScope]
+    : [];
   return versions
     .slice(-safeLimit)
     .reverse()
@@ -341,21 +465,31 @@ function listEditorVersionsFromFile(limit) {
       versionId: Number(item.id),
       createdAt: String(item.createdAt || ''),
       note: String(item.note || 'save'),
+      scope: normalizedScope,
       store: 'file',
     }));
 }
 
-function readVersionStateFromFile(versionId) {
+function readVersionStateFromFile(versionId, scopeKey) {
   const idNum = Number(versionId);
+  const normalizedScope = normalizeScopeKey(scopeKey);
+  if (normalizedScope === GLOBAL_SCOPE_KEY) return null;
   if (!Number.isInteger(idNum) || idNum <= 0) return null;
   const data = readEditorDataFromFile();
-  const versions = Array.isArray(data.versions) ? data.versions : [];
+  const scopedCollection =
+    data.versionsByScope && typeof data.versionsByScope === 'object'
+      ? data.versionsByScope
+      : {};
+  const versions = Array.isArray(scopedCollection[normalizedScope])
+    ? scopedCollection[normalizedScope]
+    : [];
   const found = versions.find((item) => Number(item && item.id) === idNum);
   if (!found || !found.state || typeof found.state !== 'object') return null;
   return {
     versionId: idNum,
     state: found.state,
     createdAt: String(found.createdAt || ''),
+    scope: normalizedScope,
   };
 }
 
@@ -371,9 +505,17 @@ async function readEditorData() {
 
 async function writeEditorData(data) {
   const payload = data && typeof data === 'object' ? data : { state: {} };
+  const scopeKey = normalizeScopeKey(payload.scopeKey);
+  const state = payload.state && typeof payload.state === 'object' ? payload.state : {};
   let persistedToDb = false;
   try {
-    persistedToDb = await writeEditorDataToPostgres(payload);
+    persistedToDb = await writeEditorDataToPostgres(
+      {
+        ...payload,
+        state,
+      },
+      scopeKey,
+    );
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Postgres write failed:', error);
@@ -381,24 +523,41 @@ async function writeEditorData(data) {
   }
   if (!persistedToDb) {
     const current = readEditorDataFromFile();
-    const versions = Array.isArray(current.versions) ? current.versions : [];
-    const nextState = payload.state && typeof payload.state === 'object' ? payload.state : {};
-    const nextHash = hashState(nextState);
-    const latestHash =
-      versions.length && versions[versions.length - 1] && versions[versions.length - 1].state
-        ? hashState(versions[versions.length - 1].state)
-        : '';
-    if (latestHash !== nextHash) {
-      versions.push(makeVersionSnapshot(nextState, payload.note || 'save'));
+    const versionsByScope =
+      current.versionsByScope && typeof current.versionsByScope === 'object'
+        ? { ...current.versionsByScope }
+        : {};
+    if (scopeKey !== GLOBAL_SCOPE_KEY) {
+      const currentScopeVersions = Array.isArray(versionsByScope[scopeKey])
+        ? versionsByScope[scopeKey].slice()
+        : [];
+      const scopedState = buildScopedVersionState(state, scopeKey);
+      const nextHash = hashState(scopedState);
+      const latestHash =
+        currentScopeVersions.length &&
+        currentScopeVersions[currentScopeVersions.length - 1] &&
+        currentScopeVersions[currentScopeVersions.length - 1].state
+          ? hashState(currentScopeVersions[currentScopeVersions.length - 1].state)
+          : '';
+      if (latestHash !== nextHash) {
+        currentScopeVersions.push(makeVersionSnapshot(scopedState, payload.note || 'save'));
+      }
+      versionsByScope[scopeKey] = currentScopeVersions.slice(-VERSION_LIMIT_MAX);
     }
     writeEditorDataToFile({
-      state: nextState,
+      ...current,
+      state,
       updatedAt: payload.updatedAt || new Date().toISOString(),
-      versions: versions.slice(-VERSION_LIMIT_MAX),
+      versionsByScope,
     });
   } else {
     // Keep local backup for development and recovery even when DB is enabled.
-    writeEditorDataToFile(payload);
+    const current = readEditorDataFromFile();
+    writeEditorDataToFile({
+      ...current,
+      state,
+      updatedAt: payload.updatedAt || new Date().toISOString(),
+    });
   }
   return persistedToDb;
 }
@@ -523,12 +682,14 @@ const server = http.createServer(async (req, res) => {
         const state = parsedBody && parsedBody.state && typeof parsedBody.state === 'object'
           ? parsedBody.state
           : {};
-        const payload = { state, updatedAt: new Date().toISOString() };
+        const scopeKey = normalizeScopeKey(parsedBody && parsedBody.scope);
+        const payload = { state, updatedAt: new Date().toISOString(), scopeKey };
         try {
           const persistedToDb = await writeEditorData(payload);
           return sendJson(res, 200, {
             ok: true,
             updatedAt: payload.updatedAt,
+            scope: scopeKey,
             store: persistedToDb ? 'postgres' : 'file',
           });
         } catch (writeError) {
@@ -545,13 +706,14 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET') {
       try {
         const limit = parseLimit(parsed.query && parsed.query.limit);
+        const scopeKey = normalizeScopeKey(parsed.query && parsed.query.scope);
         let versions = [];
         if (pgPool) {
-          versions = await listEditorVersionsFromPostgres(limit);
+          versions = await listEditorVersionsFromPostgres(limit, scopeKey);
         } else {
-          versions = listEditorVersionsFromFile(limit);
+          versions = listEditorVersionsFromFile(limit, scopeKey);
         }
-        return sendJson(res, 200, { ok: true, versions });
+        return sendJson(res, 200, { ok: true, scope: scopeKey, versions });
       } catch (error) {
         return sendJson(res, 500, { ok: false, error: 'versions_read_failed' });
       }
@@ -563,27 +725,35 @@ const server = http.createServer(async (req, res) => {
           return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
         const versionId = Number(parsedBody && parsedBody.versionId);
+        const scopeKey = normalizeScopeKey(parsedBody && parsedBody.scope);
+        if (scopeKey === GLOBAL_SCOPE_KEY) {
+          return sendJson(res, 400, { ok: false, error: 'global_scope_not_supported' });
+        }
         if (!Number.isInteger(versionId) || versionId <= 0) {
           return sendJson(res, 400, { ok: false, error: 'invalid_version_id' });
         }
         try {
           const version = pgPool
-            ? await readVersionStateFromPostgres(versionId)
-            : readVersionStateFromFile(versionId);
+            ? await readVersionStateFromPostgres(versionId, scopeKey)
+            : readVersionStateFromFile(versionId, scopeKey);
           if (!version) {
             return sendJson(res, 404, { ok: false, error: 'version_not_found' });
           }
+          const current = await readEditorData();
+          const mergedState = applyScopedVersionState(current && current.state, version.state, scopeKey);
           const payload = {
-            state: version.state,
+            state: mergedState,
             updatedAt: new Date().toISOString(),
             note: `rollback:${version.versionId}`,
+            scopeKey,
           };
           const persistedToDb = await writeEditorData(payload);
           return sendJson(res, 200, {
             ok: true,
-            state: version.state,
+            state: mergedState,
             restoredFrom: version.versionId,
             updatedAt: payload.updatedAt,
+            scope: scopeKey,
             store: persistedToDb ? 'postgres' : 'file',
           });
         } catch (rollbackError) {

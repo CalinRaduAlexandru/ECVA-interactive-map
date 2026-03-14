@@ -1779,14 +1779,36 @@
             }
 
             function renderPillarDetailCards(countryId) {
+              function entryHasVisibleContent(entry) {
+                if (!entry || typeof entry !== "object") return false;
+                const title = String(entry.title || "").trim();
+                const subtitle = String(entry.subtitle || "").trim();
+                const summary = String(entry.summary || entry.description || "").trim();
+                const founder = String(entry.founder || "").trim();
+                const highlights = Array.isArray(entry.highlights) ? entry.highlights.filter(Boolean) : [];
+                const methods = Array.isArray(entry.methods) ? entry.methods.filter(Boolean) : [];
+                const programs = Array.isArray(entry.programs) ? entry.programs.filter(Boolean) : [];
+                const impact = Array.isArray(entry.impact) ? entry.impact.filter(Boolean) : [];
+                const badges = Array.isArray(entry.badges) ? entry.badges.filter(Boolean) : [];
+                return Boolean(
+                  title ||
+                    subtitle ||
+                    summary ||
+                    founder ||
+                    highlights.length ||
+                    methods.length ||
+                    programs.length ||
+                    impact.length ||
+                    badges.length,
+                );
+              }
+
               const cards = pillarTemplate
                 .map((pillar) => {
                   const config = getPillarConfig(countryId, pillar.id);
-                  if (!config.active) {
-                    return "";
-                  }
-
-                  const entries = config.entries || [];
+                  const entries = Array.isArray(config.entries)
+                    ? config.entries.filter((entry) => entryHasVisibleContent(entry))
+                    : [];
                   const entryHtml = entries
                     .map((entry, idx) => {
                       const title = String(entry.title || "").trim();
@@ -1936,7 +1958,7 @@
                         <button class="country-modal-detail-post-btn" type="button" data-contribute-pillar="${escapeHtml(pillar.id)}" data-contribute-label="${escapeHtml(pillar.bottom)}">Post</button>
                       </div>
                       <div class="country-modal-entry-list">
-                        ${entryHtml || `<p class="country-modal-detail-empty">No entries added yet.</p>`}
+                        ${entryHtml || `<p class="country-modal-detail-empty">No articles have been uploaded yet for this section.</p>`}
                       </div>
                     </section>
                   `;
@@ -2555,7 +2577,10 @@
                   "*",
                 );
                 window.parent.postMessage(
-                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
                   "*",
                 );
                 return;
@@ -2589,7 +2614,10 @@
                   "*",
                 );
                 window.parent.postMessage(
-                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
                   "*",
                 );
                 return;
@@ -2609,7 +2637,10 @@
                   "*",
                 );
                 window.parent.postMessage(
-                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
                   "*",
                 );
                 return;
@@ -2629,7 +2660,10 @@
                   "*",
                 );
                 window.parent.postMessage(
-                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: added.countryId },
+                  },
                   "*",
                 );
                 return;
@@ -2649,7 +2683,10 @@
                   "*",
                 );
                 window.parent.postMessage(
-                  { type: "ecva-editor-state-changed", payload: { state: getEditorStateSnapshot() } },
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: removed.countryId },
+                  },
                   "*",
                 );
               }

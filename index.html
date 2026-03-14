@@ -1656,8 +1656,8 @@
       .country-modal-grid {
         display: grid;
         grid-template-columns: 1fr;
-        margin-top: var(--country-card-gap);
-        gap: var(--country-card-gap);
+        margin-top: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
+        gap: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
       }
 
       @media (min-width: 620px) {
@@ -1678,7 +1678,7 @@
         box-shadow: 0 10px 24px rgba(31, 55, 68, 0.08);
         display: flex;
         flex-direction: column;
-        gap: var(--country-card-gap);
+        gap: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
       }
 
       .country-modal-detail-header {
@@ -1797,7 +1797,7 @@
       .country-modal-entry-list {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: var(--country-card-gap);
+        gap: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
         align-items: stretch;
         align-content: start;
       }
@@ -2840,6 +2840,7 @@
       }
 
       .ecva-manage-body {
+        --country-card-gap: clamp(12px, 1.4vw, 18px);
         flex: 1;
         overflow: visible;
         padding: 16px;
