@@ -1408,6 +1408,14 @@
         overflow: hidden;
       }
 
+      .country-modal-rep-carousel.is-single {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .country-modal-rep-carousel.is-single .country-modal-rep-nav {
+        display: none !important;
+      }
+
       .country-modal-rep-carousel-wrap {
         min-height: 560px;
         display: grid;
@@ -2223,6 +2231,10 @@
           min-height: 420px;
           grid-template-columns: 34px minmax(0, 1fr) 34px;
           padding: 8px;
+        }
+
+        .country-modal-rep-carousel.is-single {
+          grid-template-columns: minmax(0, 1fr);
         }
 
         .country-modal-rep-carousel-wrap {
@@ -5324,6 +5336,7 @@
           const len = slides.length;
           const hasMultiple = len > 1;
           let dots = [];
+          carousel.classList.toggle("is-single", !hasMultiple);
 
           if (prevBtn) {
             prevBtn.style.display = hasMultiple ? "" : "none";
@@ -5347,6 +5360,22 @@
           };
 
           const apply = () => {
+            if (!hasMultiple) {
+              slides.forEach((slide, i) => {
+                slide.classList.remove("is-hidden");
+                if (i === 0) {
+                  slide.setAttribute("data-offset", "0");
+                } else {
+                  slide.removeAttribute("data-offset");
+                  slide.classList.add("is-hidden");
+                }
+              });
+              dots.forEach((dot, i) => {
+                dot.classList.toggle("is-active", i === 0);
+                dot.setAttribute("aria-current", i === 0 ? "true" : "false");
+              });
+              return;
+            }
             slides.forEach((slide, i) => {
               const offset = getCircularOffset(i, index, len);
               slide.classList.remove("is-hidden");

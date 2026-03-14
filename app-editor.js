@@ -1307,6 +1307,7 @@
       const len = slides.length;
       const hasMultiple = len > 1;
       let dots = [];
+      carousel.classList.toggle('is-single', !hasMultiple);
 
       if (prevBtn) {
         prevBtn.style.display = hasMultiple ? '' : 'none';
@@ -1330,6 +1331,22 @@
       };
 
       const apply = () => {
+        if (!hasMultiple) {
+          slides.forEach((slide, i) => {
+            slide.classList.remove('is-hidden');
+            if (i === 0) {
+              slide.setAttribute('data-offset', '0');
+            } else {
+              slide.removeAttribute('data-offset');
+              slide.classList.add('is-hidden');
+            }
+          });
+          dots.forEach((dot, i) => {
+            dot.classList.toggle('is-active', i === 0);
+            dot.setAttribute('aria-current', i === 0 ? 'true' : 'false');
+          });
+          return;
+        }
         slides.forEach((slide, i) => {
           const offset = getCircularOffset(i, index, len);
           slide.classList.remove('is-hidden');
