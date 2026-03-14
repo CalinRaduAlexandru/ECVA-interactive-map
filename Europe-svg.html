@@ -2341,6 +2341,31 @@
                     }))
                     .filter((item) => item.name || item.url)
                 : [];
+              const representativeDraft =
+                rawSubmission.representativeDraft &&
+                typeof rawSubmission.representativeDraft === "object"
+                  ? {
+                      name: String(rawSubmission.representativeDraft.name || "").trim(),
+                      title: String(rawSubmission.representativeDraft.title || "").trim(),
+                      organisation: String(
+                        rawSubmission.representativeDraft.organisation || "",
+                      ).trim(),
+                      image: String(rawSubmission.representativeDraft.image || "").trim(),
+                      sourceImage: String(
+                        rawSubmission.representativeDraft.sourceImage || "",
+                      ).trim(),
+                      crop:
+                        rawSubmission.representativeDraft.crop &&
+                        typeof rawSubmission.representativeDraft.crop === "object"
+                          ? {
+                              x: Number(rawSubmission.representativeDraft.crop.x),
+                              y: Number(rawSubmission.representativeDraft.crop.y),
+                              w: Number(rawSubmission.representativeDraft.crop.w),
+                              h: Number(rawSubmission.representativeDraft.crop.h),
+                            }
+                          : null,
+                    }
+                  : null;
               return {
                 id:
                   String(rawSubmission.id || "").trim() ||
@@ -2360,6 +2385,7 @@
                 attachments,
                 submittedBy,
                 representativeContact,
+                representativeDraft,
                 createdAt:
                   String(rawSubmission.createdAt || "").trim() ||
                   new Date().toISOString(),

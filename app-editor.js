@@ -1727,15 +1727,15 @@
             isRepresentative && item && item.representativeDraft && typeof item.representativeDraft === 'object'
               ? item.representativeDraft
               : null;
-          if (isRepresentative && draft) {
+          if (isRepresentative) {
             const representative = {
-              name: String(draft.name || item.title || '').trim() || 'Representative Name',
-              title: String(draft.title || '').trim(),
-              organisation: String(draft.organisation || '').trim(),
-              image: String(draft.image || draft.sourceImage || '').trim(),
-              sourceImage: String(draft.sourceImage || draft.image || '').trim(),
+              name: String((draft && draft.name) || item.title || '').trim() || 'Representative Name',
+              title: String((draft && draft.title) || '').trim(),
+              organisation: String((draft && draft.organisation) || '').trim(),
+              image: String((draft && (draft.image || draft.sourceImage)) || '').trim(),
+              sourceImage: String((draft && (draft.sourceImage || draft.image)) || '').trim(),
               crop:
-                draft.crop && typeof draft.crop === 'object'
+                draft && draft.crop && typeof draft.crop === 'object'
                   ? {
                       x: Number(draft.crop.x),
                       y: Number(draft.crop.y),
