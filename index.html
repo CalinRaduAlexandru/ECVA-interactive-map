@@ -1991,16 +1991,10 @@
 
       .country-modal-entry-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        grid-template-columns: 1fr;
         gap: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
         align-items: stretch;
         align-content: start;
-      }
-
-      @media (max-width: 900px) {
-        .country-modal-entry-list {
-          grid-template-columns: 1fr;
-        }
       }
 
       .country-modal-detail-card,
