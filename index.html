@@ -693,6 +693,46 @@
         position: relative;
       }
 
+      .contribute-modal-dialog::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(
+          110deg,
+          rgba(34, 132, 74, 0) 0%,
+          rgba(46, 173, 96, 0.16) 42%,
+          rgba(131, 231, 170, 0.22) 50%,
+          rgba(46, 173, 96, 0.16) 58%,
+          rgba(34, 132, 74, 0) 100%
+        );
+        transform: translate3d(-120%, 0, 0);
+      }
+
+      .contribute-modal-dialog.is-success-flow::after {
+        animation: contributeSuccessFlow 1650ms
+          cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+
+      @keyframes contributeSuccessFlow {
+        0% {
+          opacity: 0;
+          transform: translate3d(-120%, 0, 0);
+        }
+        15% {
+          opacity: 1;
+        }
+        85% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
+          transform: translate3d(120%, 0, 0);
+        }
+      }
+
       .contribute-modal.is-visible .contribute-modal-dialog {
         transform: translateY(0) scale(1);
       }
@@ -5658,6 +5698,9 @@
       );
       const embedCopyStatus = document.getElementById("embed-copy-status");
       const contributeModal = document.getElementById("contribute-modal");
+      const contributeModalDialog = contributeModal
+        ? contributeModal.querySelector(".contribute-modal-dialog")
+        : null;
       const contributeModalClose = document.getElementById(
         "contribute-modal-close",
       );
@@ -5784,6 +5827,7 @@
         },
       };
       let modalCloseTimer = null;
+      let contributeSuccessFlowTimer = null;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
       const REP_FORM_COPY = {
@@ -6146,6 +6190,19 @@
         window.setTimeout(() => {
           if (contributeConfetti) contributeConfetti.innerHTML = "";
         }, 1400);
+      }
+
+      function triggerContributeSuccessFlow() {
+        if (!contributeModalDialog) return;
+        contributeModalDialog.classList.remove("is-success-flow");
+        void contributeModalDialog.offsetWidth;
+        contributeModalDialog.classList.add("is-success-flow");
+        if (contributeSuccessFlowTimer) {
+          window.clearTimeout(contributeSuccessFlowTimer);
+        }
+        contributeSuccessFlowTimer = window.setTimeout(() => {
+          contributeModalDialog.classList.remove("is-success-flow");
+        }, 1900);
       }
 
       function setContributeStatus(message, tone) {
@@ -6539,7 +6596,6 @@
         contributeModal.classList.add("is-visible");
         contributeModal.setAttribute("aria-hidden", "false");
         syncGlobalScrollLock();
-        runContributeConfetti();
       }
 
       function closeContributeModal() {
@@ -6549,6 +6605,13 @@
         setContributeStatus("");
         setContributeRepStatus("");
         resetContributeRepCrop();
+        if (contributeModalDialog) {
+          contributeModalDialog.classList.remove("is-success-flow");
+        }
+        if (contributeSuccessFlowTimer) {
+          window.clearTimeout(contributeSuccessFlowTimer);
+          contributeSuccessFlowTimer = null;
+        }
         syncGlobalScrollLock();
       }
 
@@ -6988,6 +7051,8 @@
             ) {
               throw new Error("map_frame_not_ready");
             }
+            runContributeConfetti();
+            triggerContributeSuccessFlow();
             setContributeStatus("Suggestion sent for review.", "success");
             window.setTimeout(() => {
               closeContributeModal();
@@ -7101,6 +7166,8 @@
             ) {
               throw new Error("map_frame_not_ready");
             }
+            runContributeConfetti();
+            triggerContributeSuccessFlow();
             setContributeRepStatus("Suggestion sent for review.", "success");
             window.setTimeout(() => {
               closeContributeModal();
