@@ -2501,6 +2501,20 @@
               return { countryId, submissionId };
             }
 
+            function deleteSubmissionFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              const submissionId = String(payload.submissionId || "").trim();
+              if (!countryId || !submissionId) return null;
+              const inbox = getCountryInbox(countryId);
+              const index = inbox.findIndex(
+                (item) => String((item && item.id) || "") === submissionId,
+              );
+              if (index < 0) return null;
+              inbox.splice(index, 1);
+              return { countryId, submissionId };
+            }
+
             function normalizeRepresentative(rep) {
               const next = rep && typeof rep === "object" ? rep : {};
               const image = String(next.image || "").trim() || "https://placehold.co/700x520/e6eef3/e6eef3.png";
@@ -3349,6 +3363,29 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-delete-submission") {
+                const deleted = deleteSubmissionFromEditor(payload);
+                if (!deleted) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-country-inbox-updated",
+                    payload: {
+                      countryId: deleted.countryId,
+                      inbox: getCountryInboxPayload(deleted.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: deleted.countryId },
                   },
                   "*",
                 );

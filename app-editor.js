@@ -1904,7 +1904,12 @@
                 )}</p>`
               : ''
           }
-          ${actions.length ? `<div class="ecva-inbox-actions">${actions.join('')}</div>` : ''}
+          <div class="ecva-inbox-footer">
+            ${actions.length ? `<div class="ecva-inbox-actions">${actions.join('')}</div>` : '<span></span>'}
+            <button type="button" class="ecva-inbox-delete-btn" data-action-delete aria-label="Delete entry permanently" title="Delete entry permanently">
+              🗑
+            </button>
+          </div>
         </div>
       </article>
     `;
@@ -1988,6 +1993,19 @@
           }
         }
         updateSubmissionStatus(countryId, submissionId, status);
+      });
+    });
+    panel.querySelectorAll('.ecva-inbox-delete-btn[data-action-delete]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.ecva-inbox-card[data-submission-id]');
+        const submissionId = card ? card.getAttribute('data-submission-id') : '';
+        if (!submissionId) return;
+        const confirmed = window.confirm('Delete this entry permanently? This action cannot be undone.');
+        if (!confirmed) return;
+        postToMap('ecva-editor-delete-submission', {
+          countryId,
+          submissionId: String(submissionId),
+        });
       });
     });
   }

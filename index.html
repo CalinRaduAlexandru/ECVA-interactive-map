@@ -3396,6 +3396,13 @@
         gap: 6px;
       }
 
+      .ecva-inbox-footer {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        gap: 10px;
+      }
+
       .ecva-inbox-action {
         width: 100%;
         min-height: 36px;
@@ -3413,6 +3420,23 @@
         background: #fbe8eb;
         color: #7a2e35;
         border-color: rgba(161, 91, 102, 0.45);
+      }
+
+      .ecva-inbox-delete-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        border: 1px solid rgba(161, 91, 102, 0.45);
+        background: #fbe8eb;
+        color: #7a2e35;
+        font-size: 18px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        align-self: end;
+        justify-self: end;
       }
 
       .ecva-inbox-empty {
