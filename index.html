@@ -3037,6 +3037,8 @@
         background: #2f4f60;
         color: #f4fbff;
         border-color: #2f4f60;
+        cursor: default;
+        pointer-events: none;
       }
 
       .ecva-manage-country-tab.is-locked {
@@ -3626,7 +3628,7 @@
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
       }
 
       .ecva-manage-access-code {
@@ -3687,6 +3689,12 @@
         filter: brightness(1.06);
       }
 
+      .ecva-manage-access-reset.is-confirm {
+        background: #b53c4a;
+        border-color: #9f2f3d;
+        color: #fff5f6;
+      }
+
       .ecva-manage-access-eye {
         display: inline-flex;
         align-items: center;
@@ -3730,6 +3738,24 @@
       }
 
       .ecva-manage-access-copied.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .ecva-manage-access-reset-msg {
+        font-size: 12px;
+        font-weight: 800;
+        color: #2d6a83;
+        opacity: 0;
+        transform: translateY(2px);
+        transition:
+          opacity 0.2s ease,
+          transform 0.2s ease;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+
+      .ecva-manage-access-reset-msg.is-visible {
         opacity: 1;
         transform: translateY(0);
       }
@@ -5032,6 +5058,51 @@
         { code: "de", label: "Deutsch" },
         { code: "es", label: "Espanol" },
       ];
+      const COUNTRY_PRIMARY_LANGUAGE = {
+        AD: "ca",
+        AL: "sq",
+        AM: "hy",
+        AT: "de",
+        BA: "bs",
+        BE: "nl",
+        BG: "bg",
+        BY: "be",
+        CH: "de",
+        CY: "el",
+        CZ: "cs",
+        DE: "de",
+        DK: "da",
+        EE: "et",
+        ES: "es",
+        FI: "fi",
+        FR: "fr",
+        GB: "en",
+        GE: "ka",
+        GR: "el",
+        HR: "hr",
+        HU: "hu",
+        IE: "en",
+        IS: "is",
+        IT: "it",
+        LT: "lt",
+        LU: "lb",
+        LV: "lv",
+        MD: "ro",
+        ME: "sr",
+        MK: "mk",
+        NL: "nl",
+        NO: "no",
+        PL: "pl",
+        PT: "pt",
+        RO: "ro",
+        RS: "sr",
+        SE: "sv",
+        SI: "sl",
+        SK: "sk",
+        TR: "tr",
+        UA: "uk",
+      };
+      let embedLanguageOptions = [...SUPPORTED_LANGUAGES];
       const queryParams = new URLSearchParams(window.location.search);
       const languageQuery =
         queryParams.get("lang") ||
@@ -5087,6 +5158,16 @@
       const frame = document.querySelector(".desktop-map iframe");
       if (frame) {
         frame.src = `Europe-svg.html?lang=${encodeURIComponent(activeLang)}`;
+        frame.addEventListener("load", () => {
+          try {
+            frame.contentWindow.postMessage(
+              { type: "ecva-request-active-countries", payload: {} },
+              "*",
+            );
+          } catch (_error) {
+            // no-op
+          }
+        });
       }
       const EMBED_HEIGHT_EVENT = "ecva-embed-height";
       let heightPostTimer = null;
@@ -5608,11 +5689,11 @@
       };
 
       function buildEmbedCode(langCode) {
-        const target = SUPPORTED_LANGUAGES.some(
-          (item) => item.code === langCode,
-        )
-          ? langCode
-          : "en";
+        const candidate = String(langCode || "")
+          .trim()
+          .toLowerCase();
+        const isIsoCode = /^[a-z]{2}(?:-[a-z]{2})?$/.test(candidate);
+        const target = isIsoCode ? candidate : "en";
         const url = new URL(window.location.href);
         url.searchParams.set("lang", target);
         if (target !== "en") {
@@ -5753,6 +5834,89 @@
       function refreshEmbedCodePreview() {
         if (!embedCodePreview || !embedLanguageSelect) return;
         embedCodePreview.value = buildEmbedCode(embedLanguageSelect.value);
+      }
+
+      function getLanguageLabelFromCode(langCode) {
+        const code = String(langCode || "")
+          .trim()
+          .toLowerCase();
+        const known = SUPPORTED_LANGUAGES.find((item) => item.code === code);
+        if (known) return known.label;
+        try {
+          if (typeof Intl !== "undefined" && Intl.DisplayNames) {
+            const displayNames = new Intl.DisplayNames([activeLang || "en"], {
+              type: "language",
+            });
+            const label = displayNames.of(code);
+            if (label) return label;
+          }
+        } catch (_error) {
+          // no-op
+        }
+        return code.toUpperCase();
+      }
+
+      function langFromCountryCode(countryCode) {
+        const normalized = String(countryCode || "")
+          .trim()
+          .toUpperCase();
+        if (!normalized) return "";
+        return String(
+          COUNTRY_PRIMARY_LANGUAGE[normalized] || normalized.toLowerCase(),
+        );
+      }
+
+      function updateEmbedLanguageOptionsFromCountries(allCountriesPayload) {
+        const source = Array.isArray(allCountriesPayload)
+          ? allCountriesPayload
+          : [];
+        const langs = new Set(["en"]);
+        source.forEach((country) => {
+          const status = String(
+            (country && (country.statusValue || country.status)) || "",
+          )
+            .trim()
+            .toLowerCase();
+          if (!status || status === "no_data" || status === "no data") return;
+          const langCode = langFromCountryCode(country && country.code);
+          if (/^[a-z]{2}(?:-[a-z]{2})?$/.test(langCode)) {
+            langs.add(langCode);
+          }
+        });
+        if (
+          fallbackLocalLang &&
+          /^[a-z]{2}(?:-[a-z]{2})?$/.test(fallbackLocalLang)
+        ) {
+          langs.add(fallbackLocalLang);
+        }
+        if (/^[a-z]{2}(?:-[a-z]{2})?$/.test(activeLang)) {
+          langs.add(activeLang);
+        }
+        const sorted = Array.from(langs).sort((a, b) => {
+          if (a === "en") return -1;
+          if (b === "en") return 1;
+          return a.localeCompare(b);
+        });
+        embedLanguageOptions = sorted.map((code) => ({
+          code,
+          label: getLanguageLabelFromCode(code),
+        }));
+        if (!embedLanguageSelect) return;
+        const previousValue = String(
+          embedLanguageSelect.value || activeLang || "en",
+        )
+          .trim()
+          .toLowerCase();
+        embedLanguageSelect.innerHTML = embedLanguageOptions
+          .map((item) => `<option value="${item.code}">${item.label}</option>`)
+          .join("");
+        const nextValue = embedLanguageOptions.some(
+          (item) => item.code === previousValue,
+        )
+          ? previousValue
+          : "en";
+        embedLanguageSelect.value = nextValue;
+        refreshEmbedCodePreview();
       }
 
       function notifyMapCountryOpenComplete() {
@@ -6565,6 +6729,11 @@
           }
           return;
         }
+        if (event.data.type === "ecva-active-countries") {
+          const payload = event.data.payload || {};
+          updateEmbedLanguageOptionsFromCountries(payload.allCountries || []);
+          return;
+        }
         if (event.data.type === "ecva-open-country-modal") {
           openDesktopModal(event.data.payload && event.data.payload.html);
         }
@@ -6907,10 +7076,14 @@
       }
 
       if (embedLanguageSelect) {
-        embedLanguageSelect.innerHTML = SUPPORTED_LANGUAGES.map(
+        embedLanguageSelect.innerHTML = embedLanguageOptions.map(
           (item) => `<option value="${item.code}">${item.label}</option>`,
         ).join("");
-        embedLanguageSelect.value = activeLang;
+        embedLanguageSelect.value = embedLanguageOptions.some(
+          (item) => item.code === activeLang,
+        )
+          ? activeLang
+          : "en";
         embedLanguageSelect.addEventListener("change", refreshEmbedCodePreview);
         refreshEmbedCodePreview();
       }

@@ -397,8 +397,31 @@
       const eyeBtn = row.querySelector('.ecva-manage-access-eye');
       const copyBtn = row.querySelector('.ecva-manage-access-copy');
       const resetBtn = row.querySelector('.ecva-manage-access-reset[data-reset-code]');
+      const resetMsg = row.querySelector('.ecva-manage-access-reset-msg');
       const copiedMsg = row.querySelector('.ecva-manage-access-copied');
       if (!code || !codeText || !eyeBtn || !copyBtn) return;
+      let resetArmed = false;
+      let resetTimer = null;
+      const clearInlineFeedback = () => {
+        if (copiedMsg) {
+          copiedMsg.classList.remove('is-visible');
+          copiedMsg.textContent = 'Copied';
+        }
+        if (resetMsg) {
+          resetMsg.classList.remove('is-visible');
+          resetMsg.textContent = '';
+        }
+      };
+      const resetResetButtonState = () => {
+        if (!resetBtn) return;
+        resetArmed = false;
+        if (resetTimer) {
+          window.clearTimeout(resetTimer);
+          resetTimer = null;
+        }
+        resetBtn.classList.remove('is-confirm');
+        resetBtn.textContent = 'Reset code';
+      };
 
       const setRevealState = (revealed) => {
         row.setAttribute('data-revealed', revealed ? 'true' : 'false');
@@ -440,7 +463,12 @@
           if (!copied) {
             throw new Error('copy_failed');
           }
+          if (resetMsg) {
+            resetMsg.classList.remove('is-visible');
+            resetMsg.textContent = '';
+          }
           if (copiedMsg) {
+            copiedMsg.textContent = 'Copied';
             copiedMsg.classList.add('is-visible');
             window.setTimeout(() => {
               copiedMsg.classList.remove('is-visible');
@@ -453,54 +481,54 @@
       if (resetBtn && countryId) {
         resetBtn.addEventListener('click', () => {
           if (resettingCountryCode) return;
-          const modal = renderResetCodeConfirm(countryId);
-          const cancelBtn = modal.querySelector('[data-reset-cancel]');
-          const confirmBtn = modal.querySelector('[data-reset-confirm]');
-          const cleanup = () => {
+          clearInlineFeedback();
+          if (!resetArmed) {
+            resetArmed = true;
+            resetBtn.classList.add('is-confirm');
+            resetBtn.textContent = 'Confirm';
+            if (resetTimer) window.clearTimeout(resetTimer);
+            resetTimer = window.setTimeout(() => {
+              resetResetButtonState();
+            }, 4500);
+            return;
+          }
+          resettingCountryCode = countryId;
+          let nextCode = '';
+          let guard = 0;
+          do {
+            nextCode = makeRandomAccessCode(countryId);
+            guard += 1;
+          } while (nextCode && accessCodeToCountryMap.has(nextCode) && guard < 30);
+          if (!nextCode) {
             resettingCountryCode = '';
-            closeResetCodeConfirm();
-          };
-          if (cancelBtn) {
-            cancelBtn.addEventListener('click', cleanup, { once: true });
+            resetResetButtonState();
+            return;
           }
-          if (confirmBtn) {
-            confirmBtn.addEventListener(
-              'click',
-              () => {
-                resettingCountryCode = countryId;
-                let nextCode = '';
-                let guard = 0;
-                do {
-                  nextCode = makeRandomAccessCode(countryId);
-                  guard += 1;
-                } while (nextCode && accessCodeToCountryMap.has(nextCode) && guard < 30);
-                if (!nextCode) {
-                  cleanup();
-                  return;
-                }
-                const previousCode = String(row.getAttribute('data-access-code') || '').trim().toLowerCase();
-                if (previousCode) accessCodeToCountryMap.delete(previousCode);
-                countryAccessCodeMap.set(countryId, nextCode);
-                accessCodeToCountryMap.set(nextCode, countryId);
-                row.setAttribute('data-access-code', nextCode);
-                code = nextCode;
-                row.setAttribute('data-revealed', 'false');
-                codeText.textContent = maskAccessCode(nextCode);
-                eyeBtn.classList.remove('is-revealed');
-                eyeBtn.setAttribute('aria-label', 'Show app access code');
-                postToMap('ecva-editor-update-access-code', {
-                  countryId,
-                  accessCode: nextCode,
-                });
-                showToast('Access code reset.');
-                cleanup();
-              },
-              { once: true },
-            );
-          }
-          modal.addEventListener('click', (event) => {
-            if (event.target === modal) cleanup();
+          const previousCode = String(row.getAttribute('data-access-code') || '').trim().toLowerCase();
+          if (previousCode) accessCodeToCountryMap.delete(previousCode);
+          countryAccessCodeMap.set(countryId, nextCode);
+          accessCodeToCountryMap.set(nextCode, countryId);
+          row.setAttribute('data-access-code', nextCode);
+          code = nextCode;
+          row.setAttribute('data-revealed', 'false');
+          codeText.textContent = maskAccessCode(nextCode);
+          eyeBtn.classList.remove('is-revealed');
+          eyeBtn.setAttribute('aria-label', 'Show app access code');
+          postToMap('ecva-editor-update-access-code', {
+            countryId,
+            accessCode: nextCode,
           });
+          if (resetMsg) {
+            resetMsg.textContent = 'The code has been reset.';
+            resetMsg.classList.add('is-visible');
+            window.setTimeout(() => {
+              if (resetMsg.textContent === 'The code has been reset.') {
+                resetMsg.classList.remove('is-visible');
+              }
+            }, 2200);
+          }
+          resettingCountryCode = '';
+          resetResetButtonState();
         });
       }
     });
@@ -570,6 +598,7 @@
             <path d="M8 4.8A2.8 2.8 0 0 1 10.8 2h7.4A2.8 2.8 0 0 1 21 4.8v7.4a2.8 2.8 0 0 1-2.8 2.8H16v1.2A2.8 2.8 0 0 1 13.2 19H5.8A2.8 2.8 0 0 1 3 16.2V8.8A2.8 2.8 0 0 1 5.8 6H8V4.8Zm2-.8v8.2c0 .44.36.8.8.8H19c.44 0 .8-.36.8-.8V4.8c0-.44-.36-.8-.8-.8h-8.2c-.44 0-.8.36-.8.8ZM8 8H5.8c-.44 0-.8.36-.8.8v7.4c0 .44.36.8.8.8h7.4c.44 0 .8-.36.8-.8V15h-3.2A2.8 2.8 0 0 1 8 12.2V8Z"></path>
           </svg>
         </button>
+        <span class="ecva-manage-access-reset-msg" aria-live="polite"></span>
         <button type="button" class="ecva-manage-access-reset" data-reset-code aria-label="Reset app access code">Reset code</button>
         <span class="ecva-manage-access-copied" aria-live="polite">Copied</span>
       </span>
@@ -1491,15 +1520,18 @@
       overviewBtn.textContent = 'Overview';
       if (!selectedCountryId) {
         overviewBtn.classList.add('is-active');
+        overviewBtn.disabled = true;
       }
-      overviewBtn.addEventListener('click', () => {
-        selectedCountryId = '';
-        renderCountryTabs();
-        if (manageBody) {
-          manageBody.innerHTML = '';
-          renderGeneralAccessPanel();
-        }
-      });
+      if (!overviewBtn.disabled) {
+        overviewBtn.addEventListener('click', () => {
+          selectedCountryId = '';
+          renderCountryTabs();
+          if (manageBody) {
+            manageBody.innerHTML = '';
+            renderGeneralAccessPanel();
+          }
+        });
+      }
       countryTabsHost.appendChild(overviewBtn);
     }
 
@@ -1511,6 +1543,7 @@
       const allowed = isCountryAllowed(countryCode);
       if (countryCode === normalizeManageCountryCode(selectedCountryId) && allowed) {
         btn.classList.add('is-active');
+        btn.disabled = true;
       }
       const displayCode =
         String(countryCode || '').toUpperCase() === 'GB'
@@ -1523,9 +1556,11 @@
         btn.disabled = true;
         btn.textContent = `🔒 ${btn.textContent}`;
       }
-      btn.addEventListener('click', () => {
-        selectCountry(countryCode);
-      });
+      if (!btn.disabled) {
+        btn.addEventListener('click', () => {
+          selectCountry(countryCode);
+        });
+      }
       countryTabsHost.appendChild(btn);
     });
     updateVersionHistoryButtonVisibility();
