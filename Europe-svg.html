@@ -2431,6 +2431,76 @@
               return { countryId, submissionId };
             }
 
+            function updateSubmissionFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              const submissionId = String(payload.submissionId || "").trim();
+              const fields =
+                payload.fields && typeof payload.fields === "object" ? payload.fields : {};
+              if (!countryId || !submissionId) return null;
+              const inbox = getCountryInbox(countryId);
+              const record = inbox.find(
+                (item) => String((item && item.id) || "") === submissionId,
+              );
+              if (!record) return null;
+              if (typeof fields.title === "string") {
+                record.title = String(fields.title || "").trim();
+              }
+              if (typeof fields.description === "string") {
+                record.description = String(fields.description || "").trim();
+              }
+              if (typeof fields.languageAvailability === "string") {
+                record.languageAvailability = String(fields.languageAvailability || "").trim();
+              }
+              if (Array.isArray(fields.links)) {
+                record.links = fields.links
+                  .map((next) => String(next || "").trim())
+                  .filter(Boolean);
+              }
+              if (
+                fields.representativeContact &&
+                typeof fields.representativeContact === "object"
+              ) {
+                record.representativeContact = {
+                  name: String(fields.representativeContact.name || "").trim(),
+                  role: String(fields.representativeContact.role || "").trim(),
+                  email: String(fields.representativeContact.email || "").trim(),
+                };
+              }
+              if (
+                fields.representativeDraft &&
+                typeof fields.representativeDraft === "object"
+              ) {
+                const draft = fields.representativeDraft;
+                const crop =
+                  draft.crop && typeof draft.crop === "object"
+                    ? {
+                        x: Number(draft.crop.x),
+                        y: Number(draft.crop.y),
+                        w: Number(draft.crop.w),
+                        h: Number(draft.crop.h),
+                      }
+                    : null;
+                record.representativeDraft = {
+                  name: String(draft.name || "").trim(),
+                  title: String(draft.title || "").trim(),
+                  organisation: String(draft.organisation || "").trim(),
+                  image: String(draft.image || "").trim(),
+                  sourceImage: String(draft.sourceImage || draft.image || "").trim(),
+                  crop:
+                    crop &&
+                    Number.isFinite(crop.x) &&
+                    Number.isFinite(crop.y) &&
+                    Number.isFinite(crop.w) &&
+                    Number.isFinite(crop.h)
+                      ? crop
+                      : null,
+                };
+              }
+              record.updatedAt = new Date().toISOString();
+              return { countryId, submissionId };
+            }
+
             function normalizeRepresentative(rep) {
               const next = rep && typeof rep === "object" ? rep : {};
               const image = String(next.image || "").trim() || "https://placehold.co/700x520/e6eef3/e6eef3.png";
@@ -3241,6 +3311,29 @@
 
               if (type === "ecva-editor-update-submission-status") {
                 const updated = updateSubmissionStatusFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-country-inbox-updated",
+                    payload: {
+                      countryId: updated.countryId,
+                      inbox: getCountryInboxPayload(updated.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-update-submission") {
+                const updated = updateSubmissionFromEditor(payload);
                 if (!updated) return;
                 window.parent.postMessage(
                   {

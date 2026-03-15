@@ -3174,20 +3174,11 @@
       }
 
       .ecva-inbox-summary {
-        width: 100%;
-        border: 0;
-        background: transparent;
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 11px;
-        cursor: pointer;
+        padding: 10px 10px;
         min-width: 0;
-      }
-
-      .ecva-inbox-summary:focus-visible {
-        outline: 2px solid rgba(74, 129, 158, 0.55);
-        outline-offset: -2px;
       }
 
       .ecva-inbox-summary-title {
@@ -3200,6 +3191,33 @@
         font-size: 13px;
         font-weight: 800;
         color: #1f3743;
+      }
+
+      .ecva-inbox-manage-btn {
+        flex: 0 0 auto;
+        min-height: 28px;
+        padding: 0 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(108, 132, 145, 0.54);
+        background: #eaf2f6;
+        color: #27404c;
+        font-size: 12px;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      .ecva-inbox-toggle-btn {
+        flex: 0 0 auto;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid rgba(108, 132, 145, 0.54);
+        background: #f5fafc;
+        color: #2c4653;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
       }
 
       .ecva-inbox-chevron {
@@ -3274,25 +3292,39 @@
 
       .ecva-inbox-rep-body {
         display: grid;
-        gap: 4px;
+        gap: 8px;
         align-content: start;
+      }
+
+      .ecva-inbox-rep-field {
+        display: grid;
+        gap: 2px;
+      }
+
+      .ecva-inbox-rep-field > span {
+        margin: 0;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64808e;
       }
 
       .ecva-inbox-rep-body h6 {
         margin: 0;
-        font-size: 16px;
+        font-size: 19px;
         line-height: 1.2;
-        font-weight: 800;
+        font-weight: 900;
         color: #1f3743;
       }
 
       .ecva-inbox-rep-role,
       .ecva-inbox-rep-org {
         margin: 0;
-        font-size: 13px;
+        font-size: 14px;
         line-height: 1.35;
-        color: #31505f;
-        font-weight: 700;
+        color: #284652;
+        font-weight: 800;
       }
 
       .ecva-inbox-description {
@@ -3359,13 +3391,14 @@
       }
 
       .ecva-inbox-actions {
-        display: flex;
-        flex-wrap: wrap;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
       }
 
       .ecva-inbox-action {
-        min-height: 32px;
+        width: 100%;
+        min-height: 36px;
         border-radius: 10px;
         border: 1px solid rgba(108, 132, 145, 0.54);
         background: #eaf2f6;
@@ -3655,6 +3688,14 @@
 
       .ecva-editor-section.is-visible {
         display: grid;
+      }
+
+      .ecva-editor-submission-field {
+        display: none !important;
+      }
+
+      .ecva-editor-section.is-submission .ecva-editor-submission-field {
+        display: grid !important;
       }
 
       .ecva-editor-form label {
@@ -4436,6 +4477,26 @@
             <label>
               Description
               <textarea id="ecva-editor-description"></textarea>
+            </label>
+            <label class="ecva-editor-submission-field">
+              Languages Availability
+              <input id="ecva-editor-language" type="text" />
+            </label>
+            <label class="ecva-editor-submission-field">
+              Links (one per row)
+              <textarea id="ecva-editor-links"></textarea>
+            </label>
+            <label class="ecva-editor-submission-field">
+              Contact representative name
+              <input id="ecva-editor-contact-name" type="text" />
+            </label>
+            <label class="ecva-editor-submission-field">
+              Contact representative role
+              <input id="ecva-editor-contact-role" type="text" />
+            </label>
+            <label class="ecva-editor-submission-field">
+              Contact representative email
+              <input id="ecva-editor-contact-email" type="text" />
             </label>
           </div>
           <div id="ecva-editor-rep-fields" class="ecva-editor-section">
@@ -5702,7 +5763,7 @@
         const rect = getContributeRepPreviewRect();
         if (!rect || !nextFrame) return null;
         const ratio = 700 / 520;
-        const minW = Math.max(120, rect.dw * 0.2);
+        const minW = Math.max(64, rect.dw * 0.05);
         const maxW = Math.min(rect.dw, rect.dh * ratio);
         let w = Math.max(minW, Math.min(Number(nextFrame.w) || minW, maxW));
         let h = w / ratio;
@@ -5747,7 +5808,7 @@
           contributeRepCrop = { cx, cy, w, h: w / (700 / 520) };
         } else {
           const maxW = Math.min(rect.dw, rect.dh * (700 / 520));
-          const w = maxW * 0.72;
+          const w = maxW * 0.92;
           contributeRepCrop = {
             cx: rect.x + rect.dw / 2,
             cy: rect.y + rect.dh / 2,

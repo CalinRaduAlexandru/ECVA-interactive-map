@@ -21,6 +21,11 @@
   const editorTitle = document.getElementById('ecva-editor-title');
   const editorSubtitle = document.getElementById('ecva-editor-subtitle');
   const editorDescription = document.getElementById('ecva-editor-description');
+  const editorLanguageAvailability = document.getElementById('ecva-editor-language');
+  const editorLinks = document.getElementById('ecva-editor-links');
+  const editorContactName = document.getElementById('ecva-editor-contact-name');
+  const editorContactRole = document.getElementById('ecva-editor-contact-role');
+  const editorContactEmail = document.getElementById('ecva-editor-contact-email');
   const editorRepName = document.getElementById('ecva-editor-rep-name');
   const editorRepTitle = document.getElementById('ecva-editor-rep-title');
   const editorRepOrganisation = document.getElementById('ecva-editor-rep-organisation');
@@ -895,10 +900,20 @@
     }
   }
 
+  function setSubmissionEntryFieldsVisible(isVisible) {
+    if (!entryFieldsWrap) return;
+    entryFieldsWrap.classList.toggle('is-submission', Boolean(isVisible));
+  }
+
   function clearEditorFields() {
     if (editorTitle) editorTitle.value = '';
     if (editorSubtitle) editorSubtitle.value = '';
     if (editorDescription) editorDescription.value = '';
+    if (editorLanguageAvailability) editorLanguageAvailability.value = '';
+    if (editorLinks) editorLinks.value = '';
+    if (editorContactName) editorContactName.value = '';
+    if (editorContactRole) editorContactRole.value = '';
+    if (editorContactEmail) editorContactEmail.value = '';
     if (editorRepName) editorRepName.value = '';
     if (editorRepTitle) editorRepTitle.value = '';
     if (editorRepOrganisation) editorRepOrganisation.value = '';
@@ -929,6 +944,7 @@
     if (editorCropStatus) {
       editorCropStatus.textContent = 'No new image selected.';
     }
+    setSubmissionEntryFieldsVisible(false);
   }
 
   function setCropStatus(message) {
@@ -954,7 +970,7 @@
     const rect = getPreviewRect();
     if (!rect) return null;
     const ratio = 700 / 520;
-    const minW = Math.max(120, rect.dw * 0.2);
+    const minW = Math.max(64, rect.dw * 0.05);
     const maxW = Math.min(rect.dw, rect.dh * ratio);
     let w = Math.max(minW, Math.min(nextFrame.w, maxW));
     let h = w / ratio;
@@ -995,7 +1011,7 @@
       representativeCrop = { cx, cy, w, h: w / (700 / 520) };
     } else {
       const maxW = Math.min(rect.dw, rect.dh * (700 / 520));
-      const w = maxW * 0.72;
+      const w = maxW * 0.92;
       representativeCrop = {
         cx: rect.x + rect.dw / 2,
         cy: rect.y + rect.dh / 2,
@@ -1678,6 +1694,82 @@
     return 'Article';
   }
 
+  function openSubmissionEditor(countryId, submissionId) {
+    const code = normalizeManageCountryCode(countryId);
+    if (!code || !submissionId) return;
+    const inbox = getCountryInbox(code);
+    const item = inbox.find((next) => String(next && next.id ? next.id : '') === String(submissionId));
+    if (!item) {
+      showToast('Entry not found.', true);
+      return;
+    }
+    const isRepresentative = String(item.type || '').trim().toLowerCase() === 'representative';
+    clearEditorFields();
+    if (isRepresentative) {
+      const draft =
+        item.representativeDraft && typeof item.representativeDraft === 'object'
+          ? item.representativeDraft
+          : {};
+      if (editorRepName) editorRepName.value = String(draft.name || item.title || '').trim();
+      if (editorRepTitle) editorRepTitle.value = String(draft.title || '').trim();
+      if (editorRepOrganisation) {
+        editorRepOrganisation.value = String(draft.organisation || '').trim();
+      }
+      const image = String(draft.image || draft.sourceImage || '').trim();
+      const sourceImage = String(draft.sourceImage || draft.image || '').trim();
+      const hasCrop =
+        draft.crop &&
+        typeof draft.crop === 'object' &&
+        [draft.crop.x, draft.crop.y, draft.crop.w, draft.crop.h].every((value) =>
+          Number.isFinite(Number(value)),
+        );
+      representativeImagePath = image;
+      representativeSourceImagePath = sourceImage;
+      setCropPreviewImage(sourceImage, hasCrop ? draft.crop : null);
+      setCropStatus('Move and resize frame. Save will keep this framing.');
+      representativeInitial = {
+        name: String(draft.name || item.title || '').trim(),
+        title: String(draft.title || '').trim(),
+        organisation: String(draft.organisation || '').trim(),
+        image,
+        sourceImage,
+        crop: hasCrop ? draft.crop : null,
+      };
+      editorTarget = {
+        type: 'submission-representative',
+        countryId: code,
+        submissionId: String(item.id),
+      };
+      setEditorMode('representative');
+      openEditorModal();
+      return;
+    }
+    if (editorTitle) editorTitle.value = String(item.title || '').trim();
+    if (editorSubtitle) editorSubtitle.value = String(item.pillarLabel || '').trim();
+    if (editorDescription) editorDescription.value = String(item.description || '').trim();
+    if (editorLanguageAvailability) {
+      editorLanguageAvailability.value = String(item.languageAvailability || '').trim();
+    }
+    if (editorLinks) {
+      editorLinks.value = Array.isArray(item.links) ? item.links.join('\n') : '';
+    }
+    const contact =
+      item.representativeContact && typeof item.representativeContact === 'object'
+        ? item.representativeContact
+        : {};
+    if (editorContactName) editorContactName.value = String(contact.name || '').trim();
+    if (editorContactRole) editorContactRole.value = String(contact.role || '').trim();
+    if (editorContactEmail) editorContactEmail.value = String(contact.email || '').trim();
+    setSubmissionEntryFieldsVisible(true);
+    editorTarget = {
+      type: 'submission-article',
+      countryId: code,
+      submissionId: String(item.id),
+    };
+    setEditorMode('entry');
+    openEditorModal();
+  }
+
   function buildSubmissionCardHtml(item, currentStatus) {
     const title = String(item && item.title ? item.title : '').trim() || 'Untitled suggestion';
     const mode = String(item && item.type ? item.type : '').trim().toLowerCase();
@@ -1718,18 +1810,21 @@
     }
     return `
       <article class="ecva-inbox-card ecva-inbox-item" data-submission-id="${escapeHtml(item.id)}">
-        <button type="button" class="ecva-inbox-summary" data-inbox-toggle aria-expanded="false">
+        <div class="ecva-inbox-summary">
           <span class="ecva-inbox-type">${escapeHtml(getSubmissionCompactPillLabel(item))}</span>
           <span class="ecva-inbox-summary-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
-          <span class="ecva-inbox-chevron" aria-hidden="true">⌄</span>
-        </button>
+          <button type="button" class="ecva-inbox-manage-btn" data-inbox-manage>Manage entry</button>
+          <button type="button" class="ecva-inbox-toggle-btn" data-inbox-toggle aria-expanded="false" aria-label="Toggle entry details">
+            <span class="ecva-inbox-chevron" aria-hidden="true">⌄</span>
+          </button>
+        </div>
         <div class="ecva-inbox-details" hidden>
           ${
-            isRepresentative
-              ? ''
-              : `<header class="ecva-inbox-card-head">
+            !isRepresentative
+              ? `<header class="ecva-inbox-card-head">
                    <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
                  </header>`
+              : ''
           }
           ${
             isRepresentative
@@ -1742,15 +1837,24 @@
                        : ''
                    }
                    <div class="ecva-inbox-rep-body">
-                     <h6>${escapeHtml(representativeName || title)}</h6>
+                     <div class="ecva-inbox-rep-field">
+                       <span>Name</span>
+                       <h6>${escapeHtml(representativeName || title)}</h6>
+                     </div>
                      ${
                        representativeTitle
-                         ? `<p class="ecva-inbox-rep-role">${escapeHtml(representativeTitle)}</p>`
+                         ? `<div class="ecva-inbox-rep-field">
+                              <span>Role / Title</span>
+                              <p class="ecva-inbox-rep-role">${escapeHtml(representativeTitle)}</p>
+                            </div>`
                          : ''
                      }
                      ${
                        representativeOrganisation
-                         ? `<p class="ecva-inbox-rep-org">${escapeHtml(representativeOrganisation)}</p>`
+                         ? `<div class="ecva-inbox-rep-field">
+                              <span>Organisation</span>
+                              <p class="ecva-inbox-rep-org">${escapeHtml(representativeOrganisation)}</p>
+                            </div>`
                          : ''
                      }
                    </div>
@@ -1825,7 +1929,7 @@
 
   function wireCountryFlowActions(panel, countryId) {
     if (!panel) return;
-    panel.querySelectorAll('.ecva-inbox-summary[data-inbox-toggle]').forEach((btn) => {
+    panel.querySelectorAll('.ecva-inbox-toggle-btn[data-inbox-toggle]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const card = btn.closest('.ecva-inbox-card[data-submission-id]');
         const details = card ? card.querySelector('.ecva-inbox-details') : null;
@@ -1834,6 +1938,14 @@
         btn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
         details.hidden = expanded;
         card.classList.toggle('is-expanded', !expanded);
+      });
+    });
+    panel.querySelectorAll('.ecva-inbox-manage-btn[data-inbox-manage]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const card = btn.closest('.ecva-inbox-card[data-submission-id]');
+        const submissionId = card ? card.getAttribute('data-submission-id') : '';
+        if (!submissionId) return;
+        openSubmissionEditor(countryId, submissionId);
       });
     });
     panel.querySelectorAll('.ecva-inbox-action[data-action-status]').forEach((btn) => {
@@ -2167,6 +2279,29 @@
         return;
       }
 
+      if (editorMode === 'entry' && target.type === 'submission-article') {
+        postToMap('ecva-editor-update-submission', {
+          countryId: target.countryId,
+          submissionId: target.submissionId,
+          fields: {
+            title: editorTitle ? editorTitle.value : '',
+            description: editorDescription ? editorDescription.value : '',
+            languageAvailability: editorLanguageAvailability ? editorLanguageAvailability.value : '',
+            links: String(editorLinks && editorLinks.value ? editorLinks.value : '')
+              .split(/\r?\n/)
+              .map((next) => String(next || '').trim())
+              .filter(Boolean),
+            representativeContact: {
+              name: editorContactName ? editorContactName.value : '',
+              role: editorContactRole ? editorContactRole.value : '',
+              email: editorContactEmail ? editorContactEmail.value : '',
+            },
+          },
+        });
+        closeEditorModal();
+        return;
+      }
+
       if (editorMode === 'representative' && target.type === 'representative') {
         let image = representativeImagePath;
         let sourceImage = representativeSourceImagePath || representativeCropSource || '';
@@ -2227,6 +2362,66 @@
             representative,
           });
         }
+      }
+      if (editorMode === 'representative' && target.type === 'submission-representative') {
+        let image = representativeImagePath;
+        let sourceImage = representativeSourceImagePath || representativeCropSource || '';
+        const cropNow = normalizeCropFrame();
+        const cropChanged = !cropEquals(cropNow, representativeInitial && representativeInitial.crop);
+        const hasNewLocalImage = representativeCropSource.startsWith('data:image/');
+        const shouldRegenerateImage = hasNewLocalImage || cropChanged;
+        if (hasNewLocalImage) {
+          try {
+            sourceImage = await uploadRepresentativeImageData(
+              representativeCropSource,
+              representativeCropFileName,
+            );
+            image = await uploadRepresentativeImageData(
+              await makeCroppedDataUrl(),
+              representativeCropFileName,
+            );
+          } catch (error) {
+            const reason = error && error.message ? ` (${error.message})` : '';
+            showToast(`Image upload failed${reason}`, true);
+            return;
+          }
+        } else if (shouldRegenerateImage && sourceImage && representativeCropSource) {
+          try {
+            image = await uploadRepresentativeImageData(
+              await makeCroppedDataUrl(),
+              representativeCropFileName,
+            );
+          } catch (error) {
+            const reason = error && error.message ? String(error.message) : '';
+            if (reason.includes('canvas_tainted')) {
+              showToast('Image crop blocked by browser security. Re-upload image and save again.', true);
+            } else {
+              showToast(`Image crop failed${reason ? ` (${reason})` : ''}.`, true);
+            }
+            return;
+          }
+        }
+        const name = editorRepName ? editorRepName.value : '';
+        const title = editorRepTitle ? editorRepTitle.value : '';
+        const organisation = editorRepOrganisation ? editorRepOrganisation.value : '';
+        postToMap('ecva-editor-update-submission', {
+          countryId: target.countryId,
+          submissionId: target.submissionId,
+          fields: {
+            title: name,
+            description: [title, organisation].filter(Boolean).join(' • '),
+            representativeDraft: {
+              name,
+              title,
+              organisation,
+              image,
+              sourceImage,
+              crop: cropNow,
+            },
+          },
+        });
+        closeEditorModal();
+        return;
       }
       closeEditorModal();
     });
