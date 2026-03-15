@@ -1960,26 +1960,48 @@
                       const impact = Array.isArray(entry.impact)
                         ? entry.impact.filter(Boolean)
                         : [];
+                      const creatorContact =
+                        entry.representativeContact &&
+                        typeof entry.representativeContact === "object"
+                          ? entry.representativeContact
+                          : {};
+                      const resourceLanguages = Array.isArray(entry.resourceLanguages)
+                        ? entry.resourceLanguages
+                            .filter((item) => item && typeof item === "object")
+                            .map((item) => ({
+                              languageLabel: String(item.languageLabel || "").trim(),
+                              languageCode: String(item.languageCode || "")
+                                .trim()
+                                .toLowerCase(),
+                              languageFlag: String(item.languageFlag || "").trim(),
+                              accessType:
+                                String(item.accessType || "url").trim().toLowerCase() ===
+                                "file"
+                                  ? "file"
+                                  : "url",
+                              resourceUrl: String(item.resourceUrl || "").trim(),
+                              fileName: String(item.fileName || "").trim(),
+                            }))
+                            .filter((item) => item.resourceUrl)
+                        : [];
                       const langs = Array.isArray(entry.languages)
                         ? entry.languages
                             .map((lang) => String(lang || "").trim())
                             .filter(Boolean)
                         : [];
-                      const flagsInline = langs.length
+                      const topFlags = langs.length
                         ? langs
+                        : resourceLanguages
+                            .map((item) => String(item.languageFlag || "").trim())
+                            .filter(Boolean);
+                      const flagsInline = topFlags.length
+                        ? topFlags
                             .map(
                               (flag) =>
                                 `<span class="country-modal-entry-flag-item">${escapeHtml(flag)}</span>`,
                             )
                             .join("")
                         : `<span class="country-modal-entry-flag-item">-</span>`;
-                      const extraDemoText = escapeHtml(
-                        "This is demo extended information to preview how deeper context, evidence notes, and implementation guidance can be displayed after expansion.",
-                      );
-                      const demoName = escapeHtml("Alex Morgan");
-                      const demoRole = escapeHtml("Country Representative (Demo)");
-                      const demoEmail = escapeHtml("representative@example.org");
-                      const demoPhone = escapeHtml("+40 700 000 000");
                       const highlightHtml = highlights.length
                         ? `
                           <ul class="country-modal-entry-highlights">
@@ -2022,6 +2044,67 @@
                           </section>
                         `
                         : "";
+                      const resourceVersionsHtml =
+                        pillar.id === "resources" && resourceLanguages.length
+                          ? `
+                            <section class="country-modal-entry-block country-modal-resource-versions">
+                              <h6>Resource Versions</h6>
+                              <div class="country-modal-resource-version-list">
+                                ${resourceLanguages
+                                  .map((item) => {
+                                    const languageText =
+                                      item.languageLabel ||
+                                      (item.languageCode
+                                        ? item.languageCode.toUpperCase()
+                                        : "Language");
+                                    const accessLabel =
+                                      item.accessType === "file"
+                                        ? "Opens file"
+                                        : "Opens webpage";
+                                    const actionLabel =
+                                      item.accessType === "file"
+                                        ? "Open file"
+                                        : "Open webpage";
+                                    return `
+                                      <article class="country-modal-resource-version">
+                                        <div class="country-modal-resource-version-head">
+                                          <span class="country-modal-resource-version-lang">${escapeHtml(
+                                            item.languageFlag,
+                                          )} ${escapeHtml(languageText)}</span>
+                                          <span class="country-modal-resource-version-type">${escapeHtml(
+                                            accessLabel,
+                                          )}</span>
+                                        </div>
+                                        <a
+                                          class="country-modal-entry-btn country-modal-entry-link-btn"
+                                          href="${escapeHtml(item.resourceUrl)}"
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                        >
+                                          ${escapeHtml(actionLabel)}
+                                        </a>
+                                      </article>
+                                    `;
+                                  })
+                                  .join("")}
+                              </div>
+                            </section>
+                          `
+                          : "";
+                      const contactName = String(creatorContact.name || "").trim();
+                      const contactRole = String(creatorContact.role || "").trim();
+                      const contactEmail = String(creatorContact.email || "").trim();
+                      const contactHtml =
+                        contactName || contactRole || contactEmail
+                          ? `
+                            <div class="country-modal-entry-contact">
+                              <h6>Contact Resource Creator</h6>
+                              ${contactName ? `<p><strong>Name:</strong> ${escapeHtml(contactName)}</p>` : ""}
+                              ${contactRole ? `<p><strong>Role:</strong> ${escapeHtml(contactRole)}</p>` : ""}
+                              ${contactEmail ? `<p><strong>Email:</strong> ${escapeHtml(contactEmail)}</p>` : ""}
+                            </div>
+                          `
+                          : "";
                       const organisationBadgesHtml = pillar.id === "organisations"
                         ? `
                           <div class="country-modal-entry-meta">
@@ -2063,17 +2146,11 @@
                             <button class="country-modal-entry-btn country-modal-entry-readmore-btn" type="button" aria-expanded="false">Read More</button>
                           </div>
                           <div class="country-modal-entry-expand" hidden>
-                            ${methodsHtml}
-                            ${programsHtml}
-                            ${impactHtml}
-                            ${!methods.length && !programs.length && !impact.length ? `<p class="country-modal-entry-extra">${extraDemoText}</p>` : ""}
-                            <div class="country-modal-entry-contact">
-                              <h6>Contact Representative</h6>
-                              <p><strong>Name:</strong> ${demoName}</p>
-                              <p><strong>Role:</strong> ${demoRole}</p>
-                              <p><strong>Email:</strong> ${demoEmail}</p>
-                              <p><strong>Phone:</strong> ${demoPhone}</p>
-                            </div>
+                            ${pillar.id === "resources" ? resourceVersionsHtml : methodsHtml}
+                            ${pillar.id === "resources" ? "" : programsHtml}
+                            ${pillar.id === "resources" ? "" : impactHtml}
+                            ${pillar.id === "resources" ? contactHtml : ""}
+                            ${pillar.id !== "resources" && !methods.length && !programs.length && !impact.length ? `<p class="country-modal-entry-extra">${escapeHtml("No more details available.")}</p>` : ""}
                           </div>
                         </article>
                       `;
@@ -2811,6 +2888,33 @@
                 summary: String(rawEntry.summary || rawEntry.description || "").trim(),
                 description: String(rawEntry.description || rawEntry.summary || "").trim(),
                 languages: Array.isArray(rawEntry.languages) ? rawEntry.languages : [],
+                resourceLanguages: Array.isArray(rawEntry.resourceLanguages)
+                  ? rawEntry.resourceLanguages
+                      .filter((item) => item && typeof item === "object")
+                      .map((item) => ({
+                        languageCode: String(item.languageCode || "")
+                          .trim()
+                          .toLowerCase(),
+                        languageLabel: String(item.languageLabel || "").trim(),
+                        languageFlag: String(item.languageFlag || "").trim(),
+                        accessType:
+                          String(item.accessType || "url").trim().toLowerCase() === "file"
+                            ? "file"
+                            : "url",
+                        resourceUrl: String(item.resourceUrl || "").trim(),
+                        fileName: String(item.fileName || "").trim(),
+                      }))
+                      .filter((item) => item.resourceUrl)
+                  : [],
+                representativeContact:
+                  rawEntry.representativeContact &&
+                  typeof rawEntry.representativeContact === "object"
+                    ? {
+                        name: String(rawEntry.representativeContact.name || "").trim(),
+                        role: String(rawEntry.representativeContact.role || "").trim(),
+                        email: String(rawEntry.representativeContact.email || "").trim(),
+                      }
+                    : { name: "", role: "", email: "" },
                 methods: Array.isArray(rawEntry.methods) ? rawEntry.methods : [],
                 programs: Array.isArray(rawEntry.programs) ? rawEntry.programs : [],
                 impact: Array.isArray(rawEntry.impact) ? rawEntry.impact : [],

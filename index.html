@@ -938,23 +938,9 @@
       .contribute-language-item-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-end;
         gap: 8px;
-      }
-
-      .contribute-language-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 4px 9px;
-        border-radius: 999px;
-        border: 1px solid rgba(124, 147, 159, 0.45);
-        background: rgba(239, 246, 250, 0.92);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        text-transform: none;
-        color: #2c4654;
+        min-height: 6px;
       }
 
       .contribute-language-remove {
@@ -972,9 +958,13 @@
 
       .contribute-language-fields {
         display: grid;
-        grid-template-columns: minmax(180px, 0.9fr) minmax(0, 1.5fr) auto;
+        grid-template-columns: minmax(180px, 1fr) minmax(110px, 0.36fr) minmax(220px, 1.2fr);
         gap: 10px;
         align-items: end;
+      }
+
+      .contribute-language-fields .contribute-language-type-field {
+        max-width: 230px;
       }
 
       .contribute-language-fields label {
@@ -999,19 +989,10 @@
         min-height: 42px;
       }
 
-      .contribute-language-file-name {
-        margin-top: 4px;
-        font-size: 11px;
-        color: #486572;
-        text-transform: none;
-        letter-spacing: 0;
-        word-break: break-word;
-      }
-
       .contribute-language-controls {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        justify-content: flex-start;
         gap: 12px;
       }
 
@@ -2414,6 +2395,50 @@
 
       .country-modal-entry-block {
         margin: 0 0 12px;
+      }
+
+      .country-modal-resource-versions h6 {
+        margin-bottom: 10px;
+      }
+
+      .country-modal-resource-version-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .country-modal-resource-version {
+        border: 1px solid rgba(130, 154, 166, 0.42);
+        border-radius: 10px;
+        background: rgba(244, 249, 252, 0.88);
+        padding: 10px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .country-modal-resource-version-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .country-modal-resource-version-lang {
+        font-size: 13px;
+        font-weight: 800;
+        color: #253f4c;
+      }
+
+      .country-modal-resource-version-type {
+        font-size: 11px;
+        font-weight: 700;
+        color: #4a6675;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .country-modal-entry-link-btn {
+        width: fit-content;
       }
 
       .country-modal-entry-block h6 {
@@ -4734,9 +4759,6 @@
                   >
                     Add another language
                   </button>
-                  <span class="contribute-field-helper"
-                    >Maximum 3 languages total (default + 2 extra).</span
-                  >
                 </div>
               </section>
               <section class="contribute-form-segment">
@@ -6242,9 +6264,10 @@
 
       function createResourceLanguageItem(languageCode, isPrimary) {
         resourceLangUid += 1;
+        const normalizedCode = String(languageCode || "").trim().toLowerCase();
         return {
           id: `lang-${resourceLangUid}`,
-          languageCode: String(languageCode || "en").trim().toLowerCase(),
+          languageCode: normalizedCode,
           accessType: "url",
           resourceUrl: "",
           file: null,
@@ -6403,8 +6426,7 @@
         if (!resourceLanguageList) return;
         resourceLanguageList.innerHTML = "";
         const usedLanguages = new Set();
-        resourceLanguageItems.forEach((item, index) => {
-          const option = getResourceLanguageOption(item.languageCode);
+        resourceLanguageItems.forEach((item) => {
           const card = document.createElement("section");
           card.className = "contribute-language-item";
           card.setAttribute("data-resource-lang-id", item.id);
@@ -6413,10 +6435,6 @@
 
           const head = document.createElement("div");
           head.className = "contribute-language-item-head";
-          const badge = document.createElement("span");
-          badge.className = "contribute-language-badge";
-          badge.textContent = `${option.flag} ${option.label}`;
-          head.appendChild(badge);
           if (!item.isPrimary) {
             const removeBtn = document.createElement("button");
             removeBtn.type = "button";
@@ -6444,6 +6462,15 @@
           langLabel.textContent = "Language";
           const langSelect = document.createElement("select");
           langSelect.setAttribute("aria-label", "Language");
+          const hasValue = Boolean(item.languageCode);
+          if (!hasValue) {
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Select language";
+            placeholder.selected = true;
+            placeholder.disabled = true;
+            langSelect.appendChild(placeholder);
+          }
           resourceLanguageOptions.forEach((langOption) => {
             const opt = document.createElement("option");
             opt.value = langOption.code;
@@ -6453,6 +6480,7 @@
             }
             langSelect.appendChild(opt);
           });
+          langSelect.setAttribute("data-focus-language", "true");
           langSelect.addEventListener("change", () => {
             const nextCode = String(langSelect.value || "")
               .trim()
@@ -6475,9 +6503,10 @@
           fields.appendChild(langLabel);
 
           const accessLabel = document.createElement("label");
-          accessLabel.textContent = "Resource access";
+          accessLabel.className = "contribute-language-type-field";
+          accessLabel.textContent = "Type";
           const accessSelect = document.createElement("select");
-          accessSelect.setAttribute("aria-label", "Resource access");
+          accessSelect.setAttribute("aria-label", "Type");
           accessSelect.innerHTML = `
             <option value="url">Web link</option>
             <option value="file">Upload file</option>
@@ -6500,6 +6529,7 @@
             fileInput.type = "file";
             fileInput.accept = RESOURCE_UPLOAD_ACCEPT;
             fileInput.className = "contribute-language-file";
+            fileInput.setAttribute("data-focus-value", "true");
             fileInput.addEventListener("change", () => {
               const file = fileInput.files && fileInput.files[0];
               item.file = file || null;
@@ -6509,21 +6539,13 @@
               renderResourceLanguageItems(item.id);
             });
             valueLabel.appendChild(fileInput);
-            const fileName = document.createElement("span");
-            fileName.className = "contribute-language-file-name";
-            fileName.textContent =
-              item.file instanceof File
-                ? item.file.name
-                : item.fileName
-                  ? `${item.fileName} (re-upload required)`
-                  : "No file selected";
-            valueLabel.appendChild(fileName);
           } else {
             valueLabel.textContent = "Resource link for this language";
             const urlInput = document.createElement("input");
             urlInput.type = "url";
             urlInput.placeholder = "https://...";
             urlInput.value = item.resourceUrl || "";
+            urlInput.setAttribute("data-focus-value", "true");
             urlInput.addEventListener("input", () => {
               item.resourceUrl = String(urlInput.value || "");
               saveResourceDraft();
@@ -6543,12 +6565,23 @@
           resourceLanguageList.appendChild(card);
         });
         if (resourceAddLanguageBtn) {
-          resourceAddLanguageBtn.disabled =
+          resourceAddLanguageBtn.hidden =
             resourceLanguageItems.length >= RESOURCE_LIMITS.maxLanguages;
         }
         if (focusItemId) {
+          const focusItem = resourceLanguageItems.find(
+            (item) => item.id === focusItemId,
+          );
+          const focusSelector =
+            focusItem && String(focusItem.languageCode || "").trim()
+              ? '[data-resource-focus-anchor="' +
+                focusItemId +
+                '"] [data-focus-value="true"]'
+              : '[data-resource-lang-id="' +
+                focusItemId +
+                '"] [data-focus-language="true"]';
           const anchor = resourceLanguageList.querySelector(
-            `[data-resource-focus-anchor="${focusItemId}"] input`,
+            focusSelector,
           );
           if (anchor) {
             window.requestAnimationFrame(() => {
@@ -6744,11 +6777,17 @@
                 String(item.languageCode || "").trim().toLowerCase(),
               ),
             );
-            const nextOption =
-              resourceLanguageOptions.find((item) => !used.has(item.code)) ||
-              resourceLanguageOptions[0] ||
-              { code: "en" };
-            const item = createResourceLanguageItem(nextOption.code, false);
+            const isSecond = resourceLanguageItems.length === 1;
+            const nextCode = isSecond
+              ? used.has("en")
+                ? (
+                    resourceLanguageOptions.find((item) => !used.has(item.code)) || {
+                      code: "",
+                    }
+                  ).code
+                : "en"
+              : "";
+            const item = createResourceLanguageItem(nextCode, false);
             resourceLanguageItems.push(item);
             renderResourceLanguageItems(item.id);
             saveResourceDraft();

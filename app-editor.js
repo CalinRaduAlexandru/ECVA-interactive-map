@@ -2735,6 +2735,12 @@
       summary: description,
       description,
       languages: languageFlags,
+      resourceLanguages,
+      representativeContact: {
+        name: String(contact.name || "").trim(),
+        role: String(contact.role || "").trim(),
+        email: String(contact.email || "").trim(),
+      },
       methods,
       programs: [],
       impact,
