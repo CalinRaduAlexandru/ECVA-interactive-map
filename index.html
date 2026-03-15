@@ -3635,6 +3635,23 @@
         justify-content: center;
       }
 
+      .ecva-manage-access-reset {
+        height: 36px;
+        border-radius: 10px;
+        border: 1px solid rgba(112, 135, 148, 0.56);
+        background: #eaf2f6;
+        color: #27414d;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 0 10px;
+        cursor: pointer;
+        margin-left: auto;
+      }
+
+      .ecva-manage-access-reset:hover {
+        filter: brightness(1.06);
+      }
+
       .ecva-manage-access-eye {
         display: inline-flex;
         align-items: center;
@@ -3872,6 +3889,52 @@
       .ecva-toast.is-visible {
         opacity: 1;
         transform: translateY(0);
+      }
+
+      .ecva-reset-code-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 3400;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(15, 26, 34, 0.52);
+        padding: 16px;
+      }
+
+      .ecva-reset-code-modal.is-visible {
+        display: flex;
+      }
+
+      .ecva-reset-code-dialog {
+        width: min(460px, calc(100vw - 32px));
+        border-radius: 14px;
+        border: 1px solid rgba(128, 149, 161, 0.45);
+        background: #f5fbfd;
+        box-shadow: 0 16px 40px rgba(21, 38, 49, 0.28);
+        padding: 16px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .ecva-reset-code-dialog h3 {
+        margin: 0;
+        font-size: 22px;
+        line-height: 1.1;
+        color: #223a46;
+      }
+
+      .ecva-reset-code-dialog p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.45;
+        color: #3e5c6b;
+      }
+
+      .ecva-reset-code-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
       }
 
       @media (max-width: 860px) {

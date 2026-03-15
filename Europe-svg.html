@@ -1060,6 +1060,7 @@
               RO: "development",
               SE: "development",
             };
+            const countryAccessCodesByCountry = {};
 
             function getDisplayCountryCode(countryCode) {
               const normalized = String(countryCode || "").trim().toUpperCase();
@@ -2174,6 +2175,7 @@
                 flag: String(info.flag || toFlagEmoji(normalizedCode)),
                 status: getStatusLabel(statusValue),
                 statusValue,
+                accessCode: String(countryAccessCodesByCountry[normalizedCode] || "").trim().toLowerCase(),
               };
             }
 
@@ -2205,6 +2207,7 @@
               snapshot.__representatives = JSON.parse(JSON.stringify(representativesByCountry));
               snapshot.__countryStatus = JSON.parse(JSON.stringify(countryStatus));
               snapshot.__countryInbox = JSON.parse(JSON.stringify(countryInboxByCountry));
+              snapshot.__accessCodes = JSON.parse(JSON.stringify(countryAccessCodesByCountry));
               snapshot.__meta = { ...EDITOR_STATE_META };
               return snapshot;
             }
@@ -2259,6 +2262,10 @@
                 nextState.__countryInbox && typeof nextState.__countryInbox === "object"
                   ? nextState.__countryInbox
                   : null;
+              const accessCodesState =
+                nextState.__accessCodes && typeof nextState.__accessCodes === "object"
+                  ? nextState.__accessCodes
+                  : null;
               if (storedInboxSchemaVersion < EDITOR_STATE_META.inboxSchemaVersion) {
                 Object.keys(countryInboxByCountry).forEach((countryId) => {
                   delete countryInboxByCountry[countryId];
@@ -2273,6 +2280,18 @@
                   countryInboxByCountry[code] = items
                     .map((item) => normalizeSubmissionRecord(code, item))
                     .filter(Boolean);
+                });
+              }
+              if (accessCodesState) {
+                Object.keys(countryAccessCodesByCountry).forEach((countryId) => {
+                  delete countryAccessCodesByCountry[countryId];
+                });
+                Object.entries(accessCodesState).forEach(([countryId, code]) => {
+                  const normalizedCountry = String(countryId || "").trim().toUpperCase();
+                  if (!normalizedCountry || !document.getElementById(normalizedCountry)) return;
+                  const normalizedCode = String(code || "").trim().toLowerCase();
+                  if (!normalizedCode) return;
+                  countryAccessCodesByCountry[normalizedCountry] = normalizedCode;
                 });
               }
 
@@ -2429,6 +2448,16 @@
               record.status = normalizeSubmissionStatus(payload.status);
               record.updatedAt = new Date().toISOString();
               return { countryId, submissionId };
+            }
+
+            function updateAccessCodeFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim().toUpperCase();
+              const accessCode = String(payload.accessCode || "").trim().toLowerCase();
+              if (!countryId || !accessCode) return null;
+              if (!document.getElementById(countryId)) return null;
+              countryAccessCodesByCountry[countryId] = accessCode;
+              return { countryId, accessCode };
             }
 
             function updateSubmissionFromEditor(payload) {
@@ -3386,6 +3415,29 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: deleted.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-update-access-code") {
+                const updated = updateAccessCodeFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-active-countries",
+                    payload: {
+                      countries: getActiveCountriesPayload(),
+                      allCountries: getAllCountriesPayload(),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
                   },
                   "*",
                 );

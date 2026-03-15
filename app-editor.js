@@ -176,6 +176,7 @@
   let accessScope = { mode: 'all', countryId: '' };
   let accessCodeToCountryMap = new Map();
   let countryAccessCodeMap = new Map();
+  let resettingCountryCode = '';
   let activeCountriesWaiters = [];
   let editorTarget = null;
   let editorMode = 'entry';
@@ -269,10 +270,49 @@
       if (!countryId) return;
       const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
       if (!(isActiveStatusValue(statusValue) || statusValue === 'pending')) return;
-      const code = buildCountryAccessCode(countryId, index + 1).toLowerCase();
+      const fromState = String(country && country.accessCode ? country.accessCode : '').trim().toLowerCase();
+      const code = fromState || buildCountryAccessCode(countryId, index + 1).toLowerCase();
       accessCodeToCountryMap.set(code, countryId);
       countryAccessCodeMap.set(countryId, code);
     });
+  }
+
+  function makeRandomAccessCode(rawCode) {
+    const prefix = countryPrefixForAccessCode(rawCode);
+    if (!prefix) return '';
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let suffix = '';
+    for (let i = 0; i < 6; i += 1) {
+      suffix += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return `${prefix}ecva${suffix}`;
+  }
+
+  function renderResetCodeConfirm(countryCode) {
+    const existing = document.getElementById('ecva-reset-code-confirm');
+    if (existing) existing.remove();
+    const modal = document.createElement('div');
+    modal.id = 'ecva-reset-code-confirm';
+    modal.className = 'ecva-reset-code-modal is-visible';
+    modal.innerHTML = `
+      <section class="ecva-reset-code-dialog" role="dialog" aria-modal="true" aria-label="Reset app access code">
+        <h3>Reset app access code?</h3>
+        <p>This will generate a new code for ${escapeHtml(displayCountryCode(countryCode))}. The old code will stop working.</p>
+        <div class="ecva-reset-code-actions">
+          <button type="button" class="ecva-admin-btn secondary" data-reset-cancel>Cancel</button>
+          <button type="button" class="ecva-admin-btn danger" data-reset-confirm>Reset code</button>
+        </div>
+      </section>
+    `;
+    document.body.appendChild(modal);
+    syncAdminOverlayScrollLock();
+    return modal;
+  }
+
+  function closeResetCodeConfirm() {
+    const modal = document.getElementById('ecva-reset-code-confirm');
+    if (modal) modal.remove();
+    syncAdminOverlayScrollLock();
   }
 
   function resolveAccessScope(inputRaw) {
@@ -346,10 +386,12 @@
     if (!panel) return;
     const rows = panel.querySelectorAll('.ecva-manage-access-row-item');
     rows.forEach((row) => {
-      const code = String(row.getAttribute('data-access-code') || '').trim();
+      let code = String(row.getAttribute('data-access-code') || '').trim().toLowerCase();
+      const countryId = normalizeManageCountryCode(row.getAttribute('data-country-id'));
       const codeText = row.querySelector('.ecva-manage-access-code');
       const eyeBtn = row.querySelector('.ecva-manage-access-eye');
       const copyBtn = row.querySelector('.ecva-manage-access-copy');
+      const resetBtn = row.querySelector('.ecva-manage-access-reset[data-reset-code]');
       const copiedMsg = row.querySelector('.ecva-manage-access-copied');
       if (!code || !codeText || !eyeBtn || !copyBtn) return;
 
@@ -403,6 +445,59 @@
           showToast('Could not copy code.', true);
         }
       });
+      if (resetBtn && countryId) {
+        resetBtn.addEventListener('click', () => {
+          if (resettingCountryCode) return;
+          const modal = renderResetCodeConfirm(countryId);
+          const cancelBtn = modal.querySelector('[data-reset-cancel]');
+          const confirmBtn = modal.querySelector('[data-reset-confirm]');
+          const cleanup = () => {
+            resettingCountryCode = '';
+            closeResetCodeConfirm();
+          };
+          if (cancelBtn) {
+            cancelBtn.addEventListener('click', cleanup, { once: true });
+          }
+          if (confirmBtn) {
+            confirmBtn.addEventListener(
+              'click',
+              () => {
+                resettingCountryCode = countryId;
+                let nextCode = '';
+                let guard = 0;
+                do {
+                  nextCode = makeRandomAccessCode(countryId);
+                  guard += 1;
+                } while (nextCode && accessCodeToCountryMap.has(nextCode) && guard < 30);
+                if (!nextCode) {
+                  cleanup();
+                  return;
+                }
+                const previousCode = String(row.getAttribute('data-access-code') || '').trim().toLowerCase();
+                if (previousCode) accessCodeToCountryMap.delete(previousCode);
+                countryAccessCodeMap.set(countryId, nextCode);
+                accessCodeToCountryMap.set(nextCode, countryId);
+                row.setAttribute('data-access-code', nextCode);
+                code = nextCode;
+                row.setAttribute('data-revealed', 'false');
+                codeText.textContent = maskAccessCode(nextCode);
+                eyeBtn.classList.remove('is-revealed');
+                eyeBtn.setAttribute('aria-label', 'Show app access code');
+                postToMap('ecva-editor-update-access-code', {
+                  countryId,
+                  accessCode: nextCode,
+                });
+                showToast('Access code reset.');
+                cleanup();
+              },
+              { once: true },
+            );
+          }
+          modal.addEventListener('click', (event) => {
+            if (event.target === modal) cleanup();
+          });
+        });
+      }
     });
   }
 
@@ -474,6 +569,7 @@
             <path d="M8 4.8A2.8 2.8 0 0 1 10.8 2h7.4A2.8 2.8 0 0 1 21 4.8v7.4a2.8 2.8 0 0 1-2.8 2.8H16v1.2A2.8 2.8 0 0 1 13.2 19H5.8A2.8 2.8 0 0 1 3 16.2V8.8A2.8 2.8 0 0 1 5.8 6H8V4.8Zm2-.8v8.2c0 .44.36.8.8.8H19c.44 0 .8-.36.8-.8V4.8c0-.44-.36-.8-.8-.8h-8.2c-.44 0-.8.36-.8.8ZM8 8H5.8c-.44 0-.8.36-.8.8v7.4c0 .44.36.8.8.8h7.4c.44 0 .8-.36.8-.8V15h-3.2A2.8 2.8 0 0 1 8 12.2V8Z"></path>
           </svg>
         </button>
+        <button type="button" class="ecva-manage-access-reset" data-reset-code aria-label="Reset app access code">Reset code</button>
         <span class="ecva-manage-access-copied" aria-live="polite">Copied</span>
       </span>
     `;
@@ -486,7 +582,7 @@
     const fullName = String(country && country.name ? country.name : '').trim();
     const displayLabel = fullName || displayCountryCode(countryCode);
     return `
-      <article class="ecva-manage-access-row-item" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
+      <article class="ecva-manage-access-row-item" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-access-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
         ${buildStatusSelectHtml(countryCode, statusValue, variant)}
         ${buildCodeControlsHtml(countryCode, statusValue)}
@@ -572,11 +668,13 @@
   }
 
   function syncAdminOverlayScrollLock() {
+    const resetCodeModal = document.getElementById('ecva-reset-code-confirm');
     const isLocked = Boolean(
       (adminHub && adminHub.classList.contains('is-visible')) ||
         (manageRoot && manageRoot.classList.contains('is-visible')) ||
         (editorModal && editorModal.classList.contains('is-visible')) ||
-        (versionHistoryModal && versionHistoryModal.classList.contains('is-visible')),
+        (versionHistoryModal && versionHistoryModal.classList.contains('is-visible')) ||
+        (resetCodeModal && resetCodeModal.classList.contains('is-visible')),
     );
     document.documentElement.classList.toggle('ecva-scroll-locked', isLocked);
     document.body.classList.toggle('ecva-scroll-locked', isLocked);
@@ -674,6 +772,7 @@
 
   function closeManage() {
     if (!manageRoot) return;
+    closeResetCodeConfirm();
     closeEditorModal();
     closeVersionHistoryModal();
     pendingInboxRequests.forEach((pending) => {
@@ -2540,6 +2639,10 @@
 
   document.addEventListener('keydown', (event) => {
     if (event.key !== 'Escape') return;
+    if (document.getElementById('ecva-reset-code-confirm')) {
+      closeResetCodeConfirm();
+      return;
+    }
     if (editorModal && editorModal.classList.contains('is-visible')) {
       closeEditorModal();
       return;
