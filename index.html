@@ -1018,9 +1018,9 @@
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
       .contribute-form select.is-invalid {
-        border-color: #d41339;
-        box-shadow: 0 0 0 4px rgba(212, 19, 57, 0.36);
-        background: rgba(255, 228, 235, 1);
+        border-color: #c1143a;
+        box-shadow: 0 0 0 5px rgba(193, 20, 58, 0.42);
+        background: #ffe3ea;
       }
 
       .contribute-form-status {
@@ -4695,7 +4695,7 @@
               <h4 id="contribute-modal-info-title">Section Scope</h4>
               <div id="contribute-modal-info-body"></div>
             </article>
-            <form class="contribute-form" id="contribute-form">
+            <form class="contribute-form" id="contribute-form" novalidate>
               <input type="hidden" name="mode" />
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" />
@@ -4856,7 +4856,7 @@
                 </button>
               </div>
             </form>
-            <form class="contribute-form" id="contribute-rep-form" hidden>
+            <form class="contribute-form" id="contribute-rep-form" hidden novalidate>
               <input type="hidden" name="mode" value="representative" />
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" value="representatives" />
@@ -6839,7 +6839,8 @@
             item.resourceUrl = normalizedUrl;
             const urlOk = isLikelyValidUrl(normalizedUrl);
             if (!urlOk) {
-              errors.push("Link must be valid (example: https://... or www....).");
+              const languageName = (getResourceLanguageOption(languageCode).label || "this language").trim();
+              errors.push(`Invalid link for ${languageName}. Use a full URL (https://...) or www....`);
               setFieldError(valueInput, shouldPaintInvalid);
             } else {
               setFieldError(valueInput, false);
@@ -6867,9 +6868,6 @@
           errors.push("Complete email in a valid format.");
         }
         const valid = errors.length === 0;
-        if (resourceSubmitBtn) {
-          resourceSubmitBtn.disabled = !valid;
-        }
         if (valid) {
           setContributeStatus("");
         } else if (showStatus) {
