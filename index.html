@@ -4860,6 +4860,27 @@
       let heightPostTimer = null;
       let lastPostedEmbedHeight = 0;
 
+      function getNaturalChildrenHeight(container) {
+        if (!container) return 0;
+        const style = window.getComputedStyle(container);
+        const padTop = parseFloat(style.paddingTop || "0") || 0;
+        const padBottom = parseFloat(style.paddingBottom || "0") || 0;
+        let contentBottom = 0;
+        const kids = Array.from(container.children || []);
+        kids.forEach((child) => {
+          if (!(child instanceof HTMLElement)) return;
+          const bottom =
+            (child.offsetTop || 0) +
+            Math.max(
+              child.scrollHeight || 0,
+              child.offsetHeight || 0,
+              child.getBoundingClientRect().height || 0,
+            );
+          if (bottom > contentBottom) contentBottom = bottom;
+        });
+        return Math.ceil(padTop + contentBottom + padBottom);
+      }
+
       function postEmbedHeightToParent() {
         if (window.parent === window) return;
         const main = document.querySelector(".desktop-map");
@@ -4889,18 +4910,11 @@
           const body = manageShell
             ? manageShell.querySelector(".ecva-manage-body")
             : null;
-          const shellStyle = manageShell
-            ? window.getComputedStyle(manageShell)
-            : null;
-          const shellPaddingY = shellStyle
-            ? (parseFloat(shellStyle.paddingTop || "0") || 0) +
-              (parseFloat(shellStyle.paddingBottom || "0") || 0)
-            : 0;
+          const bodyNaturalHeight = getNaturalChildrenHeight(body);
           const manageContentHeight =
             (topbar ? topbar.scrollHeight || 0 : 0) +
-            (body ? body.scrollHeight || 0 : 0) +
-            shellPaddingY +
-            16;
+            bodyNaturalHeight +
+            20;
           height = Math.max(
             520,
             Math.ceil(manageContentHeight),
@@ -4920,7 +4934,7 @@
           height = Math.max(520, Math.ceil(mainHeight), Math.ceil(docHeight));
         }
         if (!Number.isFinite(height) || height < 320) return;
-        if (Math.abs(height - lastPostedEmbedHeight) < 2) return;
+        if (Math.abs(height - lastPostedEmbedHeight) < 8) return;
         lastPostedEmbedHeight = height;
         window.parent.postMessage(
           {
