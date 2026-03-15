@@ -2719,8 +2719,30 @@
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
     const title = String(safeItem.title || "").trim() || "Untitled entry";
-    const subtitle = String(safeItem.subtitle || "").trim();
     const description = String(safeItem.description || "").trim();
+    const ownership =
+      safeItem.ownership && typeof safeItem.ownership === "object"
+        ? safeItem.ownership
+        : {};
+    const normalizeResourceDeliveryUrl = (url, accessType, fileName) => {
+      const value = String(url || "").trim();
+      if (!value) return "";
+      const isFile = String(accessType || "").trim().toLowerCase() === "file";
+      const name = String(fileName || "").trim().toLowerCase();
+      const looksLikeDoc =
+        isFile &&
+        (/\.(pdf|doc|docx|ppt|pptx)$/i.test(value) ||
+          /\.(pdf|doc|docx|ppt|pptx)$/i.test(name));
+      if (
+        looksLikeDoc &&
+        value.includes("res.cloudinary.com/") &&
+        value.includes("/image/upload/")
+      ) {
+        return value.replace("/image/upload/", "/raw/upload/");
+      }
+      return value;
+    };
+
     const resourceLanguages = Array.isArray(safeItem.resourceLanguages)
       ? safeItem.resourceLanguages
           .filter((lang) => lang && typeof lang === "object")
@@ -2730,7 +2752,15 @@
             languageCode: String(lang.languageCode || "")
               .trim()
               .toLowerCase(),
-            resourceUrl: String(lang.resourceUrl || "").trim(),
+            resourceType: String(lang.resourceType || "")
+              .trim()
+              .toLowerCase(),
+            resourceTypeLabel: String(lang.resourceTypeLabel || "").trim(),
+            resourceUrl: normalizeResourceDeliveryUrl(
+              String(lang.resourceUrl || "").trim(),
+              lang.accessType,
+              lang.fileName,
+            ),
             accessType:
               String(lang.accessType || "").trim().toLowerCase() === "file"
                 ? "file"
@@ -2778,7 +2808,13 @@
               "Language",
             languageFlag: "",
             languageCode: "",
-            resourceUrl: url,
+            resourceType: matchingAttachment ? "document" : "webpage",
+            resourceTypeLabel: matchingAttachment ? "Document" : "Webpage",
+            resourceUrl: normalizeResourceDeliveryUrl(
+              url,
+              matchingAttachment ? "file" : "url",
+              matchingAttachment ? matchingAttachment.name : "",
+            ),
             accessType: matchingAttachment ? "file" : "url",
             fileName: matchingAttachment ? matchingAttachment.name : "",
           };
@@ -2811,11 +2847,14 @@
 
     return {
       title,
-      subtitle,
       summary: description,
       description,
       languages: languageFlags,
       resourceLanguages: normalizedResourceLanguages,
+      ownership: {
+        type: String(ownership.type || "").trim(),
+        name: String(ownership.name || "").trim(),
+      },
       representativeContact: {
         name: String(contact.name || "").trim(),
         role: String(contact.role || "").trim(),

@@ -6235,8 +6235,8 @@
         maxLanguages: 3,
       };
       const RESOURCE_UPLOAD_ACCEPT =
-        ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
-      const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g)$/i;
+        ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.mp3,.wav,.m4a,.mp4,.mov,.webm";
+      const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g|mp3|wav|m4a|mp4|mov|webm)$/i;
       const RESOURCE_TYPE_OPTIONS = [
         {
           value: "webpage",
@@ -6584,7 +6584,7 @@
             if (duplicate) {
               setContributeStatus("This language was already added.", "error");
               langSelect.value = item.languageCode;
-              setFieldError(langSelect, true);
+              setFieldError(langSelect, resourceValidationTriggered);
               return;
             }
             item.languageCode = nextCode;
@@ -6606,7 +6606,7 @@
           accessSelect.setAttribute("aria-label", "Type");
           accessSelect.innerHTML = RESOURCE_TYPE_OPTIONS.map(
             (option) =>
-              `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
+              `<option value="${option.value}">${option.label}</option>`,
           ).join("");
           accessSelect.value = typeConfig.value;
           accessSelect.addEventListener("change", () => {
@@ -6797,7 +6797,9 @@
           const languageSelect = card ? card.querySelector("select") : null;
           const valueInput = card
             ? card.querySelector(
-                item.accessType === "file" ? 'input[type="file"]' : 'input[type="url"]',
+                getResourceTypeConfig(item.resourceType).inputMode === "file"
+                  ? 'input[type="file"]'
+                  : 'input[type="url"]',
               )
             : null;
           const languageCode = String(item.languageCode || "")
@@ -8136,7 +8138,8 @@
                 throw new Error("missing_language_selection");
               }
               const languageOption = getResourceLanguageOption(languageCode);
-              if (item.accessType === "file") {
+              const typeConfig = getResourceTypeConfig(item.resourceType);
+              if (typeConfig.inputMode === "file") {
                 const file =
                   item.file instanceof File ? item.file : null;
                 if (!file && !item.resourceUrl) {
@@ -8151,10 +8154,12 @@
                   languageCode,
                   languageLabel: languageOption.label,
                   languageFlag: languageOption.flag,
-                  resourceType: getResourceTypeConfig(item.resourceType).value,
-                  resourceTypeLabel: getResourceTypeConfig(item.resourceType).label,
+                  resourceType: typeConfig.value,
+                  resourceTypeLabel: typeConfig.label,
                   accessType: "file",
-                  resourceUrl: uploaded && uploaded.url ? uploaded.url : "",
+                  resourceUrl:
+                    (uploaded && uploaded.url) ||
+                    String(item.resourceUrl || "").trim(),
                   fileName:
                     (uploaded && uploaded.name) ||
                     (file && file.name) ||
@@ -8166,8 +8171,8 @@
                 languageCode,
                 languageLabel: languageOption.label,
                 languageFlag: languageOption.flag,
-                resourceType: getResourceTypeConfig(item.resourceType).value,
-                resourceTypeLabel: getResourceTypeConfig(item.resourceType).label,
+                resourceType: typeConfig.value,
+                resourceTypeLabel: typeConfig.label,
                 accessType: "url",
                 resourceUrl: normalizeLikelyUrl(item.resourceUrl),
                 fileName: "",

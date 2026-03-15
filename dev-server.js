@@ -258,6 +258,12 @@ function safeAttachmentFileName(inputName) {
     '.xlsx',
     '.ppt',
     '.pptx',
+    '.mp3',
+    '.wav',
+    '.m4a',
+    '.mp4',
+    '.mov',
+    '.webm',
     '.txt',
     '.csv',
     '.zip',
@@ -288,7 +294,7 @@ function isCloudinaryConfigured() {
 }
 
 function buildCloudinaryPublicId(inputName) {
-  const safeName = safeUploadFileName(inputName);
+  const safeName = String(inputName || 'asset').replace(/[^a-zA-Z0-9._-]/g, '-');
   const ext = path.extname(safeName).toLowerCase();
   return path.basename(safeName, ext);
 }
@@ -892,7 +898,17 @@ const server = http.createServer(async (req, res) => {
       }
       try {
         if (isCloudinaryConfigured()) {
-          const assetUrl = await uploadAssetToCloudinary(dataUrl, filename, 'auto');
+          const mime = String(parsedDataUrl.mime || '').toLowerCase();
+          const targetResourceType = mime.startsWith('image/')
+            ? 'image'
+            : mime.startsWith('video/') || mime.startsWith('audio/')
+              ? 'video'
+              : 'raw';
+          const assetUrl = await uploadAssetToCloudinary(
+            dataUrl,
+            filename,
+            targetResourceType,
+          );
           return sendJson(res, 200, {
             ok: true,
             path: assetUrl,

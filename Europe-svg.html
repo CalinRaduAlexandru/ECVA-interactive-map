@@ -1948,6 +1948,26 @@
                 );
               }
 
+              function normalizeResourceDeliveryUrl(url, accessType, fileName) {
+                const value = String(url || "").trim();
+                if (!value) return "";
+                const isFile =
+                  String(accessType || "").trim().toLowerCase() === "file";
+                const name = String(fileName || "").trim().toLowerCase();
+                const looksLikeDoc =
+                  isFile &&
+                  (/\.(pdf|doc|docx|ppt|pptx)$/i.test(value) ||
+                    /\.(pdf|doc|docx|ppt|pptx)$/i.test(name));
+                if (
+                  looksLikeDoc &&
+                  value.includes("res.cloudinary.com/") &&
+                  value.includes("/image/upload/")
+                ) {
+                  return value.replace("/image/upload/", "/raw/upload/");
+                }
+                return value;
+              }
+
               function entryHasVisibleContent(entry) {
                 if (!entry || typeof entry !== "object") return false;
                 const title = String(entry.title || "").trim();
@@ -2027,6 +2047,14 @@
                               fileName: String(item.fileName || "").trim(),
                               resourceType: String(item.resourceType || "").trim(),
                               resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                            }))
+                            .map((item) => ({
+                              ...item,
+                              resourceUrl: normalizeResourceDeliveryUrl(
+                                item.resourceUrl,
+                                item.accessType,
+                                item.fileName,
+                              ),
                             }))
                             .filter((item) => item.resourceUrl)
                         : [];
@@ -2584,12 +2612,22 @@
                       languageCode: String(item.languageCode || "").trim().toLowerCase(),
                       languageLabel: String(item.languageLabel || "").trim(),
                       languageFlag: String(item.languageFlag || "").trim(),
+                      resourceType: String(item.resourceType || "").trim().toLowerCase(),
+                      resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
                       accessType: String(item.accessType || "url").trim().toLowerCase() === "file" ? "file" : "url",
                       resourceUrl: String(item.resourceUrl || "").trim(),
                       fileName: String(item.fileName || "").trim(),
                     }))
                     .filter((item) => item.languageCode && item.resourceUrl)
                 : [];
+              const ownership =
+                rawSubmission.ownership &&
+                typeof rawSubmission.ownership === "object"
+                  ? {
+                      type: String(rawSubmission.ownership.type || "").trim(),
+                      name: String(rawSubmission.ownership.name || "").trim(),
+                    }
+                  : { type: "", name: "" };
               const representativeDraft =
                 rawSubmission.representativeDraft &&
                 typeof rawSubmission.representativeDraft === "object"
@@ -2658,6 +2696,7 @@
                     .filter(Boolean)
                     .join(" • "),
                 languageAvailability: String(rawSubmission.languageAvailability || "").trim(),
+                ownership,
                 links,
                 attachments,
                 resourceLanguages,
@@ -2744,6 +2783,8 @@
                     languageCode: String(item.languageCode || "").trim().toLowerCase(),
                     languageLabel: String(item.languageLabel || "").trim(),
                     languageFlag: String(item.languageFlag || "").trim(),
+                    resourceType: String(item.resourceType || "").trim().toLowerCase(),
+                    resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
                     accessType:
                       String(item.accessType || "url").trim().toLowerCase() === "file"
                         ? "file"
@@ -2752,6 +2793,12 @@
                     fileName: String(item.fileName || "").trim(),
                   }))
                   .filter((item) => item.languageCode && item.resourceUrl);
+              }
+              if (fields.ownership && typeof fields.ownership === "object") {
+                record.ownership = {
+                  type: String(fields.ownership.type || "").trim(),
+                  name: String(fields.ownership.name || "").trim(),
+                };
               }
               if (
                 fields.representativeContact &&
@@ -2979,6 +3026,10 @@
                           .toLowerCase(),
                         languageLabel: String(item.languageLabel || "").trim(),
                         languageFlag: String(item.languageFlag || "").trim(),
+                        resourceType: String(item.resourceType || "")
+                          .trim()
+                          .toLowerCase(),
+                        resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
                         accessType:
                           String(item.accessType || "url").trim().toLowerCase() === "file"
                             ? "file"
@@ -2988,6 +3039,13 @@
                       }))
                       .filter((item) => item.resourceUrl)
                   : [],
+                ownership:
+                  rawEntry.ownership && typeof rawEntry.ownership === "object"
+                    ? {
+                        type: String(rawEntry.ownership.type || "").trim(),
+                        name: String(rawEntry.ownership.name || "").trim(),
+                      }
+                    : { type: "", name: "" },
                 representativeContact:
                   rawEntry.representativeContact &&
                   typeof rawEntry.representativeContact === "object"
