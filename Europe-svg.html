@@ -2667,6 +2667,21 @@
               return { countryId, pillarId, entryIndex: index };
             }
 
+            function removeEntryFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim();
+              const pillarId = String(payload.pillarId || "").trim();
+              const index = Number(payload.entryIndex);
+              if (!countryId || !pillarId || !Number.isInteger(index) || index < 0) return null;
+              const country = pillarConfigByCountry[countryId];
+              if (!country || typeof country !== "object") return null;
+              const pillar = country[pillarId];
+              if (!pillar || !Array.isArray(pillar.entries)) return null;
+              if (!pillar.entries[index]) return null;
+              pillar.entries.splice(index, 1);
+              return { countryId, pillarId, entryIndex: index };
+            }
+
             function reorderEntryFromEditor(payload) {
               if (!payload || typeof payload !== "object") return null;
               const countryId = String(payload.countryId || "").trim();
@@ -3480,6 +3495,29 @@
 
               if (type === "ecva-editor-update-entry") {
                 const updated = updateEntryFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-entry-updated",
+                    payload: {
+                      countryId: updated.countryId,
+                      html: renderModalHtml(updated.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-remove-entry") {
+                const updated = removeEntryFromEditor(payload);
                 if (!updated) return;
                 window.parent.postMessage(
                   {

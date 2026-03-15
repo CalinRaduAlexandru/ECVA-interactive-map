@@ -1512,9 +1512,16 @@
     }
     if (editorRemoveBtn) {
       const canRemove =
-        editorMode === "representative" &&
-        editorTarget &&
-        editorTarget.action !== "add";
+        Boolean(editorTarget) &&
+        ((editorMode === "representative" &&
+          editorTarget.action !== "add" &&
+          (editorTarget.type === "representative" ||
+            editorTarget.type === "submission-representative")) ||
+          (editorMode === "entry" &&
+            ((editorTarget.type === "entry" &&
+              editorTarget.action !== "add" &&
+              Number.isInteger(editorTarget.entryIndex)) ||
+              editorTarget.type === "submission-article")));
       editorRemoveBtn.style.display = canRemove ? "inline-flex" : "none";
       resetEditorRemoveState();
     }
@@ -2479,6 +2486,13 @@
       if (entryEl.querySelector(".ecva-entry-edit-btn")) return;
       const top = entryEl.querySelector(".country-modal-entry-top");
       if (!top) return;
+      if (!top.querySelector(".ecva-entry-drag-handle")) {
+        const handle = document.createElement("span");
+        handle.className = "ecva-entry-drag-handle";
+        handle.setAttribute("aria-hidden", "true");
+        handle.textContent = "⋮⋮";
+        top.prepend(handle);
+      }
       const editBtn = document.createElement("button");
       editBtn.type = "button";
       editBtn.className = "ecva-entry-edit-btn";
@@ -3575,26 +3589,45 @@
 
   if (editorRemoveBtn) {
     editorRemoveBtn.addEventListener("click", () => {
-      if (!editorTarget || editorMode !== "representative") return;
+      if (!editorTarget) return;
       const isPublishedRepresentative =
+        editorMode === "representative" &&
         editorTarget.type === "representative" &&
         Number.isInteger(editorTarget.representativeIndex);
       const isSubmissionRepresentative =
+        editorMode === "representative" &&
         editorTarget.type === "submission-representative" &&
         String(editorTarget.submissionId || "").trim() &&
         String(editorTarget.countryId || "").trim();
-      if (!isPublishedRepresentative && !isSubmissionRepresentative) return;
+      const isPublishedEntry =
+        editorMode === "entry" &&
+        editorTarget.type === "entry" &&
+        String(editorTarget.countryId || "").trim() &&
+        String(editorTarget.pillarId || "").trim() &&
+        Number.isInteger(editorTarget.entryIndex);
+      const isSubmissionArticle =
+        editorMode === "entry" &&
+        editorTarget.type === "submission-article" &&
+        String(editorTarget.submissionId || "").trim() &&
+        String(editorTarget.countryId || "").trim();
+      if (
+        !isPublishedRepresentative &&
+        !isSubmissionRepresentative &&
+        !isPublishedEntry &&
+        !isSubmissionArticle
+      )
+        return;
       if (!editorRemoveBtn.classList.contains("is-confirm")) {
         editorRemoveBtn.classList.add("is-confirm");
         editorRemoveBtn.setAttribute(
           "aria-label",
-          isSubmissionRepresentative
+          isSubmissionRepresentative || isSubmissionArticle || isPublishedEntry
             ? "Confirm delete entry permanently"
             : "Confirm remove representative",
         );
         editorRemoveBtn.setAttribute(
           "title",
-          isSubmissionRepresentative
+          isSubmissionRepresentative || isSubmissionArticle || isPublishedEntry
             ? "Confirm delete entry permanently"
             : "Confirm remove representative",
         );
@@ -3606,10 +3639,16 @@
         }, 4000);
         return;
       }
-      if (isSubmissionRepresentative) {
+      if (isSubmissionRepresentative || isSubmissionArticle) {
         postToMap("ecva-editor-delete-submission", {
           countryId: editorTarget.countryId,
           submissionId: String(editorTarget.submissionId),
+        });
+      } else if (isPublishedEntry) {
+        postToMap("ecva-editor-remove-entry", {
+          countryId: editorTarget.countryId,
+          pillarId: editorTarget.pillarId,
+          entryIndex: editorTarget.entryIndex,
         });
       } else {
         postToMap("ecva-editor-remove-representative", {
