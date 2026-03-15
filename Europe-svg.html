@@ -1908,6 +1908,46 @@
             }
 
             function renderPillarDetailCards(countryId) {
+              function getFlagFromLanguageCode(languageCode) {
+                const code = String(languageCode || "").trim().toLowerCase();
+                if (!code) return "";
+                const languageToCountry = {
+                  en: "GB",
+                  ro: "RO",
+                  de: "DE",
+                  fr: "FR",
+                  es: "ES",
+                  it: "IT",
+                  pt: "PT",
+                  nl: "NL",
+                  cs: "CZ",
+                  da: "DK",
+                  fi: "FI",
+                  sv: "SE",
+                  et: "EE",
+                  is: "IS",
+                  no: "NO",
+                  nb: "NO",
+                  nn: "NO",
+                  el: "GR",
+                  pl: "PL",
+                  hu: "HU",
+                  bg: "BG",
+                  hr: "HR",
+                  sk: "SK",
+                  sl: "SI",
+                  lt: "LT",
+                  lv: "LV",
+                };
+                const countryCode = languageToCountry[code] || code.toUpperCase();
+                if (!/^[A-Z]{2}$/.test(countryCode)) return "";
+                return String.fromCodePoint(
+                  ...countryCode
+                    .split("")
+                    .map((char) => 127397 + char.charCodeAt(0)),
+                );
+              }
+
               function entryHasVisibleContent(entry) {
                 if (!entry || typeof entry !== "object") return false;
                 const title = String(entry.title || "").trim();
@@ -1992,8 +2032,20 @@
                       const topFlags = langs.length
                         ? langs
                         : resourceLanguages
-                            .map((item) => String(item.languageFlag || "").trim())
+                            .map(
+                              (item) =>
+                                String(item.languageFlag || "").trim() ||
+                                getFlagFromLanguageCode(item.languageCode),
+                            )
                             .filter(Boolean);
+                      if (!topFlags.length) {
+                        const countryFlag = String(
+                          ((ensureCountryData(countryId) || {}).flag) || "",
+                        ).trim();
+                        if (countryFlag && (resourceLanguages.length || methods.length)) {
+                          topFlags.push(countryFlag);
+                        }
+                      }
                       const flagsInline = topFlags.length
                         ? topFlags
                             .map(
@@ -2057,19 +2109,22 @@
                                       (item.languageCode
                                         ? item.languageCode.toUpperCase()
                                         : "Language");
+                                    const displayFlag =
+                                      String(item.languageFlag || "").trim() ||
+                                      getFlagFromLanguageCode(item.languageCode);
                                     const accessLabel =
                                       item.accessType === "file"
                                         ? "Opens file"
                                         : "Opens webpage";
                                     const actionLabel =
                                       item.accessType === "file"
-                                        ? "Open file"
-                                        : "Open webpage";
+                                        ? `${languageText} • File`
+                                        : `${languageText} • Website`;
                                     return `
                                       <article class="country-modal-resource-version">
                                         <div class="country-modal-resource-version-head">
                                           <span class="country-modal-resource-version-lang">${escapeHtml(
-                                            item.languageFlag,
+                                            displayFlag,
                                           )} ${escapeHtml(languageText)}</span>
                                           <span class="country-modal-resource-version-type">${escapeHtml(
                                             accessLabel,

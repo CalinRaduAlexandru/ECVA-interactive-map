@@ -2676,6 +2676,46 @@
     return "Article";
   }
 
+  function getFlagFromLanguageCode(languageCode) {
+    const code = String(languageCode || "")
+      .trim()
+      .toLowerCase();
+    if (!code) return "";
+    const languageToCountry = {
+      en: "GB",
+      ro: "RO",
+      de: "DE",
+      fr: "FR",
+      es: "ES",
+      it: "IT",
+      pt: "PT",
+      nl: "NL",
+      cs: "CZ",
+      da: "DK",
+      fi: "FI",
+      sv: "SE",
+      et: "EE",
+      is: "IS",
+      no: "NO",
+      nb: "NO",
+      nn: "NO",
+      el: "GR",
+      pl: "PL",
+      hu: "HU",
+      bg: "BG",
+      hr: "HR",
+      sk: "SK",
+      sl: "SI",
+      lt: "LT",
+      lv: "LV",
+    };
+    const countryCode = languageToCountry[code] || code.toUpperCase();
+    if (!/^[A-Z]{2}$/.test(countryCode)) return "";
+    return String.fromCodePoint(
+      ...countryCode.split("").map((char) => 127397 + char.charCodeAt(0)),
+    );
+  }
+
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
     const title = String(safeItem.title || "").trim() || "Untitled entry";
@@ -2699,16 +2739,56 @@
           }))
           .filter((lang) => lang.resourceUrl)
       : [];
-    const links = Array.isArray(safeItem.links)
+    const fallbackLinks = Array.isArray(safeItem.links)
       ? safeItem.links
           .map((url) => String(url || "").trim())
           .filter(Boolean)
       : [];
-    const languageFlags = resourceLanguages
-      .map((lang) => lang.languageFlag)
+    const fallbackAttachments = Array.isArray(safeItem.attachments)
+      ? safeItem.attachments
+          .filter((it) => it && typeof it === "object")
+          .map((it) => ({
+            name: String(it.name || "").trim(),
+            url: String(it.url || "").trim(),
+          }))
+          .filter((it) => it.url)
+      : [];
+    const availabilityLabels = String(safeItem.languageAvailability || "")
+      .split(",")
+      .map((value) => String(value || "").trim())
       .filter(Boolean);
-    const methods = resourceLanguages.length
-      ? resourceLanguages.map((lang) => {
+    const normalizedResourceLanguages = resourceLanguages.length
+      ? resourceLanguages.map((lang, index) => ({
+          ...lang,
+          languageLabel:
+            lang.languageLabel ||
+            availabilityLabels[index] ||
+            (lang.languageCode ? lang.languageCode.toUpperCase() : "Language"),
+          languageFlag:
+            lang.languageFlag || getFlagFromLanguageCode(lang.languageCode),
+        }))
+      : fallbackLinks.map((url, index) => {
+          const matchingAttachment = fallbackAttachments.find(
+            (asset) => asset.url === url,
+          );
+          return {
+            languageLabel:
+              availabilityLabels[index] ||
+              availabilityLabels[0] ||
+              "Language",
+            languageFlag: "",
+            languageCode: "",
+            resourceUrl: url,
+            accessType: matchingAttachment ? "file" : "url",
+            fileName: matchingAttachment ? matchingAttachment.name : "",
+          };
+        });
+    const links = fallbackLinks;
+    const languageFlags = normalizedResourceLanguages
+      .map((lang) => lang.languageFlag || getFlagFromLanguageCode(lang.languageCode))
+      .filter(Boolean);
+    const methods = normalizedResourceLanguages.length
+      ? normalizedResourceLanguages.map((lang) => {
           const label =
             lang.languageLabel ||
             (lang.languageCode ? lang.languageCode.toUpperCase() : "Language");
@@ -2735,7 +2815,7 @@
       summary: description,
       description,
       languages: languageFlags,
-      resourceLanguages,
+      resourceLanguages: normalizedResourceLanguages,
       representativeContact: {
         name: String(contact.name || "").trim(),
         role: String(contact.role || "").trim(),
