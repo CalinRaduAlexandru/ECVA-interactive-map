@@ -5651,8 +5651,8 @@
         }
         languageSwitch.style.display = "flex";
         const langsToShow = [];
-        if (localLang) langsToShow.push(localLang);
         langsToShow.push("en");
+        if (localLang) langsToShow.push(localLang);
 
         const dedup = [...new Set(langsToShow)];
         dedup.forEach((langCode) => {
