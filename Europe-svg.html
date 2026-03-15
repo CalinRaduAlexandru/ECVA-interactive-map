@@ -3035,7 +3035,8 @@
 
               const box = pathNode.getBBox();
               const centerX = box.x + box.width / 2;
-              const centerY = box.y + box.height / 2;
+              const pendingHintOffsetY = code === "NO" ? 40 : 0;
+              const centerY = box.y + box.height / 2 + pendingHintOffsetY;
 
               let marker = existing;
               if (!marker) {
@@ -3166,7 +3167,8 @@
               );
               const box = countryPath.getBBox();
               const centerX = box.x + box.width / 2;
-              const centerY = box.y + box.height / 2;
+              const labelOffsetY = code === "NO" ? 40 : 0;
+              const centerY = box.y + box.height / 2 + labelOffsetY;
               labelNode.style.setProperty("--tx", `${centerX.toFixed(1)}px`);
               labelNode.style.setProperty("--ty", `${centerY.toFixed(1)}px`);
 
