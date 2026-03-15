@@ -5135,10 +5135,10 @@
 
       const SUPPORTED_LANGUAGES = [
         { code: "en", label: "English" },
-        { code: "ro", label: "Romana" },
-        { code: "fr", label: "Francais" },
+        { code: "ro", label: "Română" },
+        { code: "fr", label: "Français" },
         { code: "de", label: "Deutsch" },
-        { code: "es", label: "Espanol" },
+        { code: "es", label: "Español" },
       ];
       const COUNTRY_PRIMARY_LANGUAGE = {
         AD: "ca",
@@ -5184,23 +5184,63 @@
         TR: "tr",
         UA: "uk",
       };
+      const LANGUAGE_ENDONYMS = {
+        en: "English",
+        ro: "Română",
+        fr: "Français",
+        de: "Deutsch",
+        es: "Español",
+        cs: "Čeština",
+        da: "Dansk",
+        et: "Eesti",
+        fi: "Suomi",
+        el: "Ελληνικά",
+        is: "Íslenska",
+        no: "Norsk",
+        sv: "Svenska",
+        nl: "Nederlands",
+        bg: "Български",
+        be: "Беларуская",
+        sq: "Shqip",
+        hy: "Հայերեն",
+        bs: "Bosanski",
+        ka: "ქართული",
+        hr: "Hrvatski",
+        hu: "Magyar",
+        it: "Italiano",
+        lt: "Lietuvių",
+        lb: "Lëtzebuergesch",
+        lv: "Latviešu",
+        sr: "Srpski",
+        mk: "Македонски",
+        pl: "Polski",
+        pt: "Português",
+        sl: "Slovenščina",
+        sk: "Slovenčina",
+        tr: "Türkçe",
+        uk: "Українська",
+        ca: "Català",
+      };
       let embedLanguageOptions = [...SUPPORTED_LANGUAGES];
       const queryParams = new URLSearchParams(window.location.search);
       const languageQuery =
         queryParams.get("lang") ||
         queryParams.get("pa") ||
         queryParams.get("language");
-      const activeLang = SUPPORTED_LANGUAGES.some(
-        (item) => item.code === languageQuery,
-      )
-        ? languageQuery
+      const isValidLangCode = (value) =>
+        /^[a-z]{2}(?:-[a-z]{2})?$/.test(
+          String(value || "")
+            .trim()
+            .toLowerCase(),
+        );
+      const activeLang = isValidLangCode(languageQuery)
+        ? String(languageQuery).trim().toLowerCase()
         : "en";
       const baseLangQuery = String(queryParams.get("baseLang") || "")
         .trim()
         .toLowerCase();
       const baseLang =
-        SUPPORTED_LANGUAGES.some((item) => item.code === baseLangQuery) &&
-        baseLangQuery !== "en"
+        isValidLangCode(baseLangQuery) && baseLangQuery !== "en"
           ? baseLangQuery
           : "";
       const fallbackLocalLang = activeLang !== "en" ? activeLang : baseLang;
@@ -5820,10 +5860,8 @@
       }
 
       function openWithLanguage(nextLang) {
-        const target = SUPPORTED_LANGUAGES.some(
-          (item) => item.code === nextLang,
-        )
-          ? nextLang
+        const target = isValidLangCode(nextLang)
+          ? String(nextLang).trim().toLowerCase()
           : "en";
         if (target === activeLang) return;
         window.__ecvaLanguageSwitching = true;
@@ -5918,15 +5956,20 @@
         const code = String(langCode || "")
           .trim()
           .toLowerCase();
+        const explicitEndonym = String(LANGUAGE_ENDONYMS[code] || "").trim();
+        if (explicitEndonym) return explicitEndonym;
         const known = SUPPORTED_LANGUAGES.find((item) => item.code === code);
         if (known) return known.label;
         try {
           if (typeof Intl !== "undefined" && Intl.DisplayNames) {
-            const displayNames = new Intl.DisplayNames([activeLang || "en"], {
+            const displayNames = new Intl.DisplayNames([code], {
               type: "language",
             });
-            const label = displayNames.of(code);
-            if (label) return label;
+            const labelRaw = String(displayNames.of(code) || "").trim();
+            if (labelRaw) {
+              const first = labelRaw.charAt(0).toLocaleUpperCase(code);
+              return `${first}${labelRaw.slice(1)}`;
+            }
           }
         } catch (_error) {
           // no-op
@@ -5944,9 +5987,9 @@
         );
       }
 
-      function updateEmbedLanguageOptionsFromCountries(allCountriesPayload) {
-        const source = Array.isArray(allCountriesPayload)
-          ? allCountriesPayload
+      function updateEmbedLanguageOptionsFromCountries(activeCountriesPayload) {
+        const source = Array.isArray(activeCountriesPayload)
+          ? activeCountriesPayload
           : [];
         const langs = new Set(["en"]);
         source.forEach((country) => {
@@ -5957,19 +6000,10 @@
             .toLowerCase();
           if (!status || status === "no_data" || status === "no data") return;
           const langCode = langFromCountryCode(country && country.code);
-          if (/^[a-z]{2}(?:-[a-z]{2})?$/.test(langCode)) {
+          if (isValidLangCode(langCode)) {
             langs.add(langCode);
           }
         });
-        if (
-          fallbackLocalLang &&
-          /^[a-z]{2}(?:-[a-z]{2})?$/.test(fallbackLocalLang)
-        ) {
-          langs.add(fallbackLocalLang);
-        }
-        if (/^[a-z]{2}(?:-[a-z]{2})?$/.test(activeLang)) {
-          langs.add(activeLang);
-        }
         const sorted = Array.from(langs).sort((a, b) => {
           if (a === "en") return -1;
           if (b === "en") return 1;
@@ -6829,7 +6863,7 @@
         }
         if (event.data.type === "ecva-active-countries") {
           const payload = event.data.payload || {};
-          updateEmbedLanguageOptionsFromCountries(payload.allCountries || []);
+          updateEmbedLanguageOptionsFromCountries(payload.countries || []);
           return;
         }
         if (event.data.type === "ecva-open-country-modal") {
