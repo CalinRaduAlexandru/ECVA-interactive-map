@@ -2197,11 +2197,12 @@
               const pillarIds = ["resources", "events", "research", "organisations", "government"];
               const pillarSummary = pillarIds.reduce((acc, pillarId) => {
                 const config = getPillarConfig(normalizedCode, pillarId);
-                const hasEntries = Array.isArray(config.entries) && config.entries.length > 0;
-                const isActive = Boolean(config.active) && hasEntries;
+                const entries = Array.isArray(config.entries) ? config.entries : [];
+                const visibleEntries = entries.filter((entry) => hasRenderableEntryContent(entry));
+                const isActive = Boolean(config.active) && visibleEntries.length > 0;
                 acc[pillarId] = {
                   active: isActive,
-                  count: isActive ? config.entries.length : 0,
+                  count: isActive ? visibleEntries.length : 0,
                 };
                 return acc;
               }, {});
