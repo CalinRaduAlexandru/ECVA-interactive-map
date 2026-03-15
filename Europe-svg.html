@@ -1879,13 +1879,70 @@
               };
             }
 
+            function getFlagFromLanguageCode(languageCode) {
+              const code = String(languageCode || "").trim().toLowerCase();
+              if (!code) return "";
+              const languageToCountry = {
+                en: "GB",
+                ro: "RO",
+                de: "DE",
+                fr: "FR",
+                es: "ES",
+                it: "IT",
+                pt: "PT",
+                nl: "NL",
+                cs: "CZ",
+                da: "DK",
+                fi: "FI",
+                sv: "SE",
+                et: "EE",
+                is: "IS",
+                no: "NO",
+                nb: "NO",
+                nn: "NO",
+                el: "GR",
+                pl: "PL",
+                hu: "HU",
+                bg: "BG",
+                hr: "HR",
+                sk: "SK",
+                sl: "SI",
+                lt: "LT",
+                lv: "LV",
+              };
+              const countryCode = languageToCountry[code] || code.toUpperCase();
+              if (!/^[A-Z]{2}$/.test(countryCode)) return "";
+              return String.fromCodePoint(
+                ...countryCode
+                  .split("")
+                  .map((char) => 127397 + char.charCodeAt(0)),
+              );
+            }
+
             function getLanguageCounts(entries) {
               const counts = new Map();
               entries.forEach((entry) => {
-                const langsRaw = Array.isArray(entry.languages) ? entry.languages : [];
-                const uniqueLangs = [...new Set(langsRaw
-                  .map((lang) => String(lang || "").trim())
-                  .filter(Boolean))];
+                const langsRaw = Array.isArray(entry.languages)
+                  ? entry.languages
+                  : [];
+                const resourceLangFlags = Array.isArray(entry.resourceLanguages)
+                  ? entry.resourceLanguages
+                      .map((item) => {
+                        if (!item || typeof item !== "object") return "";
+                        const explicitFlag = String(item.languageFlag || "").trim();
+                        if (explicitFlag) return explicitFlag;
+                        return getFlagFromLanguageCode(item.languageCode);
+                      })
+                      .filter(Boolean)
+                  : [];
+                const uniqueLangs = [
+                  ...new Set(
+                    langsRaw
+                      .concat(resourceLangFlags)
+                      .map((lang) => String(lang || "").trim())
+                      .filter(Boolean),
+                  ),
+                ];
                 uniqueLangs.forEach((lang) => {
                   counts.set(lang, (counts.get(lang) || 0) + 1);
                 });
@@ -1908,46 +1965,6 @@
             }
 
             function renderPillarDetailCards(countryId) {
-              function getFlagFromLanguageCode(languageCode) {
-                const code = String(languageCode || "").trim().toLowerCase();
-                if (!code) return "";
-                const languageToCountry = {
-                  en: "GB",
-                  ro: "RO",
-                  de: "DE",
-                  fr: "FR",
-                  es: "ES",
-                  it: "IT",
-                  pt: "PT",
-                  nl: "NL",
-                  cs: "CZ",
-                  da: "DK",
-                  fi: "FI",
-                  sv: "SE",
-                  et: "EE",
-                  is: "IS",
-                  no: "NO",
-                  nb: "NO",
-                  nn: "NO",
-                  el: "GR",
-                  pl: "PL",
-                  hu: "HU",
-                  bg: "BG",
-                  hr: "HR",
-                  sk: "SK",
-                  sl: "SI",
-                  lt: "LT",
-                  lv: "LV",
-                };
-                const countryCode = languageToCountry[code] || code.toUpperCase();
-                if (!/^[A-Z]{2}$/.test(countryCode)) return "";
-                return String.fromCodePoint(
-                  ...countryCode
-                    .split("")
-                    .map((char) => 127397 + char.charCodeAt(0)),
-                );
-              }
-
               function normalizeResourceDeliveryUrl(url, accessType, fileName) {
                 const value = String(url || "").trim();
                 if (!value) return "";
