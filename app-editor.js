@@ -296,8 +296,8 @@
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
     editorRemoveBtn.classList.remove("is-confirm");
-    editorRemoveBtn.setAttribute("aria-label", "Remove representative");
-    editorRemoveBtn.setAttribute("title", "Remove representative");
+    editorRemoveBtn.setAttribute("aria-label", "Remove item");
+    editorRemoveBtn.setAttribute("title", "Remove item");
     if (removeConfirmTimer) {
       window.clearTimeout(removeConfirmTimer);
       removeConfirmTimer = null;
@@ -3575,20 +3575,29 @@
 
   if (editorRemoveBtn) {
     editorRemoveBtn.addEventListener("click", () => {
-      if (
-        !editorTarget ||
-        editorMode !== "representative" ||
-        editorTarget.type !== "representative"
-      )
-        return;
-      if (!Number.isInteger(editorTarget.representativeIndex)) return;
+      if (!editorTarget || editorMode !== "representative") return;
+      const isPublishedRepresentative =
+        editorTarget.type === "representative" &&
+        Number.isInteger(editorTarget.representativeIndex);
+      const isSubmissionRepresentative =
+        editorTarget.type === "submission-representative" &&
+        String(editorTarget.submissionId || "").trim() &&
+        String(editorTarget.countryId || "").trim();
+      if (!isPublishedRepresentative && !isSubmissionRepresentative) return;
       if (!editorRemoveBtn.classList.contains("is-confirm")) {
         editorRemoveBtn.classList.add("is-confirm");
         editorRemoveBtn.setAttribute(
           "aria-label",
-          "Confirm remove representative",
+          isSubmissionRepresentative
+            ? "Confirm delete entry permanently"
+            : "Confirm remove representative",
         );
-        editorRemoveBtn.setAttribute("title", "Confirm remove representative");
+        editorRemoveBtn.setAttribute(
+          "title",
+          isSubmissionRepresentative
+            ? "Confirm delete entry permanently"
+            : "Confirm remove representative",
+        );
         if (removeConfirmTimer) {
           window.clearTimeout(removeConfirmTimer);
         }
@@ -3597,10 +3606,17 @@
         }, 4000);
         return;
       }
-      postToMap("ecva-editor-remove-representative", {
-        countryId: editorTarget.countryId,
-        representativeIndex: editorTarget.representativeIndex,
-      });
+      if (isSubmissionRepresentative) {
+        postToMap("ecva-editor-delete-submission", {
+          countryId: editorTarget.countryId,
+          submissionId: String(editorTarget.submissionId),
+        });
+      } else {
+        postToMap("ecva-editor-remove-representative", {
+          countryId: editorTarget.countryId,
+          representativeIndex: editorTarget.representativeIndex,
+        });
+      }
       resetEditorRemoveState();
       closeEditorModal();
     });
