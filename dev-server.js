@@ -192,20 +192,37 @@ function writeTranslationCache(cache) {
 }
 
 function readJsonBody(req, maxBytes, callback) {
+  let settled = false;
+  let bytesRead = 0;
   let body = '';
+  const done = (error, payload) => {
+    if (settled) return;
+    settled = true;
+    callback(error || null, payload);
+  };
   req.on('data', (chunk) => {
-    body += chunk;
-    if (body.length > maxBytes) {
-      req.destroy();
+    if (settled) return;
+    bytesRead += Buffer.byteLength(chunk);
+    if (bytesRead > maxBytes) {
+      const tooLarge = new Error('payload_too_large');
+      tooLarge.code = 'payload_too_large';
+      done(tooLarge);
+      req.pause();
+      return;
     }
+    body += chunk;
   });
   req.on('end', () => {
+    if (settled) return;
     try {
       const parsedBody = body ? JSON.parse(body) : {};
-      callback(null, parsedBody);
+      done(null, parsedBody);
     } catch (error) {
-      callback(error);
+      done(error);
     }
+  });
+  req.on('error', (error) => {
+    done(error || new Error('read_failed'));
   });
 }
 
@@ -711,8 +728,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST') {
-      readJsonBody(req, 2 * 1024 * 1024, async (error, parsedBody) => {
+      readJsonBody(req, 8 * 1024 * 1024, async (error, parsedBody) => {
         if (error) {
+          if (error.code === 'payload_too_large') {
+            return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+          }
           return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
         const state = parsedBody && parsedBody.state && typeof parsedBody.state === 'object'
@@ -758,6 +778,9 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'POST') {
       readJsonBody(req, 256 * 1024, async (error, parsedBody) => {
         if (error) {
+          if (error.code === 'payload_too_large') {
+            return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+          }
           return sendJson(res, 400, { ok: false, error: 'invalid_json' });
         }
         const versionId = Number(parsedBody && parsedBody.versionId);
@@ -808,6 +831,9 @@ const server = http.createServer(async (req, res) => {
     }
     readJsonBody(req, 15 * 1024 * 1024, async (error, parsedBody) => {
       if (error) {
+        if (error.code === 'payload_too_large') {
+          return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+        }
         return sendJson(res, 400, { ok: false, error: 'invalid_json' });
       }
       const filename = safeUploadFileName(parsedBody && parsedBody.filename);
@@ -853,6 +879,9 @@ const server = http.createServer(async (req, res) => {
     }
     readJsonBody(req, 20 * 1024 * 1024, async (error, parsedBody) => {
       if (error) {
+        if (error.code === 'payload_too_large') {
+          return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+        }
         return sendJson(res, 400, { ok: false, error: 'invalid_json' });
       }
       const filename = safeAttachmentFileName(parsedBody && parsedBody.filename);
@@ -898,6 +927,9 @@ const server = http.createServer(async (req, res) => {
     }
     readJsonBody(req, 3 * 1024 * 1024, async (error, parsedBody) => {
       if (error) {
+        if (error.code === 'payload_too_large') {
+          return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+        }
         return sendJson(res, 400, { ok: false, error: 'invalid_json' });
       }
       const targetLang = String((parsedBody && parsedBody.targetLang) || 'en').trim().toLowerCase();
