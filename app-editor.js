@@ -720,9 +720,10 @@
           }
         </div>
       </article>
+      <hr class="ecva-manage-access-section-hr" />
       <article class="ecva-manage-access-card is-secondary">
         <header class="ecva-manage-access-head">
-          <h4>Other countries</h4>
+          <h4 class="ecva-manage-access-subhead">Other countries</h4>
         </header>
         <div class="ecva-manage-other-grid">
           ${
