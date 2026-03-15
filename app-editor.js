@@ -473,10 +473,11 @@
     if (!countryCode) return '';
     const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
     const statusMeta = normalizeStatus(getStatusLabelFromValue(statusValue));
-    const displayCode = displayCountryCode(countryCode);
+    const fullName = String(country && country.name ? country.name : '').trim();
+    const displayLabel = fullName || displayCountryCode(countryCode);
     return `
       <article class="ecva-manage-access-row-item" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
-        <span class="ecva-manage-access-country">${String(country.flag || '')} ${displayCode}</span>
+        <span class="ecva-manage-access-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
         <span class="ecva-manage-access-status ${statusMeta.className}">${getStatusLabelFromValue(statusValue)}</span>
         ${buildStatusSelectHtml(countryCode, statusValue, variant)}
         ${buildCodeControlsHtml(countryCode, statusValue)}
