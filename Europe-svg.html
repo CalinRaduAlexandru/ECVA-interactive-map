@@ -2594,6 +2594,39 @@
               return { countryId, pillarId, entryIndex: index };
             }
 
+            function reorderEntryFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim();
+              const pillarId = String(payload.pillarId || "").trim();
+              const fromIndex = Number(payload.fromIndex);
+              const toIndex = Number(payload.toIndex);
+              if (
+                !countryId ||
+                !pillarId ||
+                !Number.isInteger(fromIndex) ||
+                !Number.isInteger(toIndex) ||
+                fromIndex < 0 ||
+                toIndex < 0
+              ) {
+                return null;
+              }
+              const country = pillarConfigByCountry[countryId];
+              if (!country || typeof country !== "object") return null;
+              const pillar = country[pillarId];
+              if (!pillar || !Array.isArray(pillar.entries)) return null;
+              const entries = pillar.entries;
+              if (
+                fromIndex >= entries.length ||
+                toIndex >= entries.length ||
+                fromIndex === toIndex
+              ) {
+                return null;
+              }
+              const [moved] = entries.splice(fromIndex, 1);
+              entries.splice(toIndex, 0, moved);
+              return { countryId, pillarId, fromIndex, toIndex };
+            }
+
             function addEntryFromEditor(payload) {
               if (!payload || typeof payload !== "object") return null;
               const countryId = String(payload.countryId || "").trim();
@@ -3381,6 +3414,29 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: added.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-reorder-entry") {
+                const reordered = reorderEntryFromEditor(payload);
+                if (!reordered) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-entry-updated",
+                    payload: {
+                      countryId: reordered.countryId,
+                      html: renderModalHtml(reordered.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: reordered.countryId },
                   },
                   "*",
                 );

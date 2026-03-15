@@ -1495,6 +1495,116 @@
     });
   }
 
+  function wireManageEntryReorder(scope) {
+    if (!scope || !canEditContent()) return;
+    const lists = scope.querySelectorAll('.country-modal-entry-list');
+    const dragState = {
+      entry: null,
+      list: null,
+      fromIndex: -1,
+      countryId: '',
+      pillarId: '',
+    };
+
+    const clearDropMarks = (list) => {
+      if (!list) return;
+      list.querySelectorAll('.country-modal-entry').forEach((entry) => {
+        entry.classList.remove('is-drop-before', 'is-drop-after');
+      });
+    };
+
+    const resetDragState = () => {
+      if (dragState.entry) {
+        dragState.entry.classList.remove('is-dragging');
+      }
+      if (dragState.list) {
+        clearDropMarks(dragState.list);
+      }
+      dragState.entry = null;
+      dragState.list = null;
+      dragState.fromIndex = -1;
+      dragState.countryId = '';
+      dragState.pillarId = '';
+    };
+
+    lists.forEach((list) => {
+      const entries = Array.from(list.querySelectorAll('.country-modal-entry[data-entry-index]'));
+      entries.forEach((entry) => {
+        if (entry.dataset.reorderWired === '1') return;
+        entry.dataset.reorderWired = '1';
+        entry.setAttribute('draggable', 'true');
+        entry.classList.add('is-reorder-enabled');
+        entry.addEventListener('dragstart', (event) => {
+          const countryId = String(entry.getAttribute('data-entry-country') || selectedCountryId || '').trim();
+          const pillarId = String(entry.getAttribute('data-entry-pillar') || '').trim();
+          const fromIndex = Number(entry.getAttribute('data-entry-index'));
+          if (!countryId || !pillarId || !Number.isInteger(fromIndex)) {
+            event.preventDefault();
+            return;
+          }
+          dragState.entry = entry;
+          dragState.list = list;
+          dragState.fromIndex = fromIndex;
+          dragState.countryId = countryId;
+          dragState.pillarId = pillarId;
+          entry.classList.add('is-dragging');
+          if (event.dataTransfer) {
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', `${countryId}:${pillarId}:${fromIndex}`);
+          }
+        });
+        entry.addEventListener('dragend', () => {
+          resetDragState();
+        });
+      });
+
+      if (list.dataset.reorderWired === '1') return;
+      list.dataset.reorderWired = '1';
+      list.addEventListener('dragover', (event) => {
+        if (!dragState.entry || dragState.list !== list) return;
+        event.preventDefault();
+        const target = event.target.closest('.country-modal-entry');
+        clearDropMarks(list);
+        if (!target || target === dragState.entry) return;
+        const rect = target.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        target.classList.add(before ? 'is-drop-before' : 'is-drop-after');
+      });
+      list.addEventListener('dragleave', (event) => {
+        if (!dragState.entry || dragState.list !== list) return;
+        const related = event.relatedTarget;
+        if (related && list.contains(related)) return;
+        clearDropMarks(list);
+      });
+      list.addEventListener('drop', (event) => {
+        if (!dragState.entry || dragState.list !== list) return;
+        event.preventDefault();
+        const target = event.target.closest('.country-modal-entry');
+        clearDropMarks(list);
+        if (!target || target === dragState.entry) return;
+        const rect = target.getBoundingClientRect();
+        const before = event.clientY < rect.top + rect.height / 2;
+        if (before) {
+          list.insertBefore(dragState.entry, target);
+        } else {
+          list.insertBefore(dragState.entry, target.nextSibling);
+        }
+        const ordered = Array.from(list.querySelectorAll('.country-modal-entry[data-entry-index]'));
+        const toIndex = ordered.indexOf(dragState.entry);
+        if (!Number.isInteger(toIndex) || toIndex < 0 || toIndex === dragState.fromIndex) return;
+        ordered.forEach((entryEl, idx) => {
+          entryEl.setAttribute('data-entry-index', String(idx));
+        });
+        postToMap('ecva-editor-reorder-entry', {
+          countryId: dragState.countryId,
+          pillarId: dragState.pillarId,
+          fromIndex: dragState.fromIndex,
+          toIndex,
+        });
+      });
+    });
+  }
+
   function wireManageOutlookCarousels(scope) {
     if (!scope) return;
     const carousels = scope.querySelectorAll('[data-rep-carousel]');
@@ -2230,6 +2340,7 @@
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
+    wireManageEntryReorder(manageBody);
     wireManagePillarPostButtons(manageBody);
     manageBody.querySelectorAll('.country-modal-rep-recommend-btn').forEach((btn) => {
       btn.style.display = 'none';

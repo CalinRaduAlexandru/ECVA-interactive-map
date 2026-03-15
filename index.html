@@ -2016,6 +2016,27 @@
         display: block;
       }
 
+      .country-modal-entry.is-reorder-enabled {
+        cursor: grab;
+      }
+
+      .country-modal-entry.is-reorder-enabled:active {
+        cursor: grabbing;
+      }
+
+      .country-modal-entry.is-dragging {
+        opacity: 0.72;
+        transform: scale(0.992);
+      }
+
+      .country-modal-entry.is-drop-before {
+        box-shadow: 0 -3px 0 rgba(74, 132, 170, 0.85);
+      }
+
+      .country-modal-entry.is-drop-after {
+        box-shadow: 0 3px 0 rgba(74, 132, 170, 0.85);
+      }
+
       .country-modal-entry::before {
         content: "";
         position: absolute;
