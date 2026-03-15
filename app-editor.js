@@ -672,6 +672,14 @@
     const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
     const fullName = String(country && country.name ? country.name : '').trim();
     const displayLabel = fullName || displayCountryCode(countryCode);
+    if (statusValue === 'no_data') {
+      return `
+        <article class="ecva-manage-other-card is-no-data" data-country-id="${countryCode}">
+          <span class="ecva-manage-other-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
+          <span class="ecva-manage-status-cell">${buildStatusSelectHtml(countryCode, statusValue, 'other')}</span>
+        </article>
+      `;
+    }
     return `
       <article class="ecva-manage-other-card" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-other-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>

@@ -1122,8 +1122,8 @@
       }
 
       .country-modal-pillar-dot {
-        width: clamp(142px, 20vw, 172px);
-        height: clamp(142px, 20vw, 172px);
+        width: clamp(142px, 20vw, 200px);
+        height: clamp(142px, 20vw, 200px);
         border-radius: 999px;
         background: transparent;
         border: none;
@@ -3571,8 +3571,10 @@
       .ecva-manage-access-table-head,
       .ecva-manage-access-row-item {
         display: grid;
-        grid-template-columns:
-          minmax(220px, 1.15fr) minmax(190px, 0.95fr) minmax(170px, 0.72fr) minmax(260px, 1.35fr);
+        grid-template-columns: minmax(220px, 1.15fr) minmax(
+            190px,
+            0.95fr
+          ) minmax(170px, 0.72fr) minmax(260px, 1.35fr);
         gap: 10px;
         align-items: center;
       }
@@ -3706,7 +3708,9 @@
         font-size: 14px;
         font-weight: 800;
         letter-spacing: 0.03em;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-family:
+          ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
       }
 
       .ecva-manage-access-eye,
@@ -3851,6 +3855,19 @@
         border: 1px solid rgba(142, 161, 171, 0.35);
         border-radius: 12px;
         background: rgba(251, 254, 255, 0.92);
+      }
+
+      .ecva-manage-other-card.is-no-data {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .ecva-manage-other-card.is-no-data .ecva-manage-status-cell {
+        width: auto;
+        min-width: 150px;
+        flex: 0 0 auto;
       }
 
       .ecva-manage-other-country {
@@ -4481,7 +4498,9 @@
                 <p class="contribute-form-segment-title">
                   Suggested public information
                 </p>
-                <p class="contribute-form-section-title">Representative details</p>
+                <p class="contribute-form-section-title">
+                  Representative details
+                </p>
                 <div class="contribute-form-row">
                   <label>
                     Representative Name
@@ -5288,13 +5307,8 @@
             : null;
           const bodyNaturalHeight = getNaturalChildrenHeight(body);
           const manageContentHeight =
-            (topbar ? topbar.scrollHeight || 0 : 0) +
-            bodyNaturalHeight +
-            20;
-          height = Math.max(
-            520,
-            Math.ceil(manageContentHeight),
-          );
+            (topbar ? topbar.scrollHeight || 0 : 0) + bodyNaturalHeight + 20;
+          height = Math.max(520, Math.ceil(manageContentHeight));
         } else if (isCountryModalOpen) {
           const shell = document.querySelector(".country-modal-shell");
           const shellHeight = shell ? shell.scrollHeight : 0;
@@ -5742,7 +5756,8 @@
           close: "Close",
         },
         ro: {
-          title: "Recomandă o personalitate reprezentativă a Educației Caracterului",
+          title:
+            "Recomandă o personalitate reprezentativă a Educației Caracterului",
           lead: "Trimite o recomandare de reprezentant pentru această țară.",
           success:
             "Felicitări, recomandarea a fost trimisă, un moderator al paginii o va vizualiza și prelucra.",
@@ -6025,7 +6040,8 @@
       }
 
       function getCountryWindowTopOffset() {
-        if (!modalRoot || !modalRoot.classList.contains("is-visible")) return null;
+        if (!modalRoot || !modalRoot.classList.contains("is-visible"))
+          return null;
         const shell = modalRoot.querySelector(".country-modal-shell");
         if (!shell) return null;
         const rect = shell.getBoundingClientRect();
@@ -6062,11 +6078,14 @@
       function syncGlobalScrollLock() {
         const isLocked = Boolean(
           (embedCodeModal && embedCodeModal.classList.contains("is-visible")) ||
-            (contributeModal &&
-              contributeModal.classList.contains("is-visible")) ||
-            (tepaceModal && tepaceModal.classList.contains("is-visible")),
+          (contributeModal &&
+            contributeModal.classList.contains("is-visible")) ||
+          (tepaceModal && tepaceModal.classList.contains("is-visible")),
         );
-        document.documentElement.classList.toggle("ecva-scroll-locked", isLocked);
+        document.documentElement.classList.toggle(
+          "ecva-scroll-locked",
+          isLocked,
+        );
         document.body.classList.toggle("ecva-scroll-locked", isLocked);
       }
 
@@ -6152,7 +6171,9 @@
         const naturalW =
           contributeRepNaturalWidth || contributeRepCropImage.naturalWidth || 0;
         const naturalH =
-          contributeRepNaturalHeight || contributeRepCropImage.naturalHeight || 0;
+          contributeRepNaturalHeight ||
+          contributeRepCropImage.naturalHeight ||
+          0;
         if (!naturalW || !naturalH) return null;
         const pw = contributeRepCropPreview.clientWidth;
         const ph = contributeRepCropPreview.clientHeight;
@@ -6182,8 +6203,14 @@
         const maxCx = rect.x + rect.dw - halfW;
         const minCy = rect.y + halfH;
         const maxCy = rect.y + rect.dh - halfH;
-        const cx = Math.max(minCx, Math.min(Number(nextFrame.cx) || minCx, maxCx));
-        const cy = Math.max(minCy, Math.min(Number(nextFrame.cy) || minCy, maxCy));
+        const cx = Math.max(
+          minCx,
+          Math.min(Number(nextFrame.cx) || minCx, maxCx),
+        );
+        const cy = Math.max(
+          minCy,
+          Math.min(Number(nextFrame.cy) || minCy, maxCy),
+        );
         return { cx, cy, w, h };
       }
 
@@ -6205,10 +6232,12 @@
         if (cropNorm && typeof cropNorm === "object") {
           const cx =
             rect.x +
-            ((Number(cropNorm.x) || 0) + (Number(cropNorm.w) || 0) / 2) * rect.dw;
+            ((Number(cropNorm.x) || 0) + (Number(cropNorm.w) || 0) / 2) *
+              rect.dw;
           const cy =
             rect.y +
-            ((Number(cropNorm.y) || 0) + (Number(cropNorm.h) || 0) / 2) * rect.dh;
+            ((Number(cropNorm.y) || 0) + (Number(cropNorm.h) || 0) / 2) *
+              rect.dh;
           const w = Math.max(10, (Number(cropNorm.w) || 0.7) * rect.dw);
           contributeRepCrop = { cx, cy, w, h: w / (700 / 520) };
         } else {
@@ -6258,7 +6287,8 @@
         contributeRepCropImage.src = contributeRepCropSource;
         contributeRepCropImage.onload = () => {
           contributeRepNaturalWidth = contributeRepCropImage.naturalWidth || 0;
-          contributeRepNaturalHeight = contributeRepCropImage.naturalHeight || 0;
+          contributeRepNaturalHeight =
+            contributeRepCropImage.naturalHeight || 0;
           const rect = getContributeRepPreviewRect();
           if (!rect) return;
           contributeRepCropImage.style.width = `${rect.dw}px`;
@@ -6361,7 +6391,8 @@
           });
           const payload = await response.json().catch(() => null);
           if (!response.ok || !payload || payload.ok === false) {
-            const detail = payload && payload.details ? ` (${payload.details})` : "";
+            const detail =
+              payload && payload.details ? ` (${payload.details})` : "";
             throw new Error(`attachment_upload_failed${detail}`);
           }
           uploads.push({
@@ -6418,11 +6449,13 @@
           contributeForm.reset();
           contributeForm.hidden = mode === "representative";
           const modeInput = contributeForm.querySelector('[name="mode"]');
-          const countryInput = contributeForm.querySelector('[name="countryId"]');
+          const countryInput =
+            contributeForm.querySelector('[name="countryId"]');
           const countryCodeInput = contributeForm.querySelector(
             '[name="countryCode"]',
           );
-          const pillarIdInput = contributeForm.querySelector('[name="pillarId"]');
+          const pillarIdInput =
+            contributeForm.querySelector('[name="pillarId"]');
           const pillarLabelInput = contributeForm.querySelector(
             '[name="pillarLabel"]',
           );
@@ -6434,7 +6467,7 @@
             pillarLabelInput.value =
               mode === "representative"
                 ? "Representatives"
-                : (pillarLabel || "Pillar");
+                : pillarLabel || "Pillar";
           if (contributeTitleLabel) {
             contributeTitleLabel.textContent = "Title";
           }
@@ -6445,15 +6478,14 @@
         if (contributeRepForm) {
           contributeRepForm.reset();
           contributeRepForm.hidden = mode !== "representative";
-          const repCountryInput = contributeRepForm.querySelector(
-            '[name="countryId"]',
-          );
-          const repPillarInput = contributeRepForm.querySelector(
-            '[name="pillarId"]',
-          );
+          const repCountryInput =
+            contributeRepForm.querySelector('[name="countryId"]');
+          const repPillarInput =
+            contributeRepForm.querySelector('[name="pillarId"]');
           if (repCountryInput) repCountryInput.value = countryId;
           if (repPillarInput) repPillarInput.value = "representatives";
-          const repSubmitBtn = contributeRepForm.querySelector('[type="submit"]');
+          const repSubmitBtn =
+            contributeRepForm.querySelector('[type="submit"]');
           if (repSubmitBtn) repSubmitBtn.textContent = repCopy.submit;
         }
         resetContributeRepCrop();
@@ -6464,7 +6496,9 @@
               ? `Trimite o recomandare de reprezentant pentru ${leadCountry}.`
               : `Share a representative suggestion for ${leadCountry}.`
             : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
-        const leadNode = contributeModal.querySelector(".contribute-modal-lead");
+        const leadNode = contributeModal.querySelector(
+          ".contribute-modal-lead",
+        );
         if (leadNode) leadNode.textContent = leadText;
         setContributeStatus("");
         setContributeRepStatus("");
@@ -6706,7 +6740,8 @@
             const countryId = btn.getAttribute("data-contribute-country") || "";
             const countryName =
               btn.getAttribute("data-contribute-country-name") ||
-              modalContent.querySelector(".country-modal-hero-name")?.textContent ||
+              modalContent.querySelector(".country-modal-hero-name")
+                ?.textContent ||
               "";
             openContributeModal({
               mode: "representative",
@@ -6864,7 +6899,10 @@
             return;
           }
           if (!title || !description) {
-            setContributeStatus("Please complete title and description.", "error");
+            setContributeStatus(
+              "Please complete title and description.",
+              "error",
+            );
             return;
           }
           setContributeStatus("Uploading attachments...", "");
@@ -6876,7 +6914,8 @@
             ).filter(
               (file) => file instanceof File && file.size > 0 && file.name,
             );
-            const attachments = await uploadContributeAttachments(attachmentFiles);
+            const attachments =
+              await uploadContributeAttachments(attachmentFiles);
             const links = String(formData.get("links") || "")
               .split(/\r?\n/)
               .map((item) => item.trim())
@@ -6943,9 +6982,15 @@
           const representativeTitle = String(
             formData.get("representativeTitle") || "",
           ).trim();
-          const organisation = String(formData.get("organisation") || "").trim();
-          const submitterName = String(formData.get("submitterName") || "").trim();
-          const submitterEmail = String(formData.get("submitterEmail") || "").trim();
+          const organisation = String(
+            formData.get("organisation") || "",
+          ).trim();
+          const submitterName = String(
+            formData.get("submitterName") || "",
+          ).trim();
+          const submitterEmail = String(
+            formData.get("submitterEmail") || "",
+          ).trim();
 
           if (!countryId) {
             setContributeRepStatus("Missing country context.", "error");
@@ -6958,7 +7003,10 @@
             !submitterName ||
             !submitterEmail
           ) {
-            setContributeRepStatus("Please complete all required fields.", "error");
+            setContributeRepStatus(
+              "Please complete all required fields.",
+              "error",
+            );
             return;
           }
           const crop = normalizeContributeRepCrop();
@@ -7139,9 +7187,9 @@
       }
 
       if (embedLanguageSelect) {
-        embedLanguageSelect.innerHTML = embedLanguageOptions.map(
-          (item) => `<option value="${item.code}">${item.label}</option>`,
-        ).join("");
+        embedLanguageSelect.innerHTML = embedLanguageOptions
+          .map((item) => `<option value="${item.code}">${item.label}</option>`)
+          .join("");
         embedLanguageSelect.value = embedLanguageOptions.some(
           (item) => item.code === activeLang,
         )
