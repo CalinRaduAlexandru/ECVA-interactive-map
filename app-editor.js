@@ -533,11 +533,7 @@
       { value: 'pending', label: 'Pending' },
       { value: 'no_data', label: 'No data' },
     ];
-    const otherOptions = [
-      { value: 'no_data', label: 'No data' },
-      { value: 'pending', label: 'Pending' },
-    ];
-    const options = variant === 'active' ? allOptions : otherOptions;
+    const options = allOptions;
     const optionsHtml = options
       .map((option) => {
         const selected = option.value === value ? ' selected' : '';
@@ -590,6 +586,20 @@
     `;
   }
 
+  function buildOtherCountryCard(country) {
+    const countryCode = normalizeManageCountryCode(country && country.code);
+    if (!countryCode) return '';
+    const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
+    const fullName = String(country && country.name ? country.name : '').trim();
+    const displayLabel = fullName || displayCountryCode(countryCode);
+    return `
+      <article class="ecva-manage-other-card">
+        <span class="ecva-manage-other-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
+        ${buildStatusSelectHtml(countryCode, statusValue, 'other')}
+      </article>
+    `;
+  }
+
   function renderGeneralAccessPanel() {
     if (!manageBody) return;
     const previous = manageBody.querySelector('.ecva-manage-access-panel');
@@ -633,15 +643,10 @@
         <header class="ecva-manage-access-head">
           <h4>Other countries</h4>
         </header>
-        <div class="ecva-manage-access-table">
-          <div class="ecva-manage-access-table-head">
-            <span>Country</span>
-            <span>Status</span>
-            <span>App access*</span>
-          </div>
+        <div class="ecva-manage-other-grid">
           ${
             otherRows.length
-              ? otherRows.map((country) => buildOverviewCountryRow(country, 'other')).join('')
+              ? otherRows.map((country) => buildOtherCountryCard(country)).join('')
               : '<div class="ecva-manage-access-empty-row">No remaining countries.</div>'
           }
         </div>

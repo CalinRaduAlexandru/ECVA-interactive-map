@@ -3489,6 +3489,10 @@
         gap: 8px;
       }
 
+      .ecva-manage-access-card.is-secondary {
+        gap: 10px;
+      }
+
       .ecva-manage-access-head {
         display: flex;
         align-items: center;
@@ -3712,6 +3716,27 @@
         font-weight: 700;
         color: #587280;
         background: rgba(248, 252, 254, 0.75);
+      }
+
+      .ecva-manage-other-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+        gap: 10px;
+      }
+
+      .ecva-manage-other-card {
+        display: grid;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid rgba(142, 161, 171, 0.35);
+        border-radius: 12px;
+        background: rgba(251, 254, 255, 0.92);
+      }
+
+      .ecva-manage-other-country {
+        font-size: 15px;
+        font-weight: 800;
+        color: #1f3642;
       }
 
       .ecva-manage-body .country-modal-close {
@@ -3955,6 +3980,10 @@
 
         .ecva-manage-access-row-item {
           gap: 8px;
+        }
+
+        .ecva-manage-other-grid {
+          grid-template-columns: 1fr;
         }
       }
 
