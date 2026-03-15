@@ -17,6 +17,7 @@ const PORT = Number(process.env.PORT || 8081);
 const DATA_FILE = path.join(ROOT, 'editor-data.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const ASSETS_ATTACHMENTS_DIR = path.join(ASSETS_UPLOAD_DIR, 'attachments');
+const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
 const TRANSLATION_CACHE_FILE = path.join(ROOT, 'translations-cache.json');
 const EDITOR_STATE_KEY = 'global';
 const GLOBAL_SCOPE_KEY = 'global';
@@ -242,7 +243,38 @@ function safeUploadFileName(inputName) {
   return `${stem}-${stamp}-${rand}${finalExt}`;
 }
 
-function safeAttachmentFileName(inputName) {
+function extensionFromMime(mime) {
+  const key = String(mime || '').trim().toLowerCase();
+  const map = {
+    'application/pdf': '.pdf',
+    'application/msword': '.doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'application/vnd.ms-powerpoint': '.ppt',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+    'application/vnd.ms-excel': '.xls',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+    'text/plain': '.txt',
+    'text/csv': '.csv',
+    'application/zip': '.zip',
+    'application/x-rar-compressed': '.rar',
+    'application/x-7z-compressed': '.7z',
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/webp': '.webp',
+    'image/gif': '.gif',
+    'audio/mpeg': '.mp3',
+    'audio/mp3': '.mp3',
+    'audio/wav': '.wav',
+    'audio/x-wav': '.wav',
+    'audio/mp4': '.m4a',
+    'video/mp4': '.mp4',
+    'video/quicktime': '.mov',
+    'video/webm': '.webm',
+  };
+  return map[key] || '';
+}
+
+function safeAttachmentFileName(inputName, mimeHint) {
   const base = String(inputName || 'attachment').replace(/[^a-zA-Z0-9._-]/g, '-');
   const ext = path.extname(base).toLowerCase();
   const allowed = new Set([
@@ -270,7 +302,8 @@ function safeAttachmentFileName(inputName) {
     '.rar',
     '.7z',
   ]);
-  const finalExt = allowed.has(ext) ? ext : '.bin';
+  const mimeExt = extensionFromMime(mimeHint);
+  const finalExt = allowed.has(ext) ? ext : allowed.has(mimeExt) ? mimeExt : '.bin';
   const stem = path.basename(base, ext).slice(0, 60) || 'attachment';
   const stamp = Date.now();
   const rand = Math.random().toString(36).slice(2, 8);
@@ -883,19 +916,30 @@ const server = http.createServer(async (req, res) => {
     if (req.method !== 'POST') {
       return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
     }
-    readJsonBody(req, 20 * 1024 * 1024, async (error, parsedBody) => {
+    readJsonBody(req, 21 * 1024 * 1024, async (error, parsedBody) => {
       if (error) {
         if (error.code === 'payload_too_large') {
           return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
         }
         return sendJson(res, 400, { ok: false, error: 'invalid_json' });
       }
-      const filename = safeAttachmentFileName(parsedBody && parsedBody.filename);
       const dataUrl = String(parsedBody && parsedBody.dataUrl ? parsedBody.dataUrl : '');
       const parsedDataUrl = parseDataUrl(dataUrl);
       if (!parsedDataUrl) {
         return sendJson(res, 400, { ok: false, error: 'invalid_data_url' });
       }
+      const bytes = Buffer.from(parsedDataUrl.base64, 'base64');
+      if (bytes.length > ATTACHMENT_MAX_BYTES) {
+        return sendJson(res, 413, {
+          ok: false,
+          error: 'attachment_too_large',
+          limitBytes: ATTACHMENT_MAX_BYTES,
+        });
+      }
+      const filename = safeAttachmentFileName(
+        parsedBody && parsedBody.filename,
+        parsedDataUrl.mime,
+      );
       try {
         if (isCloudinaryConfigured()) {
           const mime = String(parsedDataUrl.mime || '').toLowerCase();
@@ -917,7 +961,6 @@ const server = http.createServer(async (req, res) => {
         }
         ensureUploadDir();
         const outPath = path.join(ASSETS_ATTACHMENTS_DIR, filename);
-        const bytes = Buffer.from(parsedDataUrl.base64, 'base64');
         fs.writeFileSync(outPath, bytes);
         return sendJson(res, 200, {
           ok: true,

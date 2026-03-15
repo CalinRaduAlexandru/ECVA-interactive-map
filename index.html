@@ -6140,6 +6140,7 @@
       const tepaceDownloadBtn = document.getElementById("tepace-download-btn");
       const ATTACHMENT_UPLOAD_API = "/api/upload-attachment";
       const IMAGE_UPLOAD_API = "/api/upload-image";
+      const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
       let contributeContext = {
         mode: "article",
         countryId: "",
@@ -6822,11 +6823,16 @@
           if (typeConfig.inputMode === "file") {
             const hasFile = item.file instanceof File || Boolean(item.resourceUrl);
             const fileName = String((item.file && item.file.name) || "");
+            const fileSize =
+              item.file instanceof File ? Number(item.file.size || 0) : 0;
             const fileOk =
               hasFile &&
               (fileName ? RESOURCE_FILE_RE.test(fileName) : true);
             if (!hasFile) {
               errors.push("Upload a file for each added language.");
+              setFieldError(valueInput, shouldPaintInvalid);
+            } else if (fileSize > ATTACHMENT_MAX_BYTES) {
+              errors.push("File too large. Maximum allowed size is 15MB per file.");
               setFieldError(valueInput, shouldPaintInvalid);
             } else if (!fileOk) {
               errors.push("File format is not supported.");
@@ -7579,6 +7585,9 @@
         for (const file of list) {
           const nextFile = file instanceof File ? file : null;
           if (!nextFile) continue;
+          if (Number(nextFile.size || 0) > ATTACHMENT_MAX_BYTES) {
+            throw new Error("attachment_file_too_large");
+          }
           const dataUrl = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onerror = () => reject(new Error("attachment_read_failed"));
@@ -7597,6 +7606,12 @@
           if (!response.ok || !payload || payload.ok === false) {
             const detail =
               payload && payload.details ? ` (${payload.details})` : "";
+            if (
+              response.status === 413 ||
+              (payload && payload.error === "attachment_too_large")
+            ) {
+              throw new Error("attachment_file_too_large");
+            }
             throw new Error(`attachment_upload_failed${detail}`);
           }
           uploads.push({
@@ -8247,6 +8262,13 @@
             ) {
               setContributeStatus(
                 "Upload a file for each selected file-based resource type.",
+                "error",
+              );
+            } else if (
+              String((error && error.message) || "") === "attachment_file_too_large"
+            ) {
+              setContributeStatus(
+                "File too large. Maximum allowed size is 15MB per file.",
                 "error",
               );
             } else {
