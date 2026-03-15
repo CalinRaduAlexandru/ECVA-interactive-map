@@ -3264,6 +3264,7 @@
               const nextStatus = normalizeStatusValue(payload.status);
               countryStatus[countryId] = nextStatus;
               applyCountryStatusVisual(countryId);
+              updateLegendCounts();
               return { countryId, statusValue: nextStatus };
             }
 
