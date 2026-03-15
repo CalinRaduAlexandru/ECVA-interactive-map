@@ -2795,7 +2795,7 @@
               : ""
           }
           <button type="button" class="ecva-inbox-toggle-btn" data-inbox-toggle aria-expanded="false" aria-label="Toggle entry details">
-            <span class="ecva-inbox-chevron" aria-hidden="true">⌄</span>
+            <span class="ecva-inbox-chevron" aria-hidden="true">🔽</span>
           </button>
         </div>
         <div class="ecva-inbox-details" hidden>
