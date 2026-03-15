@@ -7080,7 +7080,7 @@
         if (!embedCodeModal) return;
         releaseFocusBeforeHide(
           embedCodeModal,
-          embedCodeTrigger || modalCloseButton,
+          embedCodeTrigger || modalClose || legendLogo || frame,
         );
         embedCodeModal.classList.remove("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "true");
@@ -7528,7 +7528,7 @@
 
       function closeContributeModal() {
         if (!contributeModal) return;
-        releaseFocusBeforeHide(contributeModal, modalCloseButton);
+        releaseFocusBeforeHide(contributeModal, modalClose || legendLogo || frame);
         contributeModal.classList.remove("is-visible");
         contributeModal.setAttribute("aria-hidden", "true");
         setContributeStatus("");
@@ -7563,7 +7563,7 @@
 
       function closeTepaceModal() {
         if (!tepaceModal) return;
-        releaseFocusBeforeHide(tepaceModal, modalCloseButton);
+        releaseFocusBeforeHide(tepaceModal, modalClose || legendLogo || frame);
         tepaceModal.classList.remove("is-visible");
         tepaceModal.setAttribute("aria-hidden", "true");
         syncGlobalScrollLock();
