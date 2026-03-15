@@ -2005,6 +2005,10 @@
                         typeof entry.representativeContact === "object"
                           ? entry.representativeContact
                           : {};
+                      const ownership =
+                        entry.ownership && typeof entry.ownership === "object"
+                          ? entry.ownership
+                          : {};
                       const resourceLanguages = Array.isArray(entry.resourceLanguages)
                         ? entry.resourceLanguages
                             .filter((item) => item && typeof item === "object")
@@ -2021,6 +2025,8 @@
                                   : "url",
                               resourceUrl: String(item.resourceUrl || "").trim(),
                               fileName: String(item.fileName || "").trim(),
+                              resourceType: String(item.resourceType || "").trim(),
+                              resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
                             }))
                             .filter((item) => item.resourceUrl)
                         : [];
@@ -2112,14 +2118,12 @@
                                     const displayFlag =
                                       String(item.languageFlag || "").trim() ||
                                       getFlagFromLanguageCode(item.languageCode);
-                                    const accessLabel =
-                                      item.accessType === "file"
-                                        ? "Opens file"
-                                        : "Opens webpage";
-                                    const actionLabel =
-                                      item.accessType === "file"
-                                        ? `${languageText} • File`
-                                        : `${languageText} • Website`;
+                                    const typeLabel =
+                                      String(item.resourceTypeLabel || "").trim() ||
+                                      (item.accessType === "file"
+                                        ? "File"
+                                        : "Webpage");
+                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}Open ${typeLabel}`.trim();
                                     return `
                                       <article class="country-modal-resource-version">
                                         <div class="country-modal-resource-version-head">
@@ -2127,7 +2131,7 @@
                                             displayFlag,
                                           )} ${escapeHtml(languageText)}</span>
                                           <span class="country-modal-resource-version-type">${escapeHtml(
-                                            accessLabel,
+                                            typeLabel,
                                           )}</span>
                                         </div>
                                         <a
@@ -2153,7 +2157,7 @@
                         contactName || contactRole || contactEmail
                           ? `
                             <div class="country-modal-entry-contact">
-                              <h6>Contact Resource Creator</h6>
+                              <h6>For more informations, contact:</h6>
                               ${contactName ? `<p><strong>Name:</strong> ${escapeHtml(contactName)}</p>` : ""}
                               ${contactRole ? `<p><strong>Role:</strong> ${escapeHtml(contactRole)}</p>` : ""}
                               ${contactEmail ? `<p><strong>Email:</strong> ${escapeHtml(contactEmail)}</p>` : ""}
@@ -2174,7 +2178,30 @@
                           </div>
                         `
                         : "";
-                      const badgesHtml = !organisationBadgesHtml && badges.length
+                      const primaryResourceType = pillar.id === "resources"
+                        ? (() => {
+                            const first = resourceLanguages[0] || null;
+                            if (!first) return "";
+                            return String(first.resourceTypeLabel || "").trim() ||
+                              (String(first.accessType || "").trim() === "file"
+                                ? "File"
+                                : "Webpage");
+                          })()
+                        : "";
+                      const ownershipType = String(ownership.type || "").trim();
+                      const ownershipName = String(ownership.name || "").trim();
+                      const resourceMetaPills = pillar.id === "resources"
+                        ? [primaryResourceType, ownershipType, ownershipName]
+                            .filter(Boolean)
+                            .map(
+                              (text) =>
+                                `<span class="country-modal-entry-meta-pill"><span>${escapeHtml(text)}</span></span>`,
+                            )
+                            .join("")
+                        : "";
+                      const badgesHtml = resourceMetaPills
+                        ? `<div class="country-modal-entry-meta">${resourceMetaPills}</div>`
+                        : !organisationBadgesHtml && badges.length
                         ? `
                           <div class="country-modal-entry-meta">
                             ${badges
@@ -2194,7 +2221,7 @@
                             <span class="country-modal-entry-flag">${flagsInline}</span>
                           </div>
                           ${badgesHtml}
-                          ${subtitle ? `<p class="country-modal-entry-subtitle">${escapeHtml(subtitle)}</p>` : ""}
+                          ${pillar.id !== "resources" && subtitle ? `<p class="country-modal-entry-subtitle">${escapeHtml(subtitle)}</p>` : ""}
                           ${summary ? `<p class="country-modal-entry-description">${escapeHtml(summary)}</p>` : ""}
                           ${highlightHtml}
                           <div class="country-modal-entry-actions">

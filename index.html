@@ -813,6 +813,10 @@
         gap: 12px;
       }
 
+      .contribute-form-row-ownership {
+        grid-template-columns: minmax(220px, 0.7fr) minmax(280px, 1.3fr);
+      }
+
       .contribute-form-segment-title {
         margin: 0;
         font-size: 12px;
@@ -993,6 +997,17 @@
         min-height: 42px;
       }
 
+      .contribute-language-file-status {
+        display: block;
+        min-height: 0;
+        margin-top: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: none;
+        letter-spacing: 0;
+        color: #4f6b78;
+      }
+
       .contribute-language-controls {
         display: flex;
         align-items: center;
@@ -1003,9 +1018,9 @@
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
       .contribute-form select.is-invalid {
-        border-color: #c2213e;
-        box-shadow: 0 0 0 4px rgba(194, 33, 62, 0.28);
-        background: rgba(255, 237, 242, 0.99);
+        border-color: #d41339;
+        box-shadow: 0 0 0 4px rgba(212, 19, 57, 0.36);
+        background: rgba(255, 228, 235, 1);
       }
 
       .contribute-form-status {
@@ -4686,6 +4701,37 @@
               <input type="hidden" name="pillarId" />
               <input type="hidden" name="pillarLabel" />
               <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">Ownership</p>
+                <div class="contribute-form-row contribute-form-row-ownership">
+                  <label>
+                    Legal entity type
+                    <select id="resource-ownership-type" name="ownershipType" required>
+                      <option value="" selected disabled>Select legal entity type</option>
+                      <option value="Non-profit organisation">Non-profit organisation</option>
+                      <option value="Foundation">Foundation</option>
+                      <option value="Public institution">Public institution</option>
+                      <option value="University">University</option>
+                      <option value="School">School</option>
+                      <option value="Research institute">Research institute</option>
+                      <option value="Private company">Private company</option>
+                      <option value="Government body">Government body</option>
+                      <option value="Independent expert">Independent expert</option>
+                      <option value="Other legal entity">Other legal entity</option>
+                    </select>
+                  </label>
+                  <label>
+                    Name of the organisation
+                    <input
+                      id="resource-ownership-name"
+                      type="text"
+                      name="ownershipName"
+                      placeholder="Organisation legal name"
+                      required
+                    />
+                  </label>
+                </div>
+              </section>
+              <section class="contribute-form-segment">
                 <p class="contribute-form-segment-title">
                   Resource basic information
                 </p>
@@ -4707,23 +4753,6 @@
                     id="resource-title-count"
                     aria-live="polite"
                     >0/72</span
-                  >
-                </label>
-                <label>
-                  Subtitle
-                  <input
-                    id="resource-subtitle-input"
-                    type="text"
-                    name="subtitle"
-                    placeholder="e.g. Teacher Implementation Guide"
-                    maxlength="120"
-                    required
-                  />
-                  <span
-                    class="contribute-field-count"
-                    id="resource-subtitle-count"
-                    aria-live="polite"
-                    >0/120</span
                   >
                 </label>
                 <label>
@@ -4767,7 +4796,7 @@
               </section>
               <section class="contribute-form-segment">
                 <p class="contribute-form-segment-title">
-                  Contact resource creator
+                  For more informations, contact:
                 </p>
                 <p class="contribute-form-section-title">
                   These details are public and shown at the end of the article.
@@ -6065,16 +6094,16 @@
         "contribute-rep-form-status",
       );
       const resourceTitleInput = document.getElementById("resource-title-input");
-      const resourceSubtitleInput = document.getElementById(
-        "resource-subtitle-input",
-      );
       const resourceDescriptionInput = document.getElementById(
         "resource-description-input",
       );
-      const resourceTitleCount = document.getElementById("resource-title-count");
-      const resourceSubtitleCount = document.getElementById(
-        "resource-subtitle-count",
+      const resourceOwnershipTypeInput = document.getElementById(
+        "resource-ownership-type",
       );
+      const resourceOwnershipNameInput = document.getElementById(
+        "resource-ownership-name",
+      );
+      const resourceTitleCount = document.getElementById("resource-title-count");
       const resourceDescriptionCount = document.getElementById(
         "resource-description-count",
       );
@@ -6178,6 +6207,7 @@
       let contributeSuccessFlowTimer = null;
       let resourceLanguageItems = [];
       let resourceLangUid = 0;
+      let resourceValidationTriggered = false;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
       const REP_FORM_COPY = {
@@ -6201,13 +6231,38 @@
       };
       const RESOURCE_LIMITS = {
         title: 72,
-        subtitle: 120,
         description: 200,
         maxLanguages: 3,
       };
       const RESOURCE_UPLOAD_ACCEPT =
         ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
       const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g)$/i;
+      const RESOURCE_TYPE_OPTIONS = [
+        {
+          value: "webpage",
+          label: "Webpage",
+          inputMode: "url",
+          openLabel: "Webpage",
+        },
+        {
+          value: "document",
+          label: "Document",
+          inputMode: "file",
+          openLabel: "File",
+        },
+        {
+          value: "audio-video",
+          label: "Audio/Video",
+          inputMode: "file",
+          openLabel: "Audio/Video",
+        },
+        {
+          value: "image",
+          label: "Image",
+          inputMode: "file",
+          openLabel: "File",
+        },
+      ];
       const languageCountryCodeByPrimary = Object.entries(
         COUNTRY_PRIMARY_LANGUAGE,
       ).reduce((acc, [countryCode, languageCode]) => {
@@ -6266,13 +6321,23 @@
         return "en";
       }
 
+      function getResourceTypeConfig(resourceTypeValue) {
+        const value = String(resourceTypeValue || "")
+          .trim()
+          .toLowerCase();
+        return (
+          RESOURCE_TYPE_OPTIONS.find((option) => option.value === value) ||
+          RESOURCE_TYPE_OPTIONS[0]
+        );
+      }
+
       function createResourceLanguageItem(languageCode, isPrimary) {
         resourceLangUid += 1;
         const normalizedCode = String(languageCode || "").trim().toLowerCase();
         return {
           id: `lang-${resourceLangUid}`,
           languageCode: normalizedCode,
-          accessType: "url",
+          resourceType: RESOURCE_TYPE_OPTIONS[0].value,
           resourceUrl: "",
           file: null,
           fileName: "",
@@ -6298,11 +6363,14 @@
         if (!key) return;
         const payload = {
           title: String((resourceTitleInput && resourceTitleInput.value) || ""),
-          subtitle: String(
-            (resourceSubtitleInput && resourceSubtitleInput.value) || "",
-          ),
           description: String(
             (resourceDescriptionInput && resourceDescriptionInput.value) || "",
+          ),
+          ownershipType: String(
+            (resourceOwnershipTypeInput && resourceOwnershipTypeInput.value) || "",
+          ),
+          ownershipName: String(
+            (resourceOwnershipNameInput && resourceOwnershipNameInput.value) || "",
           ),
           contactName: String(
             (contributeForm.querySelector('[name="contactName"]') || {}).value ||
@@ -6318,7 +6386,7 @@
           ),
           resourceLanguages: resourceLanguageItems.map((item) => ({
             languageCode: item.languageCode,
-            accessType: item.accessType,
+            resourceType: item.resourceType,
             resourceUrl: item.resourceUrl,
             fileName: item.fileName || "",
             isPrimary: Boolean(item.isPrimary),
@@ -6351,11 +6419,14 @@
         if (resourceTitleInput) {
           resourceTitleInput.value = String(payload.title || "");
         }
-        if (resourceSubtitleInput) {
-          resourceSubtitleInput.value = String(payload.subtitle || "");
-        }
         if (resourceDescriptionInput) {
           resourceDescriptionInput.value = String(payload.description || "");
+        }
+        if (resourceOwnershipTypeInput) {
+          resourceOwnershipTypeInput.value = String(payload.ownershipType || "");
+        }
+        if (resourceOwnershipNameInput) {
+          resourceOwnershipNameInput.value = String(payload.ownershipName || "");
         }
         const contactNameInput = contributeForm.querySelector(
           '[name="contactName"]',
@@ -6389,7 +6460,12 @@
               return {
                 id: createResourceLanguageItem(normalizedCode, index === 0).id,
                 languageCode: normalizedCode,
-                accessType: item.accessType === "file" ? "file" : "url",
+                resourceType: getResourceTypeConfig(
+                  item.resourceType ||
+                    (String(item.accessType || "").trim().toLowerCase() === "file"
+                      ? "document"
+                      : "webpage"),
+                ).value,
                 resourceUrl: String(item.resourceUrl || ""),
                 file: null,
                 fileName: String(item.fileName || ""),
@@ -6438,6 +6514,8 @@
         resourceLanguageList.innerHTML = "";
         const usedLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
+          const typeConfig = getResourceTypeConfig(item.resourceType);
+          const inputMode = typeConfig.inputMode;
           const card = document.createElement("section");
           card.className = "contribute-language-item";
           card.setAttribute("data-resource-lang-id", item.id);
@@ -6460,7 +6538,7 @@
               }
               renderResourceLanguageItems();
               saveResourceDraft();
-              validateResourceForm(false);
+              validateResourceForm(resourceValidationTriggered);
             });
             head.appendChild(removeBtn);
           }
@@ -6512,7 +6590,7 @@
             item.languageCode = nextCode;
             renderResourceLanguageItems(item.id);
             saveResourceDraft();
-            validateResourceForm(false);
+            validateResourceForm(resourceValidationTriggered);
           });
           langLabel.appendChild(langSelect);
           fields.appendChild(langLabel);
@@ -6526,23 +6604,23 @@
           accessSelect.id = typeInputId;
           accessSelect.name = `resourceType-${item.id}`;
           accessSelect.setAttribute("aria-label", "Type");
-          accessSelect.innerHTML = `
-            <option value="url">Web link</option>
-            <option value="file">Upload file</option>
-          `;
-          accessSelect.value = item.accessType === "file" ? "file" : "url";
+          accessSelect.innerHTML = RESOURCE_TYPE_OPTIONS.map(
+            (option) =>
+              `<option value="${escapeHtml(option.value)}">${escapeHtml(option.label)}</option>`,
+          ).join("");
+          accessSelect.value = typeConfig.value;
           accessSelect.addEventListener("change", () => {
-            item.accessType = accessSelect.value === "file" ? "file" : "url";
+            item.resourceType = getResourceTypeConfig(accessSelect.value).value;
             renderResourceLanguageItems(item.id);
             saveResourceDraft();
-            validateResourceForm(false);
+            validateResourceForm(resourceValidationTriggered);
           });
           accessLabel.appendChild(accessSelect);
           fields.appendChild(accessLabel);
 
           const valueLabel = document.createElement("label");
           valueLabel.setAttribute("data-resource-focus-anchor", item.id);
-          if (item.accessType === "file") {
+          if (inputMode === "file") {
             valueLabel.textContent = "Resource file";
             const fileInput = document.createElement("input");
             const fileInputId = `resource-file-${item.id}`;
@@ -6558,9 +6636,15 @@
               item.file = file || null;
               item.fileName = file && file.name ? file.name : "";
               saveResourceDraft();
-              validateResourceForm(false);
+              validateResourceForm(resourceValidationTriggered);
             });
             valueLabel.appendChild(fileInput);
+            const fileStatus = document.createElement("span");
+            fileStatus.className = "contribute-language-file-status";
+            fileStatus.textContent = item.fileName
+              ? `Selected: ${item.fileName}`
+              : "";
+            valueLabel.appendChild(fileStatus);
           } else {
             valueLabel.textContent = "Resource link for this language";
             const urlInput = document.createElement("input");
@@ -6576,7 +6660,7 @@
             urlInput.addEventListener("input", () => {
               item.resourceUrl = String(urlInput.value || "");
               saveResourceDraft();
-              validateResourceForm(false);
+              validateResourceForm(resourceValidationTriggered);
             });
             urlInput.addEventListener("blur", () => {
               const normalized = normalizeLikelyUrl(urlInput.value);
@@ -6585,7 +6669,7 @@
               }
               item.resourceUrl = normalized;
               saveResourceDraft();
-              validateResourceForm(false);
+              validateResourceForm(resourceValidationTriggered);
             });
             valueLabel.appendChild(urlInput);
           }
@@ -6633,21 +6717,18 @@
           .toUpperCase();
         const defaultLanguage = getCountryDefaultLanguage(normalizedCountry);
         resourceLanguageItems = [createResourceLanguageItem(defaultLanguage, true)];
+        resourceValidationTriggered = false;
         const restored = restoreResourceDraft();
         if (!restored) {
           if (resourceTitleInput) resourceTitleInput.value = "";
-          if (resourceSubtitleInput) resourceSubtitleInput.value = "";
           if (resourceDescriptionInput) resourceDescriptionInput.value = "";
+          if (resourceOwnershipTypeInput) resourceOwnershipTypeInput.value = "";
+          if (resourceOwnershipNameInput) resourceOwnershipNameInput.value = "";
         }
         updateResourceCounter(
           resourceTitleInput,
           resourceTitleCount,
           RESOURCE_LIMITS.title,
-        );
-        updateResourceCounter(
-          resourceSubtitleInput,
-          resourceSubtitleCount,
-          RESOURCE_LIMITS.subtitle,
         );
         updateResourceCounter(
           resourceDescriptionInput,
@@ -6670,14 +6751,18 @@
 
       function validateResourceForm(showStatus) {
         if (!contributeForm) return false;
+        const shouldPaintInvalid = Boolean(showStatus || resourceValidationTriggered);
         const errors = [];
         const title = String((resourceTitleInput && resourceTitleInput.value) || "")
           .trim();
-        const subtitle = String(
-          (resourceSubtitleInput && resourceSubtitleInput.value) || "",
-        ).trim();
         const description = String(
           (resourceDescriptionInput && resourceDescriptionInput.value) || "",
+        ).trim();
+        const ownershipType = String(
+          (resourceOwnershipTypeInput && resourceOwnershipTypeInput.value) || "",
+        ).trim();
+        const ownershipName = String(
+          (resourceOwnershipNameInput && resourceOwnershipNameInput.value) || "",
         ).trim();
         const contactName = String(
           (contributeForm.querySelector('[name="contactName"]') || {}).value || "",
@@ -6688,12 +6773,20 @@
         const contactEmail = String(
           (contributeForm.querySelector('[name="contactEmail"]') || {}).value || "",
         ).trim();
-        setFieldError(resourceTitleInput, !title);
-        setFieldError(resourceSubtitleInput, !subtitle);
-        setFieldError(resourceDescriptionInput, !description);
+        setFieldError(resourceTitleInput, shouldPaintInvalid && !title);
+        setFieldError(resourceDescriptionInput, shouldPaintInvalid && !description);
+        setFieldError(
+          resourceOwnershipTypeInput,
+          shouldPaintInvalid && !ownershipType,
+        );
+        setFieldError(
+          resourceOwnershipNameInput,
+          shouldPaintInvalid && !ownershipName,
+        );
         if (!title) errors.push("Complete the title.");
-        if (!subtitle) errors.push("Complete the subtitle.");
         if (!description) errors.push("Complete the description.");
+        if (!ownershipType) errors.push("Select legal entity type.");
+        if (!ownershipName) errors.push("Complete organisation name.");
         const seenLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
           const card = resourceLanguageList
@@ -6712,27 +6805,30 @@
             .toLowerCase();
           if (!languageCode) {
             errors.push("Select a language.");
-            setFieldError(languageSelect, true);
+            setFieldError(languageSelect, shouldPaintInvalid);
             return;
           }
           const duplicated = seenLanguages.has(languageCode);
           seenLanguages.add(languageCode);
           if (duplicated) {
             errors.push("This language was already added.");
-            setFieldError(languageSelect, true);
+            setFieldError(languageSelect, shouldPaintInvalid);
           } else {
             setFieldError(languageSelect, false);
           }
-          if (item.accessType === "file") {
-            const hasFile = item.file instanceof File;
+          const typeConfig = getResourceTypeConfig(item.resourceType);
+          if (typeConfig.inputMode === "file") {
+            const hasFile = item.file instanceof File || Boolean(item.resourceUrl);
             const fileName = String((item.file && item.file.name) || "");
-            const fileOk = fileName ? RESOURCE_FILE_RE.test(fileName) : false;
+            const fileOk =
+              hasFile &&
+              (fileName ? RESOURCE_FILE_RE.test(fileName) : true);
             if (!hasFile) {
               errors.push("Upload a file for each added language.");
-              setFieldError(valueInput, true);
+              setFieldError(valueInput, shouldPaintInvalid);
             } else if (!fileOk) {
               errors.push("File format is not supported.");
-              setFieldError(valueInput, true);
+              setFieldError(valueInput, shouldPaintInvalid);
             } else {
               setFieldError(valueInput, false);
             }
@@ -6742,7 +6838,7 @@
             const urlOk = isLikelyValidUrl(normalizedUrl);
             if (!urlOk) {
               errors.push("Link must be valid (example: https://... or www....).");
-              setFieldError(valueInput, true);
+              setFieldError(valueInput, shouldPaintInvalid);
             } else {
               setFieldError(valueInput, false);
             }
@@ -6757,9 +6853,12 @@
         const contactEmailInput = contributeForm.querySelector(
           '[name="contactEmail"]',
         );
-        setFieldError(contactNameInput, !contactName);
-        setFieldError(contactRoleInput, !contactRole);
-        setFieldError(contactEmailInput, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail));
+        setFieldError(contactNameInput, shouldPaintInvalid && !contactName);
+        setFieldError(contactRoleInput, shouldPaintInvalid && !contactRole);
+        setFieldError(
+          contactEmailInput,
+          shouldPaintInvalid && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail),
+        );
         if (!contactName) errors.push("Complete the name.");
         if (!contactRole) errors.push("Complete the role.");
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
@@ -6781,8 +6880,9 @@
         if (!contributeForm) return;
         const watchedInputs = [
           resourceTitleInput,
-          resourceSubtitleInput,
           resourceDescriptionInput,
+          resourceOwnershipTypeInput,
+          resourceOwnershipNameInput,
           contributeForm.querySelector('[name="contactName"]'),
           contributeForm.querySelector('[name="contactRole"]'),
           contributeForm.querySelector('[name="contactEmail"]'),
@@ -6797,17 +6897,12 @@
               RESOURCE_LIMITS.title,
             );
             updateResourceCounter(
-              resourceSubtitleInput,
-              resourceSubtitleCount,
-              RESOURCE_LIMITS.subtitle,
-            );
-            updateResourceCounter(
               resourceDescriptionInput,
               resourceDescriptionCount,
               RESOURCE_LIMITS.description,
             );
             saveResourceDraft();
-            validateResourceForm(false);
+            validateResourceForm(resourceValidationTriggered);
           });
         });
         if (resourceAddLanguageBtn) {
@@ -6834,7 +6929,7 @@
             resourceLanguageItems.push(item);
             renderResourceLanguageItems(item.id);
             saveResourceDraft();
-            validateResourceForm(false);
+            validateResourceForm(resourceValidationTriggered);
           });
         }
       }
@@ -7993,6 +8088,7 @@
       if (contributeForm) {
         contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
+          resourceValidationTriggered = true;
           if (!validateResourceForm(true)) {
             const invalid = contributeForm.querySelector(
               ".is-invalid, [aria-invalid='true']",
@@ -8009,8 +8105,9 @@
             .toLowerCase();
           const pillarLabel = String(formData.get("pillarLabel") || "").trim();
           const title = String(formData.get("title") || "").trim();
-          const subtitle = String(formData.get("subtitle") || "").trim();
           const description = String(formData.get("description") || "").trim();
+          const ownershipType = String(formData.get("ownershipType") || "").trim();
+          const ownershipName = String(formData.get("ownershipName") || "").trim();
           if (!countryId) {
             setContributeStatus("Missing country context.", "error");
             return;
@@ -8054,6 +8151,8 @@
                   languageCode,
                   languageLabel: languageOption.label,
                   languageFlag: languageOption.flag,
+                  resourceType: getResourceTypeConfig(item.resourceType).value,
+                  resourceTypeLabel: getResourceTypeConfig(item.resourceType).label,
                   accessType: "file",
                   resourceUrl: uploaded && uploaded.url ? uploaded.url : "",
                   fileName:
@@ -8067,6 +8166,8 @@
                 languageCode,
                 languageLabel: languageOption.label,
                 languageFlag: languageOption.flag,
+                resourceType: getResourceTypeConfig(item.resourceType).value,
+                resourceTypeLabel: getResourceTypeConfig(item.resourceType).label,
                 accessType: "url",
                 resourceUrl: normalizeLikelyUrl(item.resourceUrl),
                 fileName: "",
@@ -8097,8 +8198,11 @@
               pillarId,
               pillarLabel: pillarLabel || "Pillar",
               title,
-              subtitle,
               description,
+              ownership: {
+                type: ownershipType,
+                name: ownershipName,
+              },
               languageAvailability,
               links,
               attachments,
@@ -8133,6 +8237,13 @@
             if (String((error && error.message) || "") === "missing_language_selection") {
               setContributeStatus(
                 "Select a language for each resource version.",
+                "error",
+              );
+            } else if (
+              String((error && error.message) || "") === "missing_resource_file"
+            ) {
+              setContributeStatus(
+                "Upload a file for each selected file-based resource type.",
                 "error",
               );
             } else {
