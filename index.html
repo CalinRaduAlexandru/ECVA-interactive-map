@@ -3597,7 +3597,9 @@
       .ecva-manage-access-code {
         display: inline-flex;
         min-height: 36px;
+        width: 14ch;
         align-items: center;
+        justify-content: center;
         border-radius: 10px;
         padding: 0 10px;
         border: 1px solid rgba(130, 152, 164, 0.55);
@@ -3606,7 +3608,7 @@
         font-size: 14px;
         font-weight: 800;
         letter-spacing: 0.03em;
-        font-family: "Alexandria", sans-serif;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       }
 
       .ecva-manage-access-eye,
@@ -3631,6 +3633,30 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+      }
+
+      .ecva-manage-access-eye {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ecva-manage-access-eye svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+      }
+
+      .ecva-manage-access-eye .ecva-manage-eye-off {
+        display: none;
+      }
+
+      .ecva-manage-access-eye.is-revealed .ecva-manage-eye-open {
+        display: none;
+      }
+
+      .ecva-manage-access-eye.is-revealed .ecva-manage-eye-off {
+        display: block;
       }
 
       .ecva-manage-access-copy svg {

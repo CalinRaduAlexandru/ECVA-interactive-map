@@ -356,7 +356,7 @@
       const setRevealState = (revealed) => {
         row.setAttribute('data-revealed', revealed ? 'true' : 'false');
         codeText.textContent = revealed ? code : maskAccessCode(code);
-        eyeBtn.textContent = revealed ? '👁' : '👁‍🗨';
+        eyeBtn.classList.toggle('is-revealed', revealed);
         eyeBtn.setAttribute('aria-label', revealed ? 'Hide app access code' : 'Show app access code');
       };
 
@@ -461,7 +461,14 @@
     return `
       <span class="ecva-manage-access-controls">
         <code class="ecva-manage-access-code">${maskAccessCode(code)}</code>
-        <button type="button" class="ecva-manage-access-eye" aria-label="Show app access code">👁‍🗨</button>
+        <button type="button" class="ecva-manage-access-eye" aria-label="Show app access code">
+          <svg class="ecva-manage-eye-open" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 5c5.8 0 9.7 4.8 10.9 6.6a.75.75 0 0 1 0 .8C21.7 14.2 17.8 19 12 19S2.3 14.2 1.1 12.4a.75.75 0 0 1 0-.8C2.3 9.8 6.2 5 12 5Zm0 1.5c-4.7 0-8.2 3.8-9.3 5.5 1.1 1.7 4.6 5.5 9.3 5.5s8.2-3.8 9.3-5.5c-1.1-1.7-4.6-5.5-9.3-5.5Zm0 2.2a3.3 3.3 0 1 1 0 6.6 3.3 3.3 0 0 1 0-6.6Zm0 1.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z"></path>
+          </svg>
+          <svg class="ecva-manage-eye-off" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="m3.5 3.5 17 17-1 1-3.1-3.1A12.7 12.7 0 0 1 12 19C6.2 19 2.3 14.2 1.1 12.4a.75.75 0 0 1 0-.8c.8-1.2 2.8-3.8 5.7-5.3L2.5 4.5l1-1Zm4.4 4.4C5.6 9 4 10.9 3 12c1.1 1.7 4.6 5.5 9 5.5 1.3 0 2.5-.3 3.5-.7l-2.1-2.1a3.3 3.3 0 0 1-4.1-4.1L7.9 7.9Zm6.7 6.7-3.2-3.2a1.8 1.8 0 0 0 2.4 2.4ZM12 5c5.8 0 9.7 4.8 10.9 6.6a.75.75 0 0 1 0 .8c-.6 1-2 2.8-3.9 4.2l-1.1-1.1c1.5-1 2.6-2.4 3.4-3.5-1.1-1.7-4.6-5.5-9.3-5.5-1.4 0-2.7.3-3.9.8L7 6.2A11.8 11.8 0 0 1 12 5Z"></path>
+          </svg>
+        </button>
         <button type="button" class="ecva-manage-access-copy" aria-label="Copy app access code">
           <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M8 4.8A2.8 2.8 0 0 1 10.8 2h7.4A2.8 2.8 0 0 1 21 4.8v7.4a2.8 2.8 0 0 1-2.8 2.8H16v1.2A2.8 2.8 0 0 1 13.2 19H5.8A2.8 2.8 0 0 1 3 16.2V8.8A2.8 2.8 0 0 1 5.8 6H8V4.8Zm2-.8v8.2c0 .44.36.8.8.8H19c.44 0 .8-.36.8-.8V4.8c0-.44-.36-.8-.8-.8h-8.2c-.44 0-.8.36-.8.8ZM8 8H5.8c-.44 0-.8.36-.8.8v7.4c0 .44.36.8.8.8h7.4c.44 0 .8-.36.8-.8V15h-3.2A2.8 2.8 0 0 1 8 12.2V8Z"></path>
