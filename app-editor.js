@@ -273,8 +273,6 @@
     source.forEach((country, index) => {
       const countryId = normalizeManageCountryCode(country && country.code);
       if (!countryId) return;
-      const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
-      if (!(isActiveStatusValue(statusValue) || statusValue === 'pending')) return;
       const fromState = String(country && country.accessCode ? country.accessCode : '').trim().toLowerCase();
       const code = fromState || buildCountryAccessCode(countryId, index + 1).toLowerCase();
       accessCodeToCountryMap.set(code, countryId);
@@ -363,12 +361,27 @@
   }
 
   function getFirstAllowedCountryId() {
-    const first = activeCountries.find((country) => isCountryAllowed(country && country.code));
+    const source =
+      accessScope.mode === 'country' && countryCatalog.length ? countryCatalog : activeCountries;
+    const first = source.find((country) => isCountryAllowed(country && country.code));
     return first ? String(first.code || '').trim() : '';
   }
 
   function ensureSelectedCountryIsAllowed() {
     if (!selectedCountryId) return;
+    if (accessScope.mode === 'country') {
+      const target = normalizeManageCountryCode(accessScope.countryId);
+      if (
+        target &&
+        countryCatalog.some(
+          (country) =>
+            normalizeManageCountryCode(country && country.code) === target,
+        )
+      ) {
+        selectedCountryId = target;
+        return;
+      }
+    }
     if (
       activeCountries.some(
         (country) =>
@@ -389,7 +402,9 @@
 
   function wireAccessPanel(panel) {
     if (!panel) return;
-    const rows = panel.querySelectorAll('.ecva-manage-access-row-item');
+    const rows = panel.querySelectorAll(
+      '.ecva-manage-access-row-item, .ecva-manage-other-card[data-country-id]',
+    );
     rows.forEach((row) => {
       let code = String(row.getAttribute('data-access-code') || '').trim().toLowerCase();
       const countryId = normalizeManageCountryCode(row.getAttribute('data-country-id'));
@@ -577,10 +592,6 @@
   }
 
   function buildCodeControlsHtml(countryId, statusValue) {
-    const hasCode = isActiveStatusValue(statusValue) || normalizeStatusValue(statusValue) === 'pending';
-    if (!hasCode) {
-      return `<span class="ecva-manage-access-empty">-</span>`;
-    }
     const code = getAccessCodeForCountry(countryId);
     return `
       <span class="ecva-manage-access-controls">
@@ -627,9 +638,10 @@
     const fullName = String(country && country.name ? country.name : '').trim();
     const displayLabel = fullName || displayCountryCode(countryCode);
     return `
-      <article class="ecva-manage-other-card">
+      <article class="ecva-manage-other-card" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-other-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
         ${buildStatusSelectHtml(countryCode, statusValue, 'other')}
+        ${buildCodeControlsHtml(countryCode, statusValue)}
       </article>
     `;
   }
@@ -854,12 +866,12 @@
     style.textContent = `
       .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
       .ecva-version-modal.is-visible{display:flex}
-      .ecva-version-dialog{width:min(760px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px}
+      .ecva-version-dialog{--ecva-version-target-height:min(800px,calc(100dvh - clamp(40px,13vh,118px)));width:min(760px,calc(100vw - 28px));height:var(--ecva-version-target-height);max-height:var(--ecva-version-target-height);overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:0}
       .ecva-version-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
       .ecva-version-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
       .ecva-version-sub{margin:0 0 10px;color:#45616f;font:600 13px/1.4 "Alexandria",sans-serif}
       .ecva-version-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
-      .ecva-version-list{display:grid;gap:8px}
+      .ecva-version-list{display:grid;gap:8px;overflow-y:auto;align-content:start;min-height:0;padding-right:2px}
       .ecva-version-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
       .ecva-version-meta{display:grid;gap:3px}
       .ecva-version-main{font:800 14px/1.2 "Alexandria",sans-serif;color:#223d49}
@@ -1535,7 +1547,12 @@
       countryTabsHost.appendChild(overviewBtn);
     }
 
-    activeCountries.forEach((country) => {
+    const tabsSource =
+      accessScope.mode === 'country'
+        ? countryCatalog.filter((country) => isCountryAllowed(country && country.code))
+        : activeCountries;
+
+    tabsSource.forEach((country) => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'ecva-manage-country-tab';
