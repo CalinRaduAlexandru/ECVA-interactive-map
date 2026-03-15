@@ -234,6 +234,18 @@
   let representativeManageCloseBtn = null;
   let representativeManageAddBtn = null;
   let representativeManageCountryId = '';
+  let removeConfirmTimer = null;
+
+  function resetEditorRemoveState() {
+    if (!editorRemoveBtn) return;
+    editorRemoveBtn.classList.remove('is-confirm');
+    editorRemoveBtn.setAttribute('aria-label', 'Remove representative');
+    editorRemoveBtn.setAttribute('title', 'Remove representative');
+    if (removeConfirmTimer) {
+      window.clearTimeout(removeConfirmTimer);
+      removeConfirmTimer = null;
+    }
+  }
 
   function postToMap(type, payload) {
     if (!mapFrame.contentWindow) return;
@@ -900,6 +912,7 @@
     if (!editorModal) return;
     editorModal.classList.remove('is-visible');
     editorModal.setAttribute('aria-hidden', 'true');
+    resetEditorRemoveState();
     editorTarget = null;
     editorMode = 'entry';
     clearEditorFields();
@@ -1329,6 +1342,7 @@
     if (editorRemoveBtn) {
       const canRemove = editorMode === 'representative' && editorTarget && editorTarget.action !== 'add';
       editorRemoveBtn.style.display = canRemove ? 'inline-flex' : 'none';
+      resetEditorRemoveState();
     }
   }
 
@@ -3078,10 +3092,23 @@
     editorRemoveBtn.addEventListener('click', () => {
       if (!editorTarget || editorMode !== 'representative' || editorTarget.type !== 'representative') return;
       if (!Number.isInteger(editorTarget.representativeIndex)) return;
+      if (!editorRemoveBtn.classList.contains('is-confirm')) {
+        editorRemoveBtn.classList.add('is-confirm');
+        editorRemoveBtn.setAttribute('aria-label', 'Confirm remove representative');
+        editorRemoveBtn.setAttribute('title', 'Confirm remove representative');
+        if (removeConfirmTimer) {
+          window.clearTimeout(removeConfirmTimer);
+        }
+        removeConfirmTimer = window.setTimeout(() => {
+          resetEditorRemoveState();
+        }, 4000);
+        return;
+      }
       postToMap('ecva-editor-remove-representative', {
         countryId: editorTarget.countryId,
         representativeIndex: editorTarget.representativeIndex,
       });
+      resetEditorRemoveState();
       closeEditorModal();
     });
   }

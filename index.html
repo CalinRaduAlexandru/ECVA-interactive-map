@@ -3996,9 +3996,53 @@
 
       .ecva-editor-actions {
         display: flex;
+        align-items: center;
         justify-content: flex-end;
         gap: 10px;
         margin-top: 6px;
+      }
+
+      .ecva-editor-remove-btn {
+        width: 54px;
+        min-width: 54px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .ecva-editor-remove-btn svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+
+      .ecva-editor-remove-btn .ecva-editor-remove-confirm-text {
+        display: none;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .ecva-editor-remove-btn.is-confirm {
+        width: auto;
+        min-width: 132px;
+        padding: 0 16px;
+        gap: 8px;
+      }
+
+      .ecva-editor-remove-btn.is-confirm .ecva-editor-remove-confirm-text {
+        display: inline;
+      }
+
+      .ecva-editor-cancel-btn {
+        min-width: 136px;
+        padding: 0 22px;
+      }
+
+      .ecva-editor-save-btn {
+        min-width: 188px;
+        padding: 0 28px;
       }
 
       .ecva-editor-image-cropper {
@@ -4875,20 +4919,25 @@
           <div class="ecva-editor-actions">
             <button
               id="ecva-editor-remove-btn"
-              class="ecva-admin-btn danger"
+              class="ecva-admin-btn danger ecva-editor-remove-btn"
               type="button"
+              aria-label="Remove representative"
+              title="Remove representative"
               style="display: none"
             >
-              Remove
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"></path>
+              </svg>
+              <span class="ecva-editor-remove-confirm-text">Confirm</span>
             </button>
             <button
               id="ecva-editor-cancel-btn"
-              class="ecva-admin-btn secondary"
+              class="ecva-admin-btn secondary ecva-editor-cancel-btn"
               type="button"
             >
               Cancel
             </button>
-            <button class="ecva-admin-btn primary" type="submit">Save</button>
+            <button class="ecva-admin-btn primary ecva-editor-save-btn" type="submit">Save</button>
           </div>
         </form>
       </section>
