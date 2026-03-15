@@ -945,6 +945,31 @@
     modalNode.style.setProperty("--overlay-top", `${resolved}px`);
   }
 
+  function releaseFocusBeforeHide(container, fallbackTarget) {
+    if (!(container instanceof HTMLElement)) return;
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement)) return;
+    if (!container.contains(active)) return;
+    try {
+      active.blur();
+    } catch (_error) {
+      // no-op
+    }
+    const fallback =
+      (fallbackTarget instanceof HTMLElement ? fallbackTarget : null) ||
+      (document.body instanceof HTMLElement ? document.body : null);
+    if (fallback && typeof fallback.focus === "function") {
+      if (!fallback.hasAttribute("tabindex")) {
+        fallback.setAttribute("tabindex", "-1");
+      }
+      try {
+        fallback.focus({ preventScroll: true });
+      } catch (_error) {
+        // no-op
+      }
+    }
+  }
+
   function openHub() {
     if (!adminHub) return;
     jumpToCountryWindowTopAcrossContexts();
@@ -956,6 +981,7 @@
 
   function closeHub() {
     if (!adminHub) return;
+    releaseFocusBeforeHide(adminHub, manageBtn || closeHubBtn);
     adminHub.classList.remove("is-visible");
     adminHub.setAttribute("aria-hidden", "true");
     syncAdminOverlayScrollLock();
@@ -1012,6 +1038,7 @@
       if (pending && pending.timeout) window.clearTimeout(pending.timeout);
     });
     pendingInboxRequests.clear();
+    releaseFocusBeforeHide(manageRoot, manageBtn || closeManageBtn);
     manageRoot.classList.remove("is-visible");
     manageRoot.setAttribute("aria-hidden", "true");
     if (manageBody) manageBody.innerHTML = "";
@@ -1029,6 +1056,7 @@
 
   function closeEditorModal() {
     if (!editorModal) return;
+    releaseFocusBeforeHide(editorModal, closeManageBtn || manageBtn);
     editorModal.classList.remove("is-visible");
     editorModal.setAttribute("aria-hidden", "true");
     resetEditorRemoveState();
@@ -1115,6 +1143,7 @@
 
   function closeVersionHistoryModal() {
     if (!versionHistoryModal) return;
+    releaseFocusBeforeHide(versionHistoryModal, closeManageBtn || manageBtn);
     versionHistoryModal.classList.remove("is-visible");
     versionHistoryModal.setAttribute("aria-hidden", "true");
     syncAdminOverlayScrollLock();
@@ -1371,6 +1400,10 @@
 
   function closeRepresentativeManageModal() {
     if (!representativeManageModal) return;
+    releaseFocusBeforeHide(
+      representativeManageModal,
+      closeManageBtn || manageBtn,
+    );
     representativeManageModal.classList.remove("is-visible");
     representativeManageModal.setAttribute("aria-hidden", "true");
     syncAdminOverlayScrollLock();

@@ -6282,6 +6282,31 @@
         modalNode.style.setProperty("--overlay-top", `${resolved}px`);
       }
 
+      function releaseFocusBeforeHide(container, fallbackTarget) {
+        if (!(container instanceof HTMLElement)) return;
+        const active = document.activeElement;
+        if (!(active instanceof HTMLElement)) return;
+        if (!container.contains(active)) return;
+        try {
+          active.blur();
+        } catch (_error) {
+          // no-op
+        }
+        const fallback =
+          (fallbackTarget instanceof HTMLElement ? fallbackTarget : null) ||
+          (document.body instanceof HTMLElement ? document.body : null);
+        if (fallback && typeof fallback.focus === "function") {
+          if (!fallback.hasAttribute("tabindex")) {
+            fallback.setAttribute("tabindex", "-1");
+          }
+          try {
+            fallback.focus({ preventScroll: true });
+          } catch (_error) {
+            // no-op
+          }
+        }
+      }
+
       function openEmbedCodeModal() {
         if (!embedCodeModal) return;
         jumpToCountryWindowTopAcrossContexts();
@@ -6293,6 +6318,10 @@
 
       function closeEmbedCodeModal() {
         if (!embedCodeModal) return;
+        releaseFocusBeforeHide(
+          embedCodeModal,
+          embedCodeTrigger || modalCloseButton,
+        );
         embedCodeModal.classList.remove("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "true");
         syncGlobalScrollLock();
@@ -6746,6 +6775,7 @@
 
       function closeContributeModal() {
         if (!contributeModal) return;
+        releaseFocusBeforeHide(contributeModal, modalCloseButton);
         contributeModal.classList.remove("is-visible");
         contributeModal.setAttribute("aria-hidden", "true");
         setContributeStatus("");
@@ -6780,6 +6810,7 @@
 
       function closeTepaceModal() {
         if (!tepaceModal) return;
+        releaseFocusBeforeHide(tepaceModal, modalCloseButton);
         tepaceModal.classList.remove("is-visible");
         tepaceModal.setAttribute("aria-hidden", "true");
         syncGlobalScrollLock();
@@ -7035,6 +7066,7 @@
         if (modalCloseTimer) {
           window.clearTimeout(modalCloseTimer);
         }
+        releaseFocusBeforeHide(modalRoot, legendLogo || frame);
         modalRoot.classList.add("is-closing");
         modalRoot.setAttribute("aria-hidden", "true");
         modalCloseTimer = window.setTimeout(() => {
