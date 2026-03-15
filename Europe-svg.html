@@ -2678,6 +2678,39 @@
               return { image, sourceImage, name, title, organisation, crop };
             }
 
+            function hasRenderableEntryContent(entry) {
+              if (!entry || typeof entry !== "object") return false;
+              const title = String(entry.title || "").trim();
+              const subtitle = String(entry.subtitle || "").trim();
+              const summary = String(entry.summary || entry.description || "").trim();
+              const founder = String(entry.founder || "").trim();
+              const highlights = Array.isArray(entry.highlights) ? entry.highlights.filter(Boolean) : [];
+              const methods = Array.isArray(entry.methods) ? entry.methods.filter(Boolean) : [];
+              const programs = Array.isArray(entry.programs) ? entry.programs.filter(Boolean) : [];
+              const impact = Array.isArray(entry.impact) ? entry.impact.filter(Boolean) : [];
+              const badges = Array.isArray(entry.badges) ? entry.badges.filter(Boolean) : [];
+              return Boolean(
+                title ||
+                  subtitle ||
+                  summary ||
+                  founder ||
+                  highlights.length ||
+                  methods.length ||
+                  programs.length ||
+                  impact.length ||
+                  badges.length,
+              );
+            }
+
+            function syncPillarActiveFromEntries(countryId, pillarId) {
+              const country = pillarConfigByCountry[countryId];
+              if (!country || typeof country !== "object") return;
+              const pillar = country[pillarId];
+              if (!pillar || typeof pillar !== "object") return;
+              const entries = Array.isArray(pillar.entries) ? pillar.entries : [];
+              pillar.active = entries.some((entry) => hasRenderableEntryContent(entry));
+            }
+
             function updateEntryFromEditor(payload) {
               if (!payload || typeof payload !== "object") return null;
               const countryId = String(payload.countryId || "").trim();
@@ -2698,6 +2731,7 @@
                   entry[key] = String(fields[key] || "").trim();
                 }
               });
+              syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: index };
             }
 
@@ -2713,6 +2747,7 @@
               if (!pillar || !Array.isArray(pillar.entries)) return null;
               if (!pillar.entries[index]) return null;
               pillar.entries.splice(index, 1);
+              syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: index };
             }
 
@@ -2780,7 +2815,7 @@
                 impact: Array.isArray(rawEntry.impact) ? rawEntry.impact : [],
               };
               pillar.entries.unshift(entry);
-              pillar.active = true;
+              syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: 0 };
             }
 
