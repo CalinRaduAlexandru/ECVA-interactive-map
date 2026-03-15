@@ -1965,6 +1965,16 @@
         flex: 0 0 auto;
       }
 
+      .country-modal-detail-post-btn.is-editor-add {
+        min-width: 42px;
+        width: 42px;
+        padding: 0;
+        border-radius: 12px;
+        font-size: 28px;
+        line-height: 1;
+        justify-content: center;
+      }
+
       .country-modal-detail-post-btn:hover {
         background: linear-gradient(180deg, #e8f2f7, #d8e7ef);
       }
@@ -3745,20 +3755,31 @@
 
       .ecva-entry-edit-btn {
         margin-left: 8px;
-        padding: 6px 10px;
+        width: 42px;
+        height: 42px;
+        padding: 0;
         border-radius: 10px;
         border: 1px solid rgba(108, 132, 145, 0.55);
         background: rgba(233, 243, 247, 0.95);
         color: #27404c;
         font-family: "Alexandria", sans-serif;
-        font-size: 12px;
+        font-size: 0;
         font-weight: 800;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .ecva-entry-edit-btn:hover {
         filter: brightness(1.1);
         transform: scale(1.03);
+      }
+
+      .ecva-entry-edit-btn svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
       }
 
       .ecva-editor-form {

@@ -1641,6 +1641,24 @@
     openEditorModal();
   }
 
+  function openAddEntryEditor(countryId, pillarId, pillarLabel) {
+    const validCountryId = String(countryId || selectedCountryId || '').trim();
+    const validPillarId = String(pillarId || '').trim();
+    if (!validCountryId || !validPillarId) return;
+    clearEditorFields();
+    if (editorSubtitle) {
+      editorSubtitle.value = String(pillarLabel || '').trim();
+    }
+    editorTarget = {
+      type: 'entry',
+      action: 'add',
+      countryId: validCountryId,
+      pillarId: validPillarId,
+    };
+    setEditorMode('entry');
+    openEditorModal();
+  }
+
   function openRepresentativeEditor(repEl, countryId, repIndex) {
     const validCountryId = String(countryId || selectedCountryId || '').trim();
     const validIndex = Number(repIndex);
@@ -1717,7 +1735,13 @@
       const editBtn = document.createElement('button');
       editBtn.type = 'button';
       editBtn.className = 'ecva-entry-edit-btn';
-      editBtn.textContent = 'Edit';
+      editBtn.setAttribute('aria-label', 'Edit entry');
+      editBtn.setAttribute('title', 'Edit entry');
+      editBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 6.8A2.8 2.8 0 0 1 6.8 4H12a1 1 0 1 1 0 2H6.8C6.36 6 6 6.36 6 6.8v10.4c0 .44.36.8.8.8h10.4c.44 0 .8-.36.8-.8V12a1 1 0 1 1 2 0v5.2a2.8 2.8 0 0 1-2.8 2.8H6.8A2.8 2.8 0 0 1 4 17.2V6.8Zm15.7-3.1a2.3 2.3 0 0 1 3.25 3.25l-9.22 9.22a1 1 0 0 1-.45.26l-3.48.93a1 1 0 0 1-1.22-1.22l.93-3.48a1 1 0 0 1 .26-.45l9.22-9.22Zm1.84 1.41a.3.3 0 0 0-.42 0l-8.99 8.99-.47 1.74 1.74-.47 8.99-8.99a.3.3 0 0 0 0-.42l-.85-.85Z"></path>
+        </svg>
+      `;
       editBtn.addEventListener('click', () => {
         openEntryEditor(entryEl);
       });
@@ -1744,7 +1768,13 @@
       const editBtn = document.createElement('button');
       editBtn.type = 'button';
       editBtn.className = 'ecva-entry-edit-btn ecva-rep-edit-btn';
-      editBtn.textContent = 'Edit';
+      editBtn.setAttribute('aria-label', 'Edit representative');
+      editBtn.setAttribute('title', 'Edit representative');
+      editBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M4 6.8A2.8 2.8 0 0 1 6.8 4H12a1 1 0 1 1 0 2H6.8C6.36 6 6 6.36 6 6.8v10.4c0 .44.36.8.8.8h10.4c.44 0 .8-.36.8-.8V12a1 1 0 1 1 2 0v5.2a2.8 2.8 0 0 1-2.8 2.8H6.8A2.8 2.8 0 0 1 4 17.2V6.8Zm15.7-3.1a2.3 2.3 0 0 1 3.25 3.25l-9.22 9.22a1 1 0 0 1-.45.26l-3.48.93a1 1 0 0 1-1.22-1.22l.93-3.48a1 1 0 0 1 .26-.45l9.22-9.22Zm1.84 1.41a.3.3 0 0 0-.42 0l-8.99 8.99-.47 1.74 1.74-.47 8.99-8.99a.3.3 0 0 0 0-.42l-.85-.85Z"></path>
+        </svg>
+      `;
       editBtn.style.position = 'absolute';
       editBtn.style.top = '10px';
       editBtn.style.right = '10px';
@@ -1767,6 +1797,27 @@
       openAddRepresentativeEditor(countryId);
     });
     footer.appendChild(addBtn);
+  }
+
+  function wireManagePillarPostButtons(scope) {
+    if (!scope) return;
+    const buttons = scope.querySelectorAll('.country-modal-detail-post-btn[data-contribute-pillar]');
+    buttons.forEach((btn) => {
+      if (btn.dataset.editorWired === '1') return;
+      btn.dataset.editorWired = '1';
+      const pillarId = String(btn.getAttribute('data-contribute-pillar') || '').trim();
+      const countryId = String(btn.getAttribute('data-contribute-country') || selectedCountryId || '').trim();
+      const pillarLabel = String(btn.getAttribute('data-contribute-label') || '').trim();
+      btn.textContent = '+';
+      btn.setAttribute('aria-label', `Add ${pillarLabel || pillarId || 'article'}`);
+      btn.setAttribute('title', `Add ${pillarLabel || pillarId || 'article'}`);
+      btn.classList.add('is-editor-add');
+      btn.addEventListener('click', (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        openAddEntryEditor(countryId, pillarId, pillarLabel);
+      });
+    });
   }
 
   function formatSubmissionDate(value) {
@@ -2179,6 +2230,7 @@
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
+    wireManagePillarPostButtons(manageBody);
     manageBody.querySelectorAll('.country-modal-rep-recommend-btn').forEach((btn) => {
       btn.style.display = 'none';
     });
@@ -2394,17 +2446,31 @@
       if (!editorTarget) return;
       const target = { ...editorTarget };
       if (editorMode === 'entry' && target.type === 'entry') {
-        postToMap('ecva-editor-update-entry', {
-          countryId: target.countryId,
-          pillarId: target.pillarId,
-          entryIndex: target.entryIndex,
-          fields: {
-            title: editorTitle ? editorTitle.value : '',
-            subtitle: editorSubtitle ? editorSubtitle.value : '',
-            description: editorDescription ? editorDescription.value : '',
-            summary: editorDescription ? editorDescription.value : '',
-          },
-        });
+        if (target.action === 'add') {
+          postToMap('ecva-editor-add-entry', {
+            countryId: target.countryId,
+            pillarId: target.pillarId,
+            entry: {
+              title: editorTitle ? editorTitle.value : '',
+              subtitle: editorSubtitle ? editorSubtitle.value : '',
+              description: editorDescription ? editorDescription.value : '',
+              summary: editorDescription ? editorDescription.value : '',
+              languages: [],
+            },
+          });
+        } else {
+          postToMap('ecva-editor-update-entry', {
+            countryId: target.countryId,
+            pillarId: target.pillarId,
+            entryIndex: target.entryIndex,
+            fields: {
+              title: editorTitle ? editorTitle.value : '',
+              subtitle: editorSubtitle ? editorSubtitle.value : '',
+              description: editorDescription ? editorDescription.value : '',
+              summary: editorDescription ? editorDescription.value : '',
+            },
+          });
+        }
         closeEditorModal();
         return;
       }

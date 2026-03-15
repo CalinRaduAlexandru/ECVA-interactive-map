@@ -2594,6 +2594,41 @@
               return { countryId, pillarId, entryIndex: index };
             }
 
+            function addEntryFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim();
+              const pillarId = String(payload.pillarId || "").trim();
+              const rawEntry =
+                payload.entry && typeof payload.entry === "object" ? payload.entry : {};
+              if (!countryId || !pillarId) return null;
+              if (!pillarConfigByCountry[countryId] || typeof pillarConfigByCountry[countryId] !== "object") {
+                pillarConfigByCountry[countryId] = {};
+              }
+              if (
+                !pillarConfigByCountry[countryId][pillarId] ||
+                typeof pillarConfigByCountry[countryId][pillarId] !== "object"
+              ) {
+                pillarConfigByCountry[countryId][pillarId] = { active: true, entries: [] };
+              }
+              const pillar = pillarConfigByCountry[countryId][pillarId];
+              if (!Array.isArray(pillar.entries)) {
+                pillar.entries = [];
+              }
+              const entry = {
+                title: String(rawEntry.title || "").trim() || "Untitled entry",
+                subtitle: String(rawEntry.subtitle || "").trim(),
+                summary: String(rawEntry.summary || rawEntry.description || "").trim(),
+                description: String(rawEntry.description || rawEntry.summary || "").trim(),
+                languages: Array.isArray(rawEntry.languages) ? rawEntry.languages : [],
+                methods: Array.isArray(rawEntry.methods) ? rawEntry.methods : [],
+                programs: Array.isArray(rawEntry.programs) ? rawEntry.programs : [],
+                impact: Array.isArray(rawEntry.impact) ? rawEntry.impact : [],
+              };
+              pillar.entries.unshift(entry);
+              pillar.active = true;
+              return { countryId, pillarId, entryIndex: 0 };
+            }
+
             function updateRepresentativeFromEditor(payload) {
               if (!payload || typeof payload !== "object") return null;
               const countryId = String(payload.countryId || "").trim();
@@ -3323,6 +3358,29 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-add-entry") {
+                const added = addEntryFromEditor(payload);
+                if (!added) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-entry-updated",
+                    payload: {
+                      countryId: added.countryId,
+                      html: renderModalHtml(added.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: added.countryId },
                   },
                   "*",
                 );
