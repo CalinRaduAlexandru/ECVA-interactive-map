@@ -1003,9 +1003,9 @@
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
       .contribute-form select.is-invalid {
-        border-color: #b83f46;
-        box-shadow: 0 0 0 3px rgba(184, 63, 70, 0.16);
-        background: rgba(255, 246, 247, 0.98);
+        border-color: #c2213e;
+        box-shadow: 0 0 0 4px rgba(194, 33, 62, 0.28);
+        background: rgba(255, 237, 242, 0.99);
       }
 
       .contribute-form-status {
@@ -6418,12 +6418,19 @@
       function isLikelyValidUrl(value) {
         const text = String(value || "").trim();
         if (!text) return false;
+        const normalized = /^www\./i.test(text) ? `https://${text}` : text;
         try {
-          const parsed = new URL(text);
+          const parsed = new URL(normalized);
           return parsed.protocol === "http:" || parsed.protocol === "https:";
         } catch (_error) {
           return false;
         }
+      }
+
+      function normalizeLikelyUrl(value) {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        return /^www\./i.test(text) ? `https://${text}` : text;
       }
 
       function renderResourceLanguageItems(focusItemId) {
@@ -6568,6 +6575,15 @@
             urlInput.setAttribute("data-focus-value", "true");
             urlInput.addEventListener("input", () => {
               item.resourceUrl = String(urlInput.value || "");
+              saveResourceDraft();
+              validateResourceForm(false);
+            });
+            urlInput.addEventListener("blur", () => {
+              const normalized = normalizeLikelyUrl(urlInput.value);
+              if (normalized !== urlInput.value) {
+                urlInput.value = normalized;
+              }
+              item.resourceUrl = normalized;
               saveResourceDraft();
               validateResourceForm(false);
             });
@@ -6721,9 +6737,11 @@
               setFieldError(valueInput, false);
             }
           } else {
-            const urlOk = isLikelyValidUrl(item.resourceUrl);
+            const normalizedUrl = normalizeLikelyUrl(item.resourceUrl);
+            item.resourceUrl = normalizedUrl;
+            const urlOk = isLikelyValidUrl(normalizedUrl);
             if (!urlOk) {
-              errors.push("Link must be a valid URL.");
+              errors.push("Link must be valid (example: https://... or www....).");
               setFieldError(valueInput, true);
             } else {
               setFieldError(valueInput, false);
@@ -8050,7 +8068,7 @@
                 languageLabel: languageOption.label,
                 languageFlag: languageOption.flag,
                 accessType: "url",
-                resourceUrl: String(item.resourceUrl || "").trim(),
+                resourceUrl: normalizeLikelyUrl(item.resourceUrl),
                 fileName: "",
               });
             }
