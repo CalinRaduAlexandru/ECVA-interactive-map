@@ -712,8 +712,8 @@
       }
 
       .contribute-modal-dialog.is-success-flow::after {
-        animation: contributeSuccessFlow 1650ms
-          cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        animation: contributeSuccessFlow 1650ms cubic-bezier(0.22, 1, 0.36, 1)
+          forwards;
       }
 
       @keyframes contributeSuccessFlow {
@@ -3502,20 +3502,52 @@
       }
 
       .ecva-inbox-delete-btn {
-        width: 38px;
-        height: 38px;
-        border-radius: 10px;
-        border: 1px solid rgba(161, 91, 102, 0.45);
-        background: #fbe8eb;
-        color: #7a2e35;
-        font-size: 18px;
-        line-height: 1;
+        width: 56px;
+        min-width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        border: 1px solid rgba(120, 35, 35, 0.82);
+        background: linear-gradient(180deg, #a44a4a 0%, #8a3535 100%);
+        color: #fff2f2;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        gap: 7px;
         cursor: pointer;
         align-self: end;
         justify-self: end;
+        transition:
+          transform 0.2s ease,
+          filter 0.2s ease,
+          min-width 0.2s ease;
+      }
+
+      .ecva-inbox-delete-btn:hover {
+        transform: scale(1.03);
+        filter: brightness(1.1);
+      }
+
+      .ecva-inbox-delete-btn svg {
+        width: 22px;
+        height: 22px;
+        fill: currentColor;
+      }
+
+      .ecva-inbox-delete-btn .ecva-inbox-delete-confirm-text {
+        display: none;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+      }
+
+      .ecva-inbox-delete-btn.is-confirm {
+        width: auto;
+        min-width: 132px;
+        padding: 0 16px;
+      }
+
+      .ecva-inbox-delete-btn.is-confirm .ecva-inbox-delete-confirm-text {
+        display: inline;
       }
 
       .ecva-inbox-empty {
@@ -3611,10 +3643,9 @@
       .ecva-manage-access-table-head,
       .ecva-manage-access-row-item {
         display: grid;
-        grid-template-columns: minmax(220px, 1.15fr) minmax(
-            190px,
-            0.95fr
-          ) minmax(170px, 0.72fr) minmax(260px, 1.35fr);
+        grid-template-columns:
+          minmax(220px, 1.15fr) minmax(190px, 0.95fr)
+          minmax(170px, 0.72fr) minmax(260px, 1.35fr);
         gap: 10px;
         align-items: center;
       }
@@ -3906,7 +3937,7 @@
 
       .ecva-manage-other-card.is-no-data .ecva-manage-status-cell {
         width: auto;
-        min-width: 100px;
+        width: 120px;
         flex: 0 0 auto;
       }
 
@@ -4926,7 +4957,9 @@
               style="display: none"
             >
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"></path>
+                <path
+                  d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"
+                ></path>
               </svg>
               <span class="ecva-editor-remove-confirm-text">Confirm</span>
             </button>
@@ -4937,7 +4970,12 @@
             >
               Cancel
             </button>
-            <button class="ecva-admin-btn primary ecva-editor-save-btn" type="submit">Save</button>
+            <button
+              class="ecva-admin-btn primary ecva-editor-save-btn"
+              type="submit"
+            >
+              Save
+            </button>
           </div>
         </form>
       </section>

@@ -2378,6 +2378,15 @@
             function normalizeSubmissionRecord(countryId, rawSubmission) {
               const code = String(countryId || "").trim().toUpperCase();
               if (!code || !rawSubmission || typeof rawSubmission !== "object") return null;
+              const legacyRepresentativeName = String(
+                rawSubmission.representativeName || rawSubmission.name || "",
+              ).trim();
+              const legacyRepresentativeTitle = String(
+                rawSubmission.representativeTitle || rawSubmission.role || "",
+              ).trim();
+              const legacyRepresentativeOrganisation = String(
+                rawSubmission.organisation || rawSubmission.organization || "",
+              ).trim();
               const submittedBy =
                 rawSubmission.submittedBy && typeof rawSubmission.submittedBy === "object"
                   ? {
@@ -2432,7 +2441,28 @@
                             }
                           : null,
                     }
-                  : null;
+                  : legacyRepresentativeName ||
+                      legacyRepresentativeTitle ||
+                      legacyRepresentativeOrganisation
+                    ? {
+                        name: legacyRepresentativeName,
+                        title: legacyRepresentativeTitle,
+                        organisation: legacyRepresentativeOrganisation,
+                        image: String(rawSubmission.image || "").trim(),
+                        sourceImage: String(
+                          rawSubmission.sourceImage || rawSubmission.image || "",
+                        ).trim(),
+                        crop:
+                          rawSubmission.crop && typeof rawSubmission.crop === "object"
+                            ? {
+                                x: Number(rawSubmission.crop.x),
+                                y: Number(rawSubmission.crop.y),
+                                w: Number(rawSubmission.crop.w),
+                                h: Number(rawSubmission.crop.h),
+                              }
+                            : null,
+                      }
+                    : null;
               return {
                 id:
                   String(rawSubmission.id || "").trim() ||
@@ -2445,8 +2475,14 @@
                 status: normalizeSubmissionStatus(rawSubmission.status),
                 pillarId: String(rawSubmission.pillarId || "").trim().toLowerCase(),
                 pillarLabel: String(rawSubmission.pillarLabel || "").trim(),
-                title: String(rawSubmission.title || "").trim(),
-                description: String(rawSubmission.description || "").trim(),
+                title:
+                  String(rawSubmission.title || "").trim() ||
+                  legacyRepresentativeName,
+                description:
+                  String(rawSubmission.description || "").trim() ||
+                  [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
+                    .filter(Boolean)
+                    .join(" • "),
                 languageAvailability: String(rawSubmission.languageAvailability || "").trim(),
                 links,
                 attachments,
