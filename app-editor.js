@@ -1967,7 +1967,6 @@
         showToast('Saved on temporary storage only. Check Postgres.', true);
         return;
       }
-      showToast('Saved permanently.');
     } catch (error) {
       showToast('Could not save permanently.', true);
     }
