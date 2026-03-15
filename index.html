@@ -989,6 +989,10 @@
         min-height: 42px;
       }
 
+      .contribute-language-url {
+        min-height: 42px;
+      }
+
       .contribute-language-controls {
         display: flex;
         align-items: center;
@@ -6461,6 +6465,10 @@
           const langLabel = document.createElement("label");
           langLabel.textContent = "Language";
           const langSelect = document.createElement("select");
+          const languageInputId = `resource-language-${item.id}`;
+          langLabel.setAttribute("for", languageInputId);
+          langSelect.id = languageInputId;
+          langSelect.name = `resourceLanguage-${item.id}`;
           langSelect.setAttribute("aria-label", "Language");
           const hasValue = Boolean(item.languageCode);
           if (!hasValue) {
@@ -6506,6 +6514,10 @@
           accessLabel.className = "contribute-language-type-field";
           accessLabel.textContent = "Type";
           const accessSelect = document.createElement("select");
+          const typeInputId = `resource-type-${item.id}`;
+          accessLabel.setAttribute("for", typeInputId);
+          accessSelect.id = typeInputId;
+          accessSelect.name = `resourceType-${item.id}`;
           accessSelect.setAttribute("aria-label", "Type");
           accessSelect.innerHTML = `
             <option value="url">Web link</option>
@@ -6526,6 +6538,10 @@
           if (item.accessType === "file") {
             valueLabel.textContent = "Resource file";
             const fileInput = document.createElement("input");
+            const fileInputId = `resource-file-${item.id}`;
+            valueLabel.setAttribute("for", fileInputId);
+            fileInput.id = fileInputId;
+            fileInput.name = `resourceFile-${item.id}`;
             fileInput.type = "file";
             fileInput.accept = RESOURCE_UPLOAD_ACCEPT;
             fileInput.className = "contribute-language-file";
@@ -6536,13 +6552,17 @@
               item.fileName = file && file.name ? file.name : "";
               saveResourceDraft();
               validateResourceForm(false);
-              renderResourceLanguageItems(item.id);
             });
             valueLabel.appendChild(fileInput);
           } else {
             valueLabel.textContent = "Resource link for this language";
             const urlInput = document.createElement("input");
+            const urlInputId = `resource-url-${item.id}`;
+            valueLabel.setAttribute("for", urlInputId);
+            urlInput.id = urlInputId;
+            urlInput.name = `resourceUrl-${item.id}`;
             urlInput.type = "url";
+            urlInput.className = "contribute-language-url";
             urlInput.placeholder = "https://...";
             urlInput.value = item.resourceUrl || "";
             urlInput.setAttribute("data-focus-value", "true");
@@ -6674,6 +6694,11 @@
           const languageCode = String(item.languageCode || "")
             .trim()
             .toLowerCase();
+          if (!languageCode) {
+            errors.push("Select a language.");
+            setFieldError(languageSelect, true);
+            return;
+          }
           const duplicated = seenLanguages.has(languageCode);
           seenLanguages.add(languageCode);
           if (duplicated) {
@@ -7992,6 +8017,9 @@
               const languageCode = String(item.languageCode || "")
                 .trim()
                 .toLowerCase();
+              if (!languageCode) {
+                throw new Error("missing_language_selection");
+              }
               const languageOption = getResourceLanguageOption(languageCode);
               if (item.accessType === "file") {
                 const file =
@@ -8084,10 +8112,17 @@
               closeContributeModal();
             }, 3000);
           } catch (error) {
-            setContributeStatus(
-              "Could not submit your suggestion. Please try again.",
-              "error",
-            );
+            if (String((error && error.message) || "") === "missing_language_selection") {
+              setContributeStatus(
+                "Select a language for each resource version.",
+                "error",
+              );
+            } else {
+              setContributeStatus(
+                "Could not submit your suggestion. Please try again.",
+                "error",
+              );
+            }
           } finally {
             if (submitBtn) submitBtn.disabled = false;
           }
