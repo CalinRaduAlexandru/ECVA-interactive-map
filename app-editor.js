@@ -984,11 +984,14 @@
       .ecva-rep-manage-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
       .ecva-rep-manage-list{display:grid;gap:8px}
       .ecva-rep-manage-empty{padding:14px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
-      .ecva-rep-manage-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
+      .ecva-rep-manage-row{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
       .ecva-rep-manage-row.is-dragging{opacity:.65}
       .ecva-rep-manage-row.is-drop-before{box-shadow:inset 0 2px 0 #2d5568}
       .ecva-rep-manage-row.is-drop-after{box-shadow:inset 0 -2px 0 #2d5568}
       .ecva-rep-manage-order{font:800 14px/1 "Alexandria",sans-serif;color:#284450}
+      .ecva-rep-manage-thumb{width:42px;height:42px;border-radius:10px;overflow:hidden;border:1px solid rgba(123,146,159,.45);background:#e4edf2;display:inline-flex;align-items:center;justify-content:center}
+      .ecva-rep-manage-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+      .ecva-rep-manage-thumb.is-empty::before{content:"?";font:800 16px/1 "Alexandria",sans-serif;color:#67818e}
       .ecva-rep-manage-main{min-width:0;display:grid;gap:2px}
       .ecva-rep-manage-name{margin:0;font:800 14px/1.25 "Alexandria",sans-serif;color:#203945;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
       .ecva-rep-manage-meta{margin:0;font:600 12px/1.35 "Alexandria",sans-serif;color:#567180;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1041,11 +1044,14 @@
     return slides.map((slideEl, orderIndex) => {
       const parsedIndex = Number(slideEl.getAttribute('data-slide-index'));
       const index = Number.isInteger(parsedIndex) && parsedIndex >= 0 ? parsedIndex : orderIndex;
-      const name = String(slideEl.querySelector('.country-modal-rep-name')?.textContent || '').trim();
-      const title = String(slideEl.querySelector('.country-modal-rep-role')?.textContent || '').trim();
-      const organisation = String(
-        slideEl.querySelector('.country-modal-rep-org-pill')?.textContent || '',
+      const name = String(slideEl.querySelector('.country-modal-rep-meta h5')?.textContent || '').trim();
+      const title = String(
+        slideEl.querySelector('.country-modal-representative-title')?.textContent || '',
       ).trim();
+      const organisation = String(
+        slideEl.querySelector('.country-modal-representative-org')?.textContent || '',
+      ).trim();
+      const image = String(slideEl.querySelector('.country-modal-rep-media img')?.getAttribute('src') || '').trim();
       return {
         slideEl,
         orderIndex,
@@ -1053,6 +1059,7 @@
         name: name || `Representative ${orderIndex + 1}`,
         title,
         organisation,
+        image,
       };
     });
   }
@@ -1070,9 +1077,13 @@
     representativeManageList.innerHTML = records
       .map((record, rowIndex) => {
         const meta = [record.title, record.organisation].filter(Boolean).join(' • ');
+        const thumbHtml = record.image
+          ? `<span class="ecva-rep-manage-thumb"><img src="${escapeHtml(record.image)}" alt="${escapeHtml(record.name)}" loading="lazy" decoding="async" /></span>`
+          : '<span class="ecva-rep-manage-thumb is-empty" aria-hidden="true"></span>';
         return `
           <article class="ecva-rep-manage-row" draggable="true" data-row-index="${rowIndex}">
             <span class="ecva-rep-manage-order">${rowIndex + 1}.</span>
+            ${thumbHtml}
             <div class="ecva-rep-manage-main">
               <p class="ecva-rep-manage-name">${escapeHtml(record.name)}</p>
               <p class="ecva-rep-manage-meta">${escapeHtml(meta || 'No title provided')}</p>
