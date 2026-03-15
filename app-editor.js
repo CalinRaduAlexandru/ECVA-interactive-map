@@ -198,6 +198,11 @@
   let versionHistoryList = null;
   let versionHistoryCloseBtn = null;
   let versionHistoryWired = false;
+  let representativeManageModal = null;
+  let representativeManageList = null;
+  let representativeManageCloseBtn = null;
+  let representativeManageAddBtn = null;
+  let representativeManageCountryId = '';
 
   function postToMap(type, payload) {
     if (!mapFrame.contentWindow) return;
@@ -679,6 +684,8 @@
         (manageRoot && manageRoot.classList.contains('is-visible')) ||
         (editorModal && editorModal.classList.contains('is-visible')) ||
         (versionHistoryModal && versionHistoryModal.classList.contains('is-visible')) ||
+        (representativeManageModal &&
+          representativeManageModal.classList.contains('is-visible')) ||
         (resetCodeModal && resetCodeModal.classList.contains('is-visible')),
     );
     document.documentElement.classList.toggle('ecva-scroll-locked', isLocked);
@@ -780,6 +787,7 @@
     closeResetCodeConfirm();
     closeEditorModal();
     closeVersionHistoryModal();
+    closeRepresentativeManageModal();
     pendingInboxRequests.forEach((pending) => {
       if (pending && pending.timeout) window.clearTimeout(pending.timeout);
     });
@@ -885,6 +893,218 @@
     if (!versionHistoryModal) return;
     versionHistoryModal.classList.remove('is-visible');
     versionHistoryModal.setAttribute('aria-hidden', 'true');
+    syncAdminOverlayScrollLock();
+  }
+
+  function ensureRepresentativeManageUi() {
+    if (representativeManageModal) return;
+    const style = document.createElement('style');
+    style.textContent = `
+      .ecva-rep-manage-modal{position:fixed;inset:0;z-index:3320;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
+      .ecva-rep-manage-modal.is-visible{display:flex}
+      .ecva-rep-manage-dialog{width:min(780px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:auto;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;gap:12px}
+      .ecva-rep-manage-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      .ecva-rep-manage-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
+      .ecva-rep-manage-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-rep-manage-list{display:grid;gap:8px}
+      .ecva-rep-manage-empty{padding:14px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
+      .ecva-rep-manage-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
+      .ecva-rep-manage-row.is-dragging{opacity:.65}
+      .ecva-rep-manage-row.is-drop-before{box-shadow:inset 0 2px 0 #2d5568}
+      .ecva-rep-manage-row.is-drop-after{box-shadow:inset 0 -2px 0 #2d5568}
+      .ecva-rep-manage-order{font:800 14px/1 "Alexandria",sans-serif;color:#284450}
+      .ecva-rep-manage-main{min-width:0;display:grid;gap:2px}
+      .ecva-rep-manage-name{margin:0;font:800 14px/1.25 "Alexandria",sans-serif;color:#203945;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .ecva-rep-manage-meta{margin:0;font:600 12px/1.35 "Alexandria",sans-serif;color:#567180;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .ecva-rep-manage-edit{height:34px;padding:0 10px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 12px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-rep-manage-handle{font:700 16px/1 "Alexandria",sans-serif;color:#5d7988;cursor:grab;padding:0 2px;user-select:none}
+      .ecva-rep-manage-foot{display:flex;justify-content:flex-end}
+      .ecva-rep-manage-add{height:42px;padding:0 14px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 14px "Alexandria",sans-serif;cursor:pointer}
+    `;
+    document.head.appendChild(style);
+
+    representativeManageModal = document.createElement('div');
+    representativeManageModal.className = 'ecva-rep-manage-modal';
+    representativeManageModal.setAttribute('aria-hidden', 'true');
+    representativeManageModal.innerHTML = `
+      <section class="ecva-rep-manage-dialog" role="dialog" aria-modal="true" aria-label="Manage representatives">
+        <header class="ecva-rep-manage-head">
+          <h3 class="ecva-rep-manage-title">Manage representatives</h3>
+          <button type="button" class="ecva-rep-manage-close">Close</button>
+        </header>
+        <div class="ecva-rep-manage-list"></div>
+        <footer class="ecva-rep-manage-foot">
+          <button type="button" class="ecva-rep-manage-add">+ Add representative</button>
+        </footer>
+      </section>
+    `;
+    document.body.appendChild(representativeManageModal);
+    representativeManageList = representativeManageModal.querySelector('.ecva-rep-manage-list');
+    representativeManageCloseBtn =
+      representativeManageModal.querySelector('.ecva-rep-manage-close');
+    representativeManageAddBtn = representativeManageModal.querySelector('.ecva-rep-manage-add');
+    representativeManageCloseBtn?.addEventListener('click', closeRepresentativeManageModal);
+    representativeManageModal.addEventListener('click', (event) => {
+      if (event.target === representativeManageModal) {
+        closeRepresentativeManageModal();
+      }
+    });
+    representativeManageAddBtn?.addEventListener('click', () => {
+      const targetCountry = normalizeManageCountryCode(representativeManageCountryId || selectedCountryId);
+      if (!targetCountry) return;
+      closeRepresentativeManageModal();
+      openAddRepresentativeEditor(targetCountry);
+    });
+  }
+
+  function getRepresentativeSlides(scope) {
+    if (!scope) return [];
+    const slides = Array.from(scope.querySelectorAll('.country-modal-rep-slide')).filter(
+      (slideEl) => !slideEl.classList.contains('is-empty'),
+    );
+    return slides.map((slideEl, orderIndex) => {
+      const parsedIndex = Number(slideEl.getAttribute('data-slide-index'));
+      const index = Number.isInteger(parsedIndex) && parsedIndex >= 0 ? parsedIndex : orderIndex;
+      const name = String(slideEl.querySelector('.country-modal-rep-name')?.textContent || '').trim();
+      const title = String(slideEl.querySelector('.country-modal-rep-role')?.textContent || '').trim();
+      const organisation = String(
+        slideEl.querySelector('.country-modal-rep-org-pill')?.textContent || '',
+      ).trim();
+      return {
+        slideEl,
+        orderIndex,
+        representativeIndex: index,
+        name: name || `Representative ${orderIndex + 1}`,
+        title,
+        organisation,
+      };
+    });
+  }
+
+  function renderRepresentativeManageList(countryId) {
+    if (!representativeManageList || !manageBody) return;
+    const normalizedCountryId = normalizeManageCountryCode(countryId || selectedCountryId);
+    representativeManageCountryId = normalizedCountryId;
+    const records = getRepresentativeSlides(manageBody);
+    if (!records.length) {
+      representativeManageList.innerHTML =
+        '<p class="ecva-rep-manage-empty">No representatives available yet.</p>';
+      return;
+    }
+    representativeManageList.innerHTML = records
+      .map((record, rowIndex) => {
+        const meta = [record.title, record.organisation].filter(Boolean).join(' • ');
+        return `
+          <article class="ecva-rep-manage-row" draggable="true" data-row-index="${rowIndex}">
+            <span class="ecva-rep-manage-order">${rowIndex + 1}.</span>
+            <div class="ecva-rep-manage-main">
+              <p class="ecva-rep-manage-name">${escapeHtml(record.name)}</p>
+              <p class="ecva-rep-manage-meta">${escapeHtml(meta || 'No title provided')}</p>
+            </div>
+            <button type="button" class="ecva-rep-manage-edit" data-rep-index="${record.representativeIndex}">Edit</button>
+            <span class="ecva-rep-manage-handle" aria-hidden="true">⋮⋮</span>
+          </article>
+        `;
+      })
+      .join('');
+
+    representativeManageList.querySelectorAll('.ecva-rep-manage-edit').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const repIndex = Number(btn.getAttribute('data-rep-index'));
+        if (!Number.isInteger(repIndex) || repIndex < 0) return;
+        const slideEl = manageBody.querySelector(
+          `.country-modal-rep-slide[data-slide-index="${repIndex}"]`,
+        );
+        if (!slideEl) return;
+        closeRepresentativeManageModal();
+        openRepresentativeEditor(slideEl, normalizedCountryId, repIndex);
+      });
+    });
+
+    let dragIndex = -1;
+    let dropIndex = -1;
+    let dropPlacement = 'after';
+    const rows = Array.from(representativeManageList.querySelectorAll('.ecva-rep-manage-row'));
+    const clearDropState = () => {
+      rows.forEach((row) => row.classList.remove('is-drop-before', 'is-drop-after'));
+      dropIndex = -1;
+      dropPlacement = 'after';
+    };
+    rows.forEach((row) => {
+      row.addEventListener('dragstart', (event) => {
+        dragIndex = Number(row.getAttribute('data-row-index'));
+        row.classList.add('is-dragging');
+        if (event.dataTransfer) {
+          event.dataTransfer.effectAllowed = 'move';
+          event.dataTransfer.setData('text/plain', String(dragIndex));
+        }
+      });
+      row.addEventListener('dragend', () => {
+        row.classList.remove('is-dragging');
+        dragIndex = -1;
+        clearDropState();
+      });
+      row.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        const targetIndex = Number(row.getAttribute('data-row-index'));
+        if (!Number.isInteger(targetIndex)) return;
+        const rect = row.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        const placeBefore = event.clientY < midY;
+        dropIndex = targetIndex;
+        dropPlacement = placeBefore ? 'before' : 'after';
+        rows.forEach((next) => {
+          next.classList.remove('is-drop-before', 'is-drop-after');
+        });
+        row.classList.add(placeBefore ? 'is-drop-before' : 'is-drop-after');
+      });
+      row.addEventListener('drop', (event) => {
+        event.preventDefault();
+        if (!Number.isInteger(dragIndex) || dragIndex < 0) return;
+        const targetIndex = Number(row.getAttribute('data-row-index'));
+        if (!Number.isInteger(targetIndex) || targetIndex < 0) return;
+        let finalIndex = targetIndex;
+        if (dropPlacement === 'after' && dragIndex < targetIndex) {
+          finalIndex = targetIndex;
+        } else if (dropPlacement === 'after' && dragIndex > targetIndex) {
+          finalIndex = targetIndex + 1;
+        } else if (dropPlacement === 'before' && dragIndex > targetIndex) {
+          finalIndex = targetIndex;
+        } else if (dropPlacement === 'before' && dragIndex < targetIndex) {
+          finalIndex = Math.max(0, targetIndex - 1);
+        }
+        if (finalIndex === dragIndex) {
+          clearDropState();
+          return;
+        }
+        postToMap('ecva-editor-reorder-representative', {
+          countryId: normalizedCountryId,
+          fromIndex: dragIndex,
+          toIndex: finalIndex,
+        });
+        clearDropState();
+      });
+    });
+  }
+
+  function openRepresentativeManageModal(countryId) {
+    ensureRepresentativeManageUi();
+    if (!representativeManageModal) return;
+    const normalizedCountryId = normalizeManageCountryCode(countryId || selectedCountryId);
+    if (!normalizedCountryId) return;
+    representativeManageCountryId = normalizedCountryId;
+    renderRepresentativeManageList(normalizedCountryId);
+    jumpToCountryWindowTopAcrossContexts();
+    setAdminOverlayTopOffset(representativeManageModal, 24);
+    representativeManageModal.classList.add('is-visible');
+    representativeManageModal.setAttribute('aria-hidden', 'false');
+    syncAdminOverlayScrollLock();
+  }
+
+  function closeRepresentativeManageModal() {
+    if (!representativeManageModal) return;
+    representativeManageModal.classList.remove('is-visible');
+    representativeManageModal.setAttribute('aria-hidden', 'true');
     syncAdminOverlayScrollLock();
   }
 
@@ -1896,15 +2116,15 @@
     });
 
     const footer = carouselWrap.querySelector('.country-modal-rep-footer');
-    if (!footer || footer.querySelector('.ecva-rep-add-btn')) return;
+    if (!footer || footer.querySelector('.ecva-rep-manage-btn')) return;
     const addBtn = document.createElement('button');
     addBtn.type = 'button';
-    addBtn.className = 'ecva-admin-btn secondary ecva-rep-add-btn';
+    addBtn.className = 'ecva-admin-btn secondary ecva-rep-manage-btn';
     addBtn.style.height = '44px';
     addBtn.style.fontSize = '14px';
-    addBtn.textContent = 'Add Representative';
+    addBtn.textContent = 'Manage representatives';
     addBtn.addEventListener('click', () => {
-      openAddRepresentativeEditor(countryId);
+      openRepresentativeManageModal(countryId);
     });
     footer.appendChild(addBtn);
   }
@@ -2479,6 +2699,15 @@
         manageBody.innerHTML = payload.html || '';
         renderGeneralAccessPanel();
         enhanceManageContent();
+      }
+      if (
+        type === 'ecva-editor-representatives-updated' &&
+        representativeManageModal &&
+        representativeManageModal.classList.contains('is-visible') &&
+        normalizeManageCountryCode(countryId) ===
+          normalizeManageCountryCode(representativeManageCountryId || selectedCountryId)
+      ) {
+        renderRepresentativeManageList(countryId);
       }
       showToast(type === 'ecva-editor-entry-updated' ? 'Text updated in the app.' : 'Representative updated in the app.');
       return;

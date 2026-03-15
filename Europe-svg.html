@@ -2699,6 +2699,34 @@
               return { countryId, representativeIndex: index };
             }
 
+            function reorderRepresentativeFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim();
+              const fromIndex = Number(payload.fromIndex);
+              const toIndex = Number(payload.toIndex);
+              if (
+                !countryId ||
+                !Number.isInteger(fromIndex) ||
+                !Number.isInteger(toIndex) ||
+                fromIndex < 0 ||
+                toIndex < 0
+              ) {
+                return null;
+              }
+              if (!Array.isArray(representativesByCountry[countryId])) return null;
+              const reps = representativesByCountry[countryId];
+              if (
+                fromIndex >= reps.length ||
+                toIndex >= reps.length ||
+                fromIndex === toIndex
+              ) {
+                return null;
+              }
+              const [moved] = reps.splice(fromIndex, 1);
+              reps.splice(toIndex, 0, moved);
+              return { countryId, fromIndex, toIndex };
+            }
+
             function sizeLegend() {
               const width = Math.ceil(legendCard.scrollWidth);
               const height = Math.ceil(legendCard.scrollHeight);
@@ -3624,6 +3652,30 @@
                   },
                   "*",
                 );
+                return;
+              }
+
+              if (type === "ecva-editor-reorder-representative") {
+                const updated = reorderRepresentativeFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-representatives-updated",
+                    payload: {
+                      countryId: updated.countryId,
+                      html: renderModalHtml(updated.countryId),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
               }
             });
           })();
