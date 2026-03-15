@@ -1062,6 +1062,27 @@
             };
             const countryAccessCodesByCountry = {};
 
+            function updateLegendCounts() {
+              if (!legendCard) return;
+              const counts = {
+                leading: 0,
+                high_momentum: 0,
+                development: 0,
+              };
+              Object.values(countryStatus).forEach((rawStatus) => {
+                const statusValue = normalizeStatusValue(rawStatus);
+                if (statusValue === "leading") counts.leading += 1;
+                if (statusValue === "high_momentum") counts.high_momentum += 1;
+                if (statusValue === "development") counts.development += 1;
+              });
+              const leadingNode = legendCard.querySelector(".legend-swatch.legend-leading");
+              const momentumNode = legendCard.querySelector(".legend-swatch.legend-momentum");
+              const developmentNode = legendCard.querySelector(".legend-swatch.legend-development");
+              if (leadingNode) leadingNode.textContent = String(counts.leading);
+              if (momentumNode) momentumNode.textContent = String(counts.high_momentum);
+              if (developmentNode) developmentNode.textContent = String(counts.development);
+            }
+
             function getDisplayCountryCode(countryCode) {
               const normalized = String(countryCode || "").trim().toUpperCase();
               return normalized === "GB" ? "UK" : normalized;
@@ -1683,6 +1704,11 @@
             function getRepresentatives(countryId) {
               const custom = representativesByCountry[countryId];
               if (Array.isArray(custom)) return custom;
+              const statusValue = normalizeStatusValue(countryStatus[countryId] || "no_data");
+              if (statusValue === "no_data") {
+                representativesByCountry[countryId] = [];
+                return representativesByCountry[countryId];
+              }
               const defaults = [
                 {
                   image:
@@ -2143,7 +2169,6 @@
 
             function openParentModal(countryId) {
               ensureCountryData(countryId);
-              if (!isStatusActive(countryStatus[countryId])) return;
               window.parent.postMessage(
                 {
                   type: "ecva-scroll-parent-top",
@@ -2169,6 +2194,17 @@
               if (!pathNode) return null;
               const info = ensureCountryData(normalizedCode) || {};
               const statusValue = normalizeStatusValue(countryStatus[normalizedCode] || "no_data");
+              const pillarIds = ["resources", "events", "research", "organisations", "government"];
+              const pillarSummary = pillarIds.reduce((acc, pillarId) => {
+                const config = getPillarConfig(normalizedCode, pillarId);
+                const hasEntries = Array.isArray(config.entries) && config.entries.length > 0;
+                const isActive = Boolean(config.active) && hasEntries;
+                acc[pillarId] = {
+                  active: isActive,
+                  count: isActive ? config.entries.length : 0,
+                };
+                return acc;
+              }, {});
               return {
                 code: normalizedCode,
                 name: String(info.name || pathNode.getAttribute("name") || normalizedCode),
@@ -2176,6 +2212,7 @@
                 status: getStatusLabel(statusValue),
                 statusValue,
                 accessCode: String(countryAccessCodesByCountry[normalizedCode] || "").trim().toLowerCase(),
+                pillarSummary,
               };
             }
 
@@ -3215,6 +3252,7 @@
                 if (!code) return;
                 applyCountryStatusVisual(code);
               });
+              updateLegendCounts();
             }
 
             function updateCountryStatusFromEditor(payload) {
@@ -3340,7 +3378,6 @@
                 const countryId = String(payload.countryId || "").trim();
                 const requestId = String(payload.requestId || "").trim();
                 ensureCountryData(countryId);
-                if (!isStatusActive(countryStatus[countryId])) return;
                 window.parent.postMessage(
                   {
                     type: "ecva-country-modal-html",

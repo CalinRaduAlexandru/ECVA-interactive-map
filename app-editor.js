@@ -169,6 +169,35 @@
     return 'Entries';
   }
 
+  const OVERVIEW_PILLAR_ORDER = [
+    'resources',
+    'events',
+    'research',
+    'organisations',
+    'government',
+  ];
+  const OVERVIEW_PILLAR_ICON = {
+    resources: '/assets/Resources.png',
+    events: '/assets/Events.png',
+    research: '/assets/Research.png',
+    organisations: '/assets/Organisations.png',
+    government: '/assets/Government.png',
+  };
+
+  function buildOverviewPillarStatusHtml(country) {
+    const summary = (country && country.pillarSummary && typeof country.pillarSummary === 'object')
+      ? country.pillarSummary
+      : {};
+    const icons = OVERVIEW_PILLAR_ORDER.map((pillarId) => {
+      const meta = summary[pillarId] && typeof summary[pillarId] === 'object' ? summary[pillarId] : {};
+      const isActive = Boolean(meta.active);
+      const iconPath = OVERVIEW_PILLAR_ICON[pillarId] || OVERVIEW_PILLAR_ICON.resources;
+      const title = `${String(pillarId).charAt(0).toUpperCase()}${String(pillarId).slice(1)}: ${isActive ? 'active' : 'pending/no data'}`;
+      return `<img class="ecva-manage-pillars-dot${isActive ? ' is-active' : ''}" src="${iconPath}" alt="" loading="lazy" decoding="async" title="${escapeHtml(title)}" />`;
+    }).join('');
+    return `<span class="ecva-manage-pillars-status" aria-hidden="true">${icons}</span>`;
+  }
+
   let activeCountries = [];
   let countryCatalog = [];
   let inboxByCountry = {};
@@ -625,7 +654,10 @@
     return `
       <article class="ecva-manage-access-row-item" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-access-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
-        ${buildStatusSelectHtml(countryCode, statusValue, variant)}
+        <span class="ecva-manage-status-cell">
+          ${buildOverviewPillarStatusHtml(country)}
+          ${buildStatusSelectHtml(countryCode, statusValue, variant)}
+        </span>
         ${buildCodeControlsHtml(countryCode, statusValue)}
       </article>
     `;
@@ -640,7 +672,10 @@
     return `
       <article class="ecva-manage-other-card" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-other-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
-        ${buildStatusSelectHtml(countryCode, statusValue, 'other')}
+        <span class="ecva-manage-status-cell">
+          ${buildOverviewPillarStatusHtml(country)}
+          ${buildStatusSelectHtml(countryCode, statusValue, 'other')}
+        </span>
         ${buildCodeControlsHtml(countryCode, statusValue)}
       </article>
     `;
