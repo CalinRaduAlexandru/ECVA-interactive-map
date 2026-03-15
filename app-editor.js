@@ -185,6 +185,8 @@
   };
 
   function buildOverviewPillarStatusHtml(country) {
+    const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
+    if (statusValue === 'no_data') return '';
     const summary = (country && country.pillarSummary && typeof country.pillarSummary === 'object')
       ? country.pillarSummary
       : {};
@@ -569,7 +571,7 @@
               if (resetMsg.textContent === 'The code has been reset.') {
                 resetMsg.classList.remove('is-visible');
               }
-            }, 2200);
+            }, 5200);
           }
           resettingCountryCode = '';
           resetResetButtonState();
@@ -621,6 +623,9 @@
   }
 
   function buildCodeControlsHtml(countryId, statusValue) {
+    if (normalizeStatusValue(statusValue) === 'no_data') {
+      return '';
+    }
     const code = getAccessCodeForCountry(countryId);
     return `
       <span class="ecva-manage-access-controls">
@@ -638,9 +643,9 @@
             <path d="M8 4.8A2.8 2.8 0 0 1 10.8 2h7.4A2.8 2.8 0 0 1 21 4.8v7.4a2.8 2.8 0 0 1-2.8 2.8H16v1.2A2.8 2.8 0 0 1 13.2 19H5.8A2.8 2.8 0 0 1 3 16.2V8.8A2.8 2.8 0 0 1 5.8 6H8V4.8Zm2-.8v8.2c0 .44.36.8.8.8H19c.44 0 .8-.36.8-.8V4.8c0-.44-.36-.8-.8-.8h-8.2c-.44 0-.8.36-.8.8ZM8 8H5.8c-.44 0-.8.36-.8.8v7.4c0 .44.36.8.8.8h7.4c.44 0 .8-.36.8-.8V15h-3.2A2.8 2.8 0 0 1 8 12.2V8Z"></path>
           </svg>
         </button>
+        <span class="ecva-manage-access-copied" aria-live="polite">Copied</span>
         <span class="ecva-manage-access-reset-msg" aria-live="polite"></span>
         <button type="button" class="ecva-manage-access-reset" data-reset-code aria-label="Reset app access code">Reset code</button>
-        <span class="ecva-manage-access-copied" aria-live="polite">Copied</span>
       </span>
     `;
   }

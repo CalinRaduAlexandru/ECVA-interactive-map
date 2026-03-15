@@ -3605,20 +3605,21 @@
         align-items: center;
         gap: 10px;
         min-width: 0;
+        padding-block: 3px;
       }
 
       .ecva-manage-pillars-status {
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
         flex: 0 0 auto;
       }
 
       .ecva-manage-pillars-dot {
-        width: 10px;
-        height: 10px;
+        width: 34px;
+        height: 34px;
         border-radius: 999px;
-        object-fit: cover;
+        object-fit: contain;
         opacity: 0.26;
         filter: saturate(0.9);
       }
@@ -3785,6 +3786,8 @@
         color: #18924f;
         opacity: 0;
         transform: translateY(2px);
+        margin-left: 2px;
+        margin-right: 6px;
         transition:
           opacity 0.2s ease,
           transform 0.2s ease;
