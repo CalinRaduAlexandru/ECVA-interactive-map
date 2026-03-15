@@ -3572,7 +3572,7 @@
       .ecva-manage-access-row-item {
         display: grid;
         grid-template-columns:
-          minmax(220px, 1.15fr) minmax(190px, 1fr) minmax(260px, 1.35fr);
+          minmax(220px, 1.15fr) minmax(190px, 0.95fr) minmax(170px, 0.72fr) minmax(260px, 1.35fr);
         gap: 10px;
         align-items: center;
       }
@@ -3599,13 +3599,18 @@
         color: #1f3642;
       }
 
-      .ecva-manage-status-cell {
+      .ecva-manage-milestones-cell {
         width: 100%;
         display: inline-flex;
         align-items: center;
-        gap: 10px;
+        min-height: 40px;
+      }
+
+      .ecva-manage-status-cell {
+        width: 100%;
+        display: flex;
+        align-items: center;
         min-width: 0;
-        padding-block: 3px;
       }
 
       .ecva-manage-pillars-status {
@@ -3613,6 +3618,7 @@
         align-items: center;
         gap: 6px;
         flex: 0 0 auto;
+        margin-right: 16px;
       }
 
       .ecva-manage-pillars-dot {
@@ -3630,7 +3636,7 @@
       }
 
       .ecva-manage-status-select {
-        width: min(100%, 52%);
+        width: 100%;
         min-height: 40px;
         border-radius: 999px;
         border: 1px solid rgba(120, 144, 156, 0.58);
@@ -3647,7 +3653,7 @@
         background-repeat: no-repeat;
         background-position: right 13px center;
         background-size: 14px 14px;
-        margin-left: auto;
+        margin-left: 0;
       }
 
       .ecva-manage-status-select.is-leading {

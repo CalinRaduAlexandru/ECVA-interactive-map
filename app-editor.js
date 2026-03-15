@@ -172,8 +172,8 @@
   const OVERVIEW_PILLAR_ORDER = [
     'resources',
     'events',
-    'research',
     'organisations',
+    'research',
     'government',
   ];
   const OVERVIEW_PILLAR_ICON = {
@@ -659,10 +659,8 @@
     return `
       <article class="ecva-manage-access-row-item" data-country-id="${countryCode}" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-access-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
-        <span class="ecva-manage-status-cell">
-          ${buildOverviewPillarStatusHtml(country)}
-          ${buildStatusSelectHtml(countryCode, statusValue, variant)}
-        </span>
+        <span class="ecva-manage-milestones-cell">${buildOverviewPillarStatusHtml(country)}</span>
+        <span class="ecva-manage-status-cell">${buildStatusSelectHtml(countryCode, statusValue, variant)}</span>
         ${buildCodeControlsHtml(countryCode, statusValue)}
       </article>
     `;
@@ -715,6 +713,7 @@
         <div class="ecva-manage-access-table">
           <div class="ecva-manage-access-table-head">
             <span>Country</span>
+            <span>Milestones</span>
             <span>Status</span>
             <span>App access*</span>
           </div>
