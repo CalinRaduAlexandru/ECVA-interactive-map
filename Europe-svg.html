@@ -2417,6 +2417,19 @@
                     }))
                     .filter((item) => item.name || item.url)
                 : [];
+              const resourceLanguages = Array.isArray(rawSubmission.resourceLanguages)
+                ? rawSubmission.resourceLanguages
+                    .filter((item) => item && typeof item === "object")
+                    .map((item) => ({
+                      languageCode: String(item.languageCode || "").trim().toLowerCase(),
+                      languageLabel: String(item.languageLabel || "").trim(),
+                      languageFlag: String(item.languageFlag || "").trim(),
+                      accessType: String(item.accessType || "url").trim().toLowerCase() === "file" ? "file" : "url",
+                      resourceUrl: String(item.resourceUrl || "").trim(),
+                      fileName: String(item.fileName || "").trim(),
+                    }))
+                    .filter((item) => item.languageCode && item.resourceUrl)
+                : [];
               const representativeDraft =
                 rawSubmission.representativeDraft &&
                 typeof rawSubmission.representativeDraft === "object"
@@ -2478,6 +2491,7 @@
                 title:
                   String(rawSubmission.title || "").trim() ||
                   legacyRepresentativeName,
+                subtitle: String(rawSubmission.subtitle || "").trim(),
                 description:
                   String(rawSubmission.description || "").trim() ||
                   [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
@@ -2486,6 +2500,7 @@
                 languageAvailability: String(rawSubmission.languageAvailability || "").trim(),
                 links,
                 attachments,
+                resourceLanguages,
                 submittedBy,
                 representativeContact,
                 representativeDraft,
@@ -2551,6 +2566,9 @@
               if (typeof fields.description === "string") {
                 record.description = String(fields.description || "").trim();
               }
+              if (typeof fields.subtitle === "string") {
+                record.subtitle = String(fields.subtitle || "").trim();
+              }
               if (typeof fields.languageAvailability === "string") {
                 record.languageAvailability = String(fields.languageAvailability || "").trim();
               }
@@ -2558,6 +2576,22 @@
                 record.links = fields.links
                   .map((next) => String(next || "").trim())
                   .filter(Boolean);
+              }
+              if (Array.isArray(fields.resourceLanguages)) {
+                record.resourceLanguages = fields.resourceLanguages
+                  .filter((item) => item && typeof item === "object")
+                  .map((item) => ({
+                    languageCode: String(item.languageCode || "").trim().toLowerCase(),
+                    languageLabel: String(item.languageLabel || "").trim(),
+                    languageFlag: String(item.languageFlag || "").trim(),
+                    accessType:
+                      String(item.accessType || "url").trim().toLowerCase() === "file"
+                        ? "file"
+                        : "url",
+                    resourceUrl: String(item.resourceUrl || "").trim(),
+                    fileName: String(item.fileName || "").trim(),
+                  }))
+                  .filter((item) => item.languageCode && item.resourceUrl);
               }
               if (
                 fields.representativeContact &&

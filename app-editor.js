@@ -2676,6 +2676,72 @@
     return "Article";
   }
 
+  function buildEntryFromArticleSubmission(item) {
+    const safeItem = item && typeof item === "object" ? item : {};
+    const title = String(safeItem.title || "").trim() || "Untitled entry";
+    const subtitle = String(safeItem.subtitle || "").trim();
+    const description = String(safeItem.description || "").trim();
+    const resourceLanguages = Array.isArray(safeItem.resourceLanguages)
+      ? safeItem.resourceLanguages
+          .filter((lang) => lang && typeof lang === "object")
+          .map((lang) => ({
+            languageLabel: String(lang.languageLabel || "").trim(),
+            languageFlag: String(lang.languageFlag || "").trim(),
+            languageCode: String(lang.languageCode || "")
+              .trim()
+              .toLowerCase(),
+            resourceUrl: String(lang.resourceUrl || "").trim(),
+            accessType:
+              String(lang.accessType || "").trim().toLowerCase() === "file"
+                ? "file"
+                : "url",
+            fileName: String(lang.fileName || "").trim(),
+          }))
+          .filter((lang) => lang.resourceUrl)
+      : [];
+    const links = Array.isArray(safeItem.links)
+      ? safeItem.links
+          .map((url) => String(url || "").trim())
+          .filter(Boolean)
+      : [];
+    const languageFlags = resourceLanguages
+      .map((lang) => lang.languageFlag)
+      .filter(Boolean);
+    const methods = resourceLanguages.length
+      ? resourceLanguages.map((lang) => {
+          const label =
+            lang.languageLabel ||
+            (lang.languageCode ? lang.languageCode.toUpperCase() : "Language");
+          if (lang.accessType === "file") {
+            return `${label}: ${lang.fileName || "File resource"}`;
+          }
+          return `${label}: ${lang.resourceUrl}`;
+        })
+      : links;
+    const contact =
+      safeItem.representativeContact &&
+      typeof safeItem.representativeContact === "object"
+        ? safeItem.representativeContact
+        : {};
+    const impact = [
+      String(contact.name || "").trim() ? `Contact: ${String(contact.name || "").trim()}` : "",
+      String(contact.role || "").trim() ? `Role: ${String(contact.role || "").trim()}` : "",
+      String(contact.email || "").trim() ? `Email: ${String(contact.email || "").trim()}` : "",
+    ].filter(Boolean);
+
+    return {
+      title,
+      subtitle,
+      summary: description,
+      description,
+      languages: languageFlags,
+      methods,
+      programs: [],
+      impact,
+      badges: [],
+    };
+  }
+
   function openSubmissionEditor(countryId, submissionId) {
     const code = normalizeManageCountryCode(countryId);
     if (!code || !submissionId) return;
@@ -2735,7 +2801,7 @@
     }
     if (editorTitle) editorTitle.value = String(item.title || "").trim();
     if (editorSubtitle)
-      editorSubtitle.value = String(item.pillarLabel || "").trim();
+      editorSubtitle.value = String(item.subtitle || item.pillarLabel || "").trim();
     if (editorDescription)
       editorDescription.value = String(item.description || "").trim();
     if (editorLanguageAvailability) {
@@ -3055,6 +3121,15 @@
               postToMap("ecva-editor-add-representative", {
                 countryId,
                 representative,
+              });
+            } else if (item) {
+              const pillarId = String(item.pillarId || "")
+                .trim()
+                .toLowerCase() || "resources";
+              postToMap("ecva-editor-add-entry", {
+                countryId,
+                pillarId,
+                entry: buildEntryFromArticleSubmission(item),
               });
             }
           }

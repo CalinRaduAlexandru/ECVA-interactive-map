@@ -858,6 +858,18 @@
         font-family: inherit;
         padding: 10px 11px;
         box-sizing: border-box;
+        transition:
+          border-color 180ms ease,
+          box-shadow 180ms ease,
+          background-color 180ms ease;
+      }
+
+      .contribute-form input:focus-visible,
+      .contribute-form textarea:focus-visible,
+      .contribute-form select:focus-visible {
+        outline: none;
+        border-color: #4278b8;
+        box-shadow: 0 0 0 3px rgba(66, 120, 184, 0.22);
       }
 
       .contribute-form textarea {
@@ -882,6 +894,133 @@
         letter-spacing: 0.04em;
         text-transform: uppercase;
         color: #2b4451;
+      }
+
+      .contribute-field-helper {
+        margin-top: -2px;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
+        color: #55707e;
+      }
+
+      .contribute-field-count {
+        justify-self: end;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #4f6b78;
+      }
+
+      .contribute-field-error {
+        font-size: 11px;
+        font-weight: 700;
+        color: #a03339;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .contribute-language-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .contribute-language-item {
+        border: 1px solid rgba(133, 156, 168, 0.45);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.84);
+        padding: 10px;
+        display: grid;
+        gap: 10px;
+      }
+
+      .contribute-language-item-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .contribute-language-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(124, 147, 159, 0.45);
+        background: rgba(239, 246, 250, 0.92);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: none;
+        color: #2c4654;
+      }
+
+      .contribute-language-remove {
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 10px;
+        border: 1px solid rgba(141, 45, 51, 0.42);
+        background: rgba(250, 236, 237, 0.96);
+        color: #8d2d33;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        cursor: pointer;
+      }
+
+      .contribute-language-fields {
+        display: grid;
+        grid-template-columns: minmax(180px, 0.9fr) minmax(0, 1.5fr) auto;
+        gap: 10px;
+        align-items: end;
+      }
+
+      .contribute-language-fields label {
+        text-transform: none;
+        letter-spacing: 0.01em;
+      }
+
+      .contribute-language-fields select {
+        width: 100%;
+        min-height: 42px;
+        border-radius: 10px;
+        border: 1px solid rgba(133, 156, 168, 0.62);
+        background: rgba(255, 255, 255, 0.98);
+        color: #203742;
+        font-size: 14px;
+        font-family: inherit;
+        padding: 9px 10px;
+        box-sizing: border-box;
+      }
+
+      .contribute-language-file {
+        min-height: 42px;
+      }
+
+      .contribute-language-file-name {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #486572;
+        text-transform: none;
+        letter-spacing: 0;
+        word-break: break-word;
+      }
+
+      .contribute-language-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .contribute-form input.is-invalid,
+      .contribute-form textarea.is-invalid,
+      .contribute-form select.is-invalid {
+        border-color: #b83f46;
+        box-shadow: 0 0 0 3px rgba(184, 63, 70, 0.16);
+        background: rgba(255, 246, 247, 0.98);
       }
 
       .contribute-form-status {
@@ -2639,6 +2778,15 @@
 
         .contribute-form-row {
           grid-template-columns: 1fr;
+        }
+
+        .contribute-language-fields {
+          grid-template-columns: 1fr;
+        }
+
+        .contribute-language-controls {
+          flex-direction: column;
+          align-items: flex-start;
         }
 
         .country-modal-header {
@@ -4507,121 +4655,129 @@
               <input type="hidden" name="mode" />
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" />
+              <input type="hidden" name="pillarLabel" />
               <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">Personal data</p>
-                <div class="contribute-form-row">
-                  <label>
-                    Your Name
-                    <input
-                      type="text"
-                      name="submitterName"
-                      placeholder="Your full name"
-                      required
-                    />
-                  </label>
-                  <label>
-                    Your Email
-                    <input
-                      type="email"
-                      name="submitterEmail"
-                      placeholder="you@example.org"
-                      required
-                    />
-                  </label>
+                <p class="contribute-form-segment-title">
+                  Resource basic information
+                </p>
+                <label>
+                  Title
+                  <input
+                    id="resource-title-input"
+                    type="text"
+                    name="title"
+                    placeholder="e.g. Character Toolkit for Schools"
+                    maxlength="72"
+                    required
+                  />
+                  <span class="contribute-field-helper"
+                    >Title will be displayed publicly.</span
+                  >
+                  <span
+                    class="contribute-field-count"
+                    id="resource-title-count"
+                    aria-live="polite"
+                    >0/72</span
+                  >
+                </label>
+                <label>
+                  Subtitle
+                  <input
+                    id="resource-subtitle-input"
+                    type="text"
+                    name="subtitle"
+                    placeholder="e.g. Teacher Implementation Guide"
+                    maxlength="120"
+                    required
+                  />
+                  <span
+                    class="contribute-field-count"
+                    id="resource-subtitle-count"
+                    aria-live="polite"
+                    >0/120</span
+                  >
+                </label>
+                <label>
+                  Description
+                  <textarea
+                    id="resource-description-input"
+                    name="description"
+                    maxlength="200"
+                    placeholder="Write a short and clear resource description."
+                    required
+                  ></textarea>
+                  <span class="contribute-field-helper"
+                    >Write a short and clear description of the resource.</span
+                  >
+                  <span
+                    class="contribute-field-count"
+                    id="resource-description-count"
+                    aria-live="polite"
+                    >0/200</span
+                  >
+                </label>
+              </section>
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">Available languages</p>
+                <p class="contribute-form-section-title">
+                  Add one resource version per language
+                </p>
+                <div
+                  id="resource-language-list"
+                  class="contribute-language-list"
+                ></div>
+                <div class="contribute-language-controls">
+                  <button
+                    id="resource-add-language-btn"
+                    class="contribute-form-btn secondary"
+                    type="button"
+                  >
+                    Add another language
+                  </button>
+                  <span class="contribute-field-helper"
+                    >Maximum 3 languages total (default + 2 extra).</span
+                  >
                 </div>
               </section>
               <section class="contribute-form-segment">
                 <p class="contribute-form-segment-title">
-                  Suggested public information
+                  Contact resource creator
+                </p>
+                <p class="contribute-form-section-title">
+                  These details are public and shown at the end of the article.
                 </p>
                 <div class="contribute-form-row">
                   <label>
-                    Country
+                    Name
                     <input
                       type="text"
-                      name="countryCode"
-                      placeholder="Country code"
-                      readonly
+                      name="contactName"
+                      placeholder="Full name"
+                      required
                     />
                   </label>
                   <label>
-                    Languages available for reading
+                    Role
                     <input
                       type="text"
-                      name="languageAvailability"
-                      placeholder="e.g. Romanian, English, German"
-                    />
-                  </label>
-                </div>
-                <div class="contribute-form-row">
-                  <label>
-                    Pillar
-                    <input
-                      type="text"
-                      name="pillarLabel"
-                      placeholder="Auto selected"
-                      readonly
-                    />
-                  </label>
-                  <label>
-                    <span id="contribute-title-label">Title</span>
-                    <input
-                      id="contribute-title-input"
-                      type="text"
-                      name="title"
-                      placeholder="Article title"
+                      name="contactRole"
+                      placeholder="Role / title"
                       required
                     />
                   </label>
                 </div>
                 <label>
-                  Description
-                  <textarea
-                    name="description"
-                    placeholder="Summary, scope, impact, and any verification details."
+                  Email
+                  <input
+                    type="email"
+                    name="contactEmail"
+                    placeholder="name@example.org"
                     required
-                  ></textarea>
+                  />
+                  <span class="contribute-field-helper"
+                    >Used if clarifications are needed.</span
+                  >
                 </label>
-                <label>
-                  Links
-                  <textarea
-                    name="links"
-                    placeholder="One link per line (article, source, profile, institution, etc.)"
-                  ></textarea>
-                </label>
-                <label>
-                  Attachments
-                  <input type="file" name="attachments" multiple />
-                </label>
-                <fieldset class="contribute-form-contact">
-                  <legend>Contact representative</legend>
-                  <div class="contribute-form-row">
-                    <label>
-                      Name
-                      <input
-                        type="text"
-                        name="contactName"
-                        placeholder="Representative name"
-                      />
-                    </label>
-                    <label>
-                      Role
-                      <input
-                        type="text"
-                        name="contactRole"
-                        placeholder="Representative role"
-                      />
-                    </label>
-                  </div>
-                  <label>
-                    Email
-                    <input
-                      type="email"
-                      name="contactEmail"
-                      placeholder="representative@example.org"
-                    />
-                  </label>
-                </fieldset>
               </section>
               <div class="contribute-form-actions">
                 <p
@@ -4636,7 +4792,11 @@
                 >
                   Cancel
                 </button>
-                <button class="contribute-form-btn primary" type="submit">
+                <button
+                  class="contribute-form-btn primary"
+                  id="resource-submit-btn"
+                  type="submit"
+                >
                   Send for review
                 </button>
               </div>
@@ -5877,12 +6037,27 @@
       const contributeRepFormStatus = document.getElementById(
         "contribute-rep-form-status",
       );
-      const contributeTitleLabel = document.getElementById(
-        "contribute-title-label",
+      const resourceTitleInput = document.getElementById("resource-title-input");
+      const resourceSubtitleInput = document.getElementById(
+        "resource-subtitle-input",
       );
-      const contributeTitleInput = document.getElementById(
-        "contribute-title-input",
+      const resourceDescriptionInput = document.getElementById(
+        "resource-description-input",
       );
+      const resourceTitleCount = document.getElementById("resource-title-count");
+      const resourceSubtitleCount = document.getElementById(
+        "resource-subtitle-count",
+      );
+      const resourceDescriptionCount = document.getElementById(
+        "resource-description-count",
+      );
+      const resourceLanguageList = document.getElementById(
+        "resource-language-list",
+      );
+      const resourceAddLanguageBtn = document.getElementById(
+        "resource-add-language-btn",
+      );
+      const resourceSubmitBtn = document.getElementById("resource-submit-btn");
       const contributeRepPhotoInput = document.getElementById(
         "contribute-rep-photo",
       );
@@ -5974,6 +6149,8 @@
       };
       let modalCloseTimer = null;
       let contributeSuccessFlowTimer = null;
+      let resourceLanguageItems = [];
+      let resourceLangUid = 0;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
       const REP_FORM_COPY = {
@@ -5995,6 +6172,589 @@
           close: "Închide",
         },
       };
+      const RESOURCE_LIMITS = {
+        title: 72,
+        subtitle: 120,
+        description: 200,
+        maxLanguages: 3,
+      };
+      const RESOURCE_UPLOAD_ACCEPT =
+        ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
+      const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g)$/i;
+      const languageCountryCodeByPrimary = Object.entries(
+        COUNTRY_PRIMARY_LANGUAGE,
+      ).reduce((acc, [countryCode, languageCode]) => {
+        const key = String(languageCode || "").trim().toLowerCase();
+        if (key && !acc[key]) {
+          acc[key] = String(countryCode || "").trim().toUpperCase();
+        }
+        return acc;
+      }, {});
+      const resourceLanguageOptions = Array.from(
+        new Set(Object.values(COUNTRY_PRIMARY_LANGUAGE).concat(["en"])),
+      )
+        .map((code) => String(code || "").trim().toLowerCase())
+        .filter(Boolean)
+        .sort((a, b) => {
+          const labelA = (LANGUAGE_ENDONYMS[a] || a).toLowerCase();
+          const labelB = (LANGUAGE_ENDONYMS[b] || b).toLowerCase();
+          return labelA.localeCompare(labelB);
+        })
+        .map((code) => ({
+          code,
+          label: LANGUAGE_ENDONYMS[code] || code.toUpperCase(),
+          flag: getFlagEmojiByCountryCode(languageCountryCodeByPrimary[code]),
+        }));
+
+      function getFlagEmojiByCountryCode(countryCode) {
+        const normalized = String(countryCode || "")
+          .trim()
+          .toUpperCase();
+        if (!/^[A-Z]{2}$/.test(normalized)) return "🏳️";
+        return String.fromCodePoint(
+          ...normalized.split("").map((char) => 127397 + char.charCodeAt(0)),
+        );
+      }
+
+      function getResourceLanguageOption(languageCode) {
+        const code = String(languageCode || "").trim().toLowerCase();
+        const found = resourceLanguageOptions.find((item) => item.code === code);
+        if (found) return found;
+        return {
+          code,
+          label: LANGUAGE_ENDONYMS[code] || code.toUpperCase() || "Language",
+          flag: getFlagEmojiByCountryCode(languageCountryCodeByPrimary[code]),
+        };
+      }
+
+      function getCountryDefaultLanguage(countryId) {
+        const code = String(countryId || "")
+          .trim()
+          .toUpperCase();
+        const lang = String(COUNTRY_PRIMARY_LANGUAGE[code] || "")
+          .trim()
+          .toLowerCase();
+        if (lang) return lang;
+        if (isValidLangCode(activeLang)) return String(activeLang);
+        return "en";
+      }
+
+      function createResourceLanguageItem(languageCode, isPrimary) {
+        resourceLangUid += 1;
+        return {
+          id: `lang-${resourceLangUid}`,
+          languageCode: String(languageCode || "en").trim().toLowerCase(),
+          accessType: "url",
+          resourceUrl: "",
+          file: null,
+          fileName: "",
+          isPrimary: Boolean(isPrimary),
+        };
+      }
+
+      function getResourceAutosaveKey() {
+        if (!contributeContext || !contributeContext.countryId) return "";
+        const country = String(contributeContext.countryId || "")
+          .trim()
+          .toUpperCase();
+        const pillar = String(contributeContext.pillarId || "")
+          .trim()
+          .toLowerCase();
+        if (!country || !pillar) return "";
+        return `ecva-resource-draft:${country}:${pillar}`;
+      }
+
+      function saveResourceDraft() {
+        if (!contributeForm || contributeContext.mode !== "article") return;
+        const key = getResourceAutosaveKey();
+        if (!key) return;
+        const payload = {
+          title: String((resourceTitleInput && resourceTitleInput.value) || ""),
+          subtitle: String(
+            (resourceSubtitleInput && resourceSubtitleInput.value) || "",
+          ),
+          description: String(
+            (resourceDescriptionInput && resourceDescriptionInput.value) || "",
+          ),
+          contactName: String(
+            (contributeForm.querySelector('[name="contactName"]') || {}).value ||
+              "",
+          ),
+          contactRole: String(
+            (contributeForm.querySelector('[name="contactRole"]') || {}).value ||
+              "",
+          ),
+          contactEmail: String(
+            (contributeForm.querySelector('[name="contactEmail"]') || {}).value ||
+              "",
+          ),
+          resourceLanguages: resourceLanguageItems.map((item) => ({
+            languageCode: item.languageCode,
+            accessType: item.accessType,
+            resourceUrl: item.resourceUrl,
+            fileName: item.fileName || "",
+            isPrimary: Boolean(item.isPrimary),
+          })),
+        };
+        try {
+          window.localStorage.setItem(key, JSON.stringify(payload));
+        } catch (_error) {}
+      }
+
+      function clearResourceDraft() {
+        const key = getResourceAutosaveKey();
+        if (!key) return;
+        try {
+          window.localStorage.removeItem(key);
+        } catch (_error) {}
+      }
+
+      function restoreResourceDraft() {
+        if (!contributeForm) return false;
+        const key = getResourceAutosaveKey();
+        if (!key) return false;
+        let payload = null;
+        try {
+          payload = JSON.parse(window.localStorage.getItem(key) || "null");
+        } catch (_error) {
+          payload = null;
+        }
+        if (!payload || typeof payload !== "object") return false;
+        if (resourceTitleInput) {
+          resourceTitleInput.value = String(payload.title || "");
+        }
+        if (resourceSubtitleInput) {
+          resourceSubtitleInput.value = String(payload.subtitle || "");
+        }
+        if (resourceDescriptionInput) {
+          resourceDescriptionInput.value = String(payload.description || "");
+        }
+        const contactNameInput = contributeForm.querySelector(
+          '[name="contactName"]',
+        );
+        const contactRoleInput = contributeForm.querySelector(
+          '[name="contactRole"]',
+        );
+        const contactEmailInput = contributeForm.querySelector(
+          '[name="contactEmail"]',
+        );
+        if (contactNameInput) {
+          contactNameInput.value = String(payload.contactName || "");
+        }
+        if (contactRoleInput) {
+          contactRoleInput.value = String(payload.contactRole || "");
+        }
+        if (contactEmailInput) {
+          contactEmailInput.value = String(payload.contactEmail || "");
+        }
+        if (
+          Array.isArray(payload.resourceLanguages) &&
+          payload.resourceLanguages.length
+        ) {
+          resourceLanguageItems = payload.resourceLanguages
+            .slice(0, RESOURCE_LIMITS.maxLanguages)
+            .map((item, index) => {
+              const languageCode = String(item.languageCode || "")
+                .trim()
+                .toLowerCase();
+              const normalizedCode = getResourceLanguageOption(languageCode).code;
+              return {
+                id: createResourceLanguageItem(normalizedCode, index === 0).id,
+                languageCode: normalizedCode,
+                accessType: item.accessType === "file" ? "file" : "url",
+                resourceUrl: String(item.resourceUrl || ""),
+                file: null,
+                fileName: String(item.fileName || ""),
+                isPrimary: index === 0,
+              };
+            });
+          if (!resourceLanguageItems.length) {
+            resourceLanguageItems = [
+              createResourceLanguageItem(
+                getCountryDefaultLanguage(contributeContext.countryId),
+                true,
+              ),
+            ];
+          }
+          resourceLanguageItems[0].isPrimary = true;
+        }
+        return true;
+      }
+
+      function updateResourceCounter(input, output, limit) {
+        if (!input || !output) return;
+        const value = String(input.value || "");
+        output.textContent = `${value.length}/${limit}`;
+      }
+
+      function isLikelyValidUrl(value) {
+        const text = String(value || "").trim();
+        if (!text) return false;
+        try {
+          const parsed = new URL(text);
+          return parsed.protocol === "http:" || parsed.protocol === "https:";
+        } catch (_error) {
+          return false;
+        }
+      }
+
+      function renderResourceLanguageItems(focusItemId) {
+        if (!resourceLanguageList) return;
+        resourceLanguageList.innerHTML = "";
+        const usedLanguages = new Set();
+        resourceLanguageItems.forEach((item, index) => {
+          const option = getResourceLanguageOption(item.languageCode);
+          const card = document.createElement("section");
+          card.className = "contribute-language-item";
+          card.setAttribute("data-resource-lang-id", item.id);
+          const duplicate = usedLanguages.has(item.languageCode);
+          usedLanguages.add(item.languageCode);
+
+          const head = document.createElement("div");
+          head.className = "contribute-language-item-head";
+          const badge = document.createElement("span");
+          badge.className = "contribute-language-badge";
+          badge.textContent = `${option.flag} ${option.label}`;
+          head.appendChild(badge);
+          if (!item.isPrimary) {
+            const removeBtn = document.createElement("button");
+            removeBtn.type = "button";
+            removeBtn.className = "contribute-language-remove";
+            removeBtn.textContent = "Remove";
+            removeBtn.addEventListener("click", () => {
+              resourceLanguageItems = resourceLanguageItems.filter(
+                (next) => next.id !== item.id,
+              );
+              if (resourceLanguageItems[0]) {
+                resourceLanguageItems[0].isPrimary = true;
+              }
+              renderResourceLanguageItems();
+              saveResourceDraft();
+              validateResourceForm(false);
+            });
+            head.appendChild(removeBtn);
+          }
+          card.appendChild(head);
+
+          const fields = document.createElement("div");
+          fields.className = "contribute-language-fields";
+
+          const langLabel = document.createElement("label");
+          langLabel.textContent = "Language";
+          const langSelect = document.createElement("select");
+          langSelect.setAttribute("aria-label", "Language");
+          resourceLanguageOptions.forEach((langOption) => {
+            const opt = document.createElement("option");
+            opt.value = langOption.code;
+            opt.textContent = `${langOption.flag} ${langOption.label}`;
+            if (langOption.code === item.languageCode) {
+              opt.selected = true;
+            }
+            langSelect.appendChild(opt);
+          });
+          langSelect.addEventListener("change", () => {
+            const nextCode = String(langSelect.value || "")
+              .trim()
+              .toLowerCase();
+            const duplicate = resourceLanguageItems.some(
+              (next) => next.id !== item.id && next.languageCode === nextCode,
+            );
+            if (duplicate) {
+              setContributeStatus("This language was already added.", "error");
+              langSelect.value = item.languageCode;
+              setFieldError(langSelect, true);
+              return;
+            }
+            item.languageCode = nextCode;
+            renderResourceLanguageItems(item.id);
+            saveResourceDraft();
+            validateResourceForm(false);
+          });
+          langLabel.appendChild(langSelect);
+          fields.appendChild(langLabel);
+
+          const accessLabel = document.createElement("label");
+          accessLabel.textContent = "Resource access";
+          const accessSelect = document.createElement("select");
+          accessSelect.setAttribute("aria-label", "Resource access");
+          accessSelect.innerHTML = `
+            <option value="url">Web link</option>
+            <option value="file">Upload file</option>
+          `;
+          accessSelect.value = item.accessType === "file" ? "file" : "url";
+          accessSelect.addEventListener("change", () => {
+            item.accessType = accessSelect.value === "file" ? "file" : "url";
+            renderResourceLanguageItems(item.id);
+            saveResourceDraft();
+            validateResourceForm(false);
+          });
+          accessLabel.appendChild(accessSelect);
+          fields.appendChild(accessLabel);
+
+          const valueLabel = document.createElement("label");
+          valueLabel.setAttribute("data-resource-focus-anchor", item.id);
+          if (item.accessType === "file") {
+            valueLabel.textContent = "Resource file";
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = RESOURCE_UPLOAD_ACCEPT;
+            fileInput.className = "contribute-language-file";
+            fileInput.addEventListener("change", () => {
+              const file = fileInput.files && fileInput.files[0];
+              item.file = file || null;
+              item.fileName = file && file.name ? file.name : "";
+              saveResourceDraft();
+              validateResourceForm(false);
+              renderResourceLanguageItems(item.id);
+            });
+            valueLabel.appendChild(fileInput);
+            const fileName = document.createElement("span");
+            fileName.className = "contribute-language-file-name";
+            fileName.textContent =
+              item.file instanceof File
+                ? item.file.name
+                : item.fileName
+                  ? `${item.fileName} (re-upload required)`
+                  : "No file selected";
+            valueLabel.appendChild(fileName);
+          } else {
+            valueLabel.textContent = "Resource link for this language";
+            const urlInput = document.createElement("input");
+            urlInput.type = "url";
+            urlInput.placeholder = "https://...";
+            urlInput.value = item.resourceUrl || "";
+            urlInput.addEventListener("input", () => {
+              item.resourceUrl = String(urlInput.value || "");
+              saveResourceDraft();
+              validateResourceForm(false);
+            });
+            valueLabel.appendChild(urlInput);
+          }
+          fields.appendChild(valueLabel);
+          card.appendChild(fields);
+
+          if (duplicate) {
+            const duplicateError = document.createElement("span");
+            duplicateError.className = "contribute-field-error";
+            duplicateError.textContent = "This language was already added.";
+            card.appendChild(duplicateError);
+          }
+          resourceLanguageList.appendChild(card);
+        });
+        if (resourceAddLanguageBtn) {
+          resourceAddLanguageBtn.disabled =
+            resourceLanguageItems.length >= RESOURCE_LIMITS.maxLanguages;
+        }
+        if (focusItemId) {
+          const anchor = resourceLanguageList.querySelector(
+            `[data-resource-focus-anchor="${focusItemId}"] input`,
+          );
+          if (anchor) {
+            window.requestAnimationFrame(() => {
+              anchor.focus();
+            });
+          }
+        }
+      }
+
+      function initializeResourceFormForCountry(countryId) {
+        const normalizedCountry = String(countryId || "")
+          .trim()
+          .toUpperCase();
+        const defaultLanguage = getCountryDefaultLanguage(normalizedCountry);
+        resourceLanguageItems = [createResourceLanguageItem(defaultLanguage, true)];
+        const restored = restoreResourceDraft();
+        if (!restored) {
+          if (resourceTitleInput) resourceTitleInput.value = "";
+          if (resourceSubtitleInput) resourceSubtitleInput.value = "";
+          if (resourceDescriptionInput) resourceDescriptionInput.value = "";
+        }
+        updateResourceCounter(
+          resourceTitleInput,
+          resourceTitleCount,
+          RESOURCE_LIMITS.title,
+        );
+        updateResourceCounter(
+          resourceSubtitleInput,
+          resourceSubtitleCount,
+          RESOURCE_LIMITS.subtitle,
+        );
+        updateResourceCounter(
+          resourceDescriptionInput,
+          resourceDescriptionCount,
+          RESOURCE_LIMITS.description,
+        );
+        renderResourceLanguageItems();
+        validateResourceForm(false);
+      }
+
+      function setFieldError(input, hasError) {
+        if (!input) return;
+        input.classList.toggle("is-invalid", Boolean(hasError));
+        if (hasError) {
+          input.setAttribute("aria-invalid", "true");
+        } else {
+          input.removeAttribute("aria-invalid");
+        }
+      }
+
+      function validateResourceForm(showStatus) {
+        if (!contributeForm) return false;
+        const errors = [];
+        const title = String((resourceTitleInput && resourceTitleInput.value) || "")
+          .trim();
+        const subtitle = String(
+          (resourceSubtitleInput && resourceSubtitleInput.value) || "",
+        ).trim();
+        const description = String(
+          (resourceDescriptionInput && resourceDescriptionInput.value) || "",
+        ).trim();
+        const contactName = String(
+          (contributeForm.querySelector('[name="contactName"]') || {}).value || "",
+        ).trim();
+        const contactRole = String(
+          (contributeForm.querySelector('[name="contactRole"]') || {}).value || "",
+        ).trim();
+        const contactEmail = String(
+          (contributeForm.querySelector('[name="contactEmail"]') || {}).value || "",
+        ).trim();
+        setFieldError(resourceTitleInput, !title);
+        setFieldError(resourceSubtitleInput, !subtitle);
+        setFieldError(resourceDescriptionInput, !description);
+        if (!title) errors.push("Complete the title.");
+        if (!subtitle) errors.push("Complete the subtitle.");
+        if (!description) errors.push("Complete the description.");
+        const seenLanguages = new Set();
+        resourceLanguageItems.forEach((item) => {
+          const card = resourceLanguageList
+            ? resourceLanguageList.querySelector(
+                `[data-resource-lang-id="${item.id}"]`,
+              )
+            : null;
+          const languageSelect = card ? card.querySelector("select") : null;
+          const valueInput = card
+            ? card.querySelector(
+                item.accessType === "file" ? 'input[type="file"]' : 'input[type="url"]',
+              )
+            : null;
+          const languageCode = String(item.languageCode || "")
+            .trim()
+            .toLowerCase();
+          const duplicated = seenLanguages.has(languageCode);
+          seenLanguages.add(languageCode);
+          if (duplicated) {
+            errors.push("This language was already added.");
+            setFieldError(languageSelect, true);
+          } else {
+            setFieldError(languageSelect, false);
+          }
+          if (item.accessType === "file") {
+            const hasFile = item.file instanceof File;
+            const fileName = String((item.file && item.file.name) || "");
+            const fileOk = fileName ? RESOURCE_FILE_RE.test(fileName) : false;
+            if (!hasFile) {
+              errors.push("Upload a file for each added language.");
+              setFieldError(valueInput, true);
+            } else if (!fileOk) {
+              errors.push("File format is not supported.");
+              setFieldError(valueInput, true);
+            } else {
+              setFieldError(valueInput, false);
+            }
+          } else {
+            const urlOk = isLikelyValidUrl(item.resourceUrl);
+            if (!urlOk) {
+              errors.push("Link must be a valid URL.");
+              setFieldError(valueInput, true);
+            } else {
+              setFieldError(valueInput, false);
+            }
+          }
+        });
+        const contactNameInput = contributeForm.querySelector(
+          '[name="contactName"]',
+        );
+        const contactRoleInput = contributeForm.querySelector(
+          '[name="contactRole"]',
+        );
+        const contactEmailInput = contributeForm.querySelector(
+          '[name="contactEmail"]',
+        );
+        setFieldError(contactNameInput, !contactName);
+        setFieldError(contactRoleInput, !contactRole);
+        setFieldError(contactEmailInput, !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail));
+        if (!contactName) errors.push("Complete the name.");
+        if (!contactRole) errors.push("Complete the role.");
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
+          errors.push("Complete email in a valid format.");
+        }
+        const valid = errors.length === 0;
+        if (resourceSubmitBtn) {
+          resourceSubmitBtn.disabled = !valid;
+        }
+        if (valid) {
+          setContributeStatus("");
+        } else if (showStatus) {
+          setContributeStatus(errors[0], "error");
+        }
+        return valid;
+      }
+
+      function wireResourceForm() {
+        if (!contributeForm) return;
+        const watchedInputs = [
+          resourceTitleInput,
+          resourceSubtitleInput,
+          resourceDescriptionInput,
+          contributeForm.querySelector('[name="contactName"]'),
+          contributeForm.querySelector('[name="contactRole"]'),
+          contributeForm.querySelector('[name="contactEmail"]'),
+        ];
+        watchedInputs.forEach((input) => {
+          if (!input) return;
+          const eventName = input.tagName === "TEXTAREA" ? "input" : "input";
+          input.addEventListener(eventName, () => {
+            updateResourceCounter(
+              resourceTitleInput,
+              resourceTitleCount,
+              RESOURCE_LIMITS.title,
+            );
+            updateResourceCounter(
+              resourceSubtitleInput,
+              resourceSubtitleCount,
+              RESOURCE_LIMITS.subtitle,
+            );
+            updateResourceCounter(
+              resourceDescriptionInput,
+              resourceDescriptionCount,
+              RESOURCE_LIMITS.description,
+            );
+            saveResourceDraft();
+            validateResourceForm(false);
+          });
+        });
+        if (resourceAddLanguageBtn) {
+          resourceAddLanguageBtn.addEventListener("click", () => {
+            if (resourceLanguageItems.length >= RESOURCE_LIMITS.maxLanguages) {
+              return;
+            }
+            const used = new Set(
+              resourceLanguageItems.map((item) =>
+                String(item.languageCode || "").trim().toLowerCase(),
+              ),
+            );
+            const nextOption =
+              resourceLanguageOptions.find((item) => !used.has(item.code)) ||
+              resourceLanguageOptions[0] ||
+              { code: "en" };
+            const item = createResourceLanguageItem(nextOption.code, false);
+            resourceLanguageItems.push(item);
+            renderResourceLanguageItems(item.id);
+            saveResourceDraft();
+            validateResourceForm(false);
+          });
+        }
+      }
 
       function buildEmbedCode(langCode) {
         const candidate = String(langCode || "")
@@ -6717,9 +7477,6 @@
           const modeInput = contributeForm.querySelector('[name="mode"]');
           const countryInput =
             contributeForm.querySelector('[name="countryId"]');
-          const countryCodeInput = contributeForm.querySelector(
-            '[name="countryCode"]',
-          );
           const pillarIdInput =
             contributeForm.querySelector('[name="pillarId"]');
           const pillarLabelInput = contributeForm.querySelector(
@@ -6727,18 +7484,14 @@
           );
           if (modeInput) modeInput.value = mode;
           if (countryInput) countryInput.value = countryId;
-          if (countryCodeInput) countryCodeInput.value = countryId;
           if (pillarIdInput) pillarIdInput.value = pillarId;
           if (pillarLabelInput)
             pillarLabelInput.value =
               mode === "representative"
                 ? "Representatives"
                 : pillarLabel || "Pillar";
-          if (contributeTitleLabel) {
-            contributeTitleLabel.textContent = "Title";
-          }
-          if (contributeTitleInput) {
-            contributeTitleInput.placeholder = "Article title";
+          if (mode === "article") {
+            initializeResourceFormForCountry(countryId);
           }
         }
         if (contributeRepForm) {
@@ -7152,9 +7905,18 @@
         contributeRepCancelBtn.addEventListener("click", closeContributeModal);
       }
 
+      wireResourceForm();
+
       if (contributeForm) {
         contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
+          if (!validateResourceForm(true)) {
+            const invalid = contributeForm.querySelector(
+              ".is-invalid, [aria-invalid='true']",
+            );
+            if (invalid && typeof invalid.focus === "function") invalid.focus();
+            return;
+          }
           const formData = new FormData(contributeForm);
           const countryId = String(formData.get("countryId") || "")
             .trim()
@@ -7164,6 +7926,7 @@
             .toLowerCase();
           const pillarLabel = String(formData.get("pillarLabel") || "").trim();
           const title = String(formData.get("title") || "").trim();
+          const subtitle = String(formData.get("subtitle") || "").trim();
           const description = String(formData.get("description") || "").trim();
           if (!countryId) {
             setContributeStatus("Missing country context.", "error");
@@ -7180,21 +7943,65 @@
             );
             return;
           }
-          setContributeStatus("Uploading attachments...", "");
+          setContributeStatus("Uploading resource data...", "");
           const submitBtn = contributeForm.querySelector('[type="submit"]');
           if (submitBtn) submitBtn.disabled = true;
           try {
-            const attachmentFiles = (
-              formData.getAll("attachments") || []
-            ).filter(
-              (file) => file instanceof File && file.size > 0 && file.name,
-            );
-            const attachments =
-              await uploadContributeAttachments(attachmentFiles);
-            const links = String(formData.get("links") || "")
-              .split(/\r?\n/)
-              .map((item) => item.trim())
+            const resourceLanguages = [];
+            for (const item of resourceLanguageItems) {
+              const languageCode = String(item.languageCode || "")
+                .trim()
+                .toLowerCase();
+              const languageOption = getResourceLanguageOption(languageCode);
+              if (item.accessType === "file") {
+                const file =
+                  item.file instanceof File ? item.file : null;
+                if (!file && !item.resourceUrl) {
+                  throw new Error("missing_resource_file");
+                }
+                let uploaded = null;
+                if (file) {
+                  const fileUpload = await uploadContributeAttachments([file]);
+                  uploaded = fileUpload[0] || null;
+                }
+                resourceLanguages.push({
+                  languageCode,
+                  languageLabel: languageOption.label,
+                  languageFlag: languageOption.flag,
+                  accessType: "file",
+                  resourceUrl: uploaded && uploaded.url ? uploaded.url : "",
+                  fileName:
+                    (uploaded && uploaded.name) ||
+                    (file && file.name) ||
+                    String(item.fileName || ""),
+                });
+                continue;
+              }
+              resourceLanguages.push({
+                languageCode,
+                languageLabel: languageOption.label,
+                languageFlag: languageOption.flag,
+                accessType: "url",
+                resourceUrl: String(item.resourceUrl || "").trim(),
+                fileName: "",
+              });
+            }
+            const languageAvailability = resourceLanguages
+              .map((item) => item.languageLabel)
+              .filter(Boolean)
+              .join(", ");
+            const links = resourceLanguages
+              .map((item) => String(item.resourceUrl || "").trim())
               .filter(Boolean);
+            const attachments = resourceLanguages
+              .filter((item) => item.accessType === "file" && item.resourceUrl)
+              .map((item) => ({
+                name: item.fileName || `${item.languageLabel} file`,
+                url: item.resourceUrl,
+              }));
+            const contactName = String(formData.get("contactName") || "").trim();
+            const contactRole = String(formData.get("contactRole") || "").trim();
+            const contactEmail = String(formData.get("contactEmail") || "").trim();
             const submission = {
               id: `${countryId}-${Date.now()}-${Math.random()
                 .toString(36)
@@ -7204,20 +8011,20 @@
               pillarId,
               pillarLabel: pillarLabel || "Pillar",
               title,
+              subtitle,
               description,
-              languageAvailability: String(
-                formData.get("languageAvailability") || "",
-              ).trim(),
+              languageAvailability,
               links,
               attachments,
+              resourceLanguages,
               submittedBy: {
-                name: String(formData.get("submitterName") || "").trim(),
-                email: String(formData.get("submitterEmail") || "").trim(),
+                name: contactName,
+                email: contactEmail,
               },
               representativeContact: {
-                name: String(formData.get("contactName") || "").trim(),
-                role: String(formData.get("contactRole") || "").trim(),
-                email: String(formData.get("contactEmail") || "").trim(),
+                name: contactName,
+                role: contactRole,
+                email: contactEmail,
               },
               createdAt: new Date().toISOString(),
             };
@@ -7232,6 +8039,7 @@
             runContributeConfetti();
             triggerContributeSuccessFlow();
             setContributeStatus("Suggestion sent for review.", "success");
+            clearResourceDraft();
             window.setTimeout(() => {
               closeContributeModal();
             }, 3000);
