@@ -757,20 +757,38 @@
 
       .contribute-form {
         display: grid;
-        gap: 10px;
+        gap: 14px;
       }
 
       .contribute-form[hidden] {
         display: none !important;
       }
 
+      .contribute-form-segment {
+        border: 1px solid rgba(132, 153, 165, 0.38);
+        border-radius: 14px;
+        background: rgba(251, 254, 255, 0.9);
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .contribute-form-segment-title {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #2a4451;
+      }
+
       .contribute-form-section-title {
-        margin: 2px 0 -2px;
+        margin: 0;
         font-size: 12px;
         font-weight: 800;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.06em;
         text-transform: uppercase;
-        color: #2b4451;
+        color: #355562;
       }
 
       .contribute-form-row {
@@ -847,7 +865,13 @@
         align-items: center;
         justify-content: flex-end;
         gap: 10px;
-        margin-top: 4px;
+        margin-top: 2px;
+      }
+
+      .contribute-form-actions .contribute-form-status {
+        margin-right: auto;
+        min-height: 18px;
+        font-size: 13px;
       }
 
       .contribute-form-btn {
@@ -874,38 +898,6 @@
 
       .contribute-modal-main.is-hidden {
         display: none;
-      }
-
-      .contribute-modal-dialog.is-success-clean .contribute-modal-title,
-      .contribute-modal-dialog.is-success-clean .contribute-modal-lead {
-        display: none;
-      }
-
-      .contribute-success-view {
-        display: grid;
-        justify-items: center;
-        text-align: center;
-        gap: 14px;
-        padding: clamp(20px, 2.3vw, 30px) 8px 4px;
-      }
-
-      .contribute-success-view[hidden] {
-        display: none !important;
-      }
-
-      .contribute-success-title {
-        margin: 0;
-        font-size: clamp(22px, 2.6vw, 30px);
-        font-weight: 800;
-        color: #24404d;
-      }
-
-      .contribute-success-message {
-        margin: 0;
-        max-width: 620px;
-        font-size: clamp(15px, 1.8vw, 18px);
-        line-height: 1.52;
-        color: #355260;
       }
 
       .contribute-rep-cropper {
@@ -4016,120 +4008,128 @@
               <input type="hidden" name="mode" />
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" />
-              <div class="contribute-form-row">
-                <label>
-                  Your Name
-                  <input
-                    type="text"
-                    name="submitterName"
-                    placeholder="Your full name"
-                    required
-                  />
-                </label>
-                <label>
-                  Your Email
-                  <input
-                    type="email"
-                    name="submitterEmail"
-                    placeholder="you@example.org"
-                    required
-                  />
-                </label>
-              </div>
-              <div class="contribute-form-row">
-                <label>
-                  Country
-                  <input
-                    type="text"
-                    name="countryCode"
-                    placeholder="Country code"
-                    readonly
-                  />
-                </label>
-                <label>
-                  Languages available for reading
-                  <input
-                    type="text"
-                    name="languageAvailability"
-                    placeholder="e.g. Romanian, English, German"
-                  />
-                </label>
-              </div>
-              <div class="contribute-form-row">
-                <label>
-                  Pillar
-                  <input
-                    type="text"
-                    name="pillarLabel"
-                    placeholder="Auto selected"
-                    readonly
-                  />
-                </label>
-                <label>
-                  <span id="contribute-title-label">Title</span>
-                  <input
-                    id="contribute-title-input"
-                    type="text"
-                    name="title"
-                    placeholder="Article title"
-                    required
-                  />
-                </label>
-              </div>
-              <label>
-                Description
-                <textarea
-                  name="description"
-                  placeholder="Summary, scope, impact, and any verification details."
-                  required
-                ></textarea>
-              </label>
-              <label>
-                Links
-                <textarea
-                  name="links"
-                  placeholder="One link per line (article, source, profile, institution, etc.)"
-                ></textarea>
-              </label>
-              <label>
-                Attachments
-                <input
-                  type="file"
-                  name="attachments"
-                  multiple
-                />
-              </label>
-              <fieldset class="contribute-form-contact">
-                <legend>Contact representative</legend>
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">Personal data</p>
                 <div class="contribute-form-row">
                   <label>
-                    Name
+                    Your Name
                     <input
                       type="text"
-                      name="contactName"
-                      placeholder="Representative name"
+                      name="submitterName"
+                      placeholder="Your full name"
+                      required
                     />
                   </label>
                   <label>
-                    Role
+                    Your Email
+                    <input
+                      type="email"
+                      name="submitterEmail"
+                      placeholder="you@example.org"
+                      required
+                    />
+                  </label>
+                </div>
+              </section>
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">
+                  Suggested public information
+                </p>
+                <div class="contribute-form-row">
+                  <label>
+                    Country
                     <input
                       type="text"
-                      name="contactRole"
-                      placeholder="Representative role"
+                      name="countryCode"
+                      placeholder="Country code"
+                      readonly
+                    />
+                  </label>
+                  <label>
+                    Languages available for reading
+                    <input
+                      type="text"
+                      name="languageAvailability"
+                      placeholder="e.g. Romanian, English, German"
+                    />
+                  </label>
+                </div>
+                <div class="contribute-form-row">
+                  <label>
+                    Pillar
+                    <input
+                      type="text"
+                      name="pillarLabel"
+                      placeholder="Auto selected"
+                      readonly
+                    />
+                  </label>
+                  <label>
+                    <span id="contribute-title-label">Title</span>
+                    <input
+                      id="contribute-title-input"
+                      type="text"
+                      name="title"
+                      placeholder="Article title"
+                      required
                     />
                   </label>
                 </div>
                 <label>
-                  Email
-                  <input
-                    type="email"
-                    name="contactEmail"
-                    placeholder="representative@example.org"
-                  />
+                  Description
+                  <textarea
+                    name="description"
+                    placeholder="Summary, scope, impact, and any verification details."
+                    required
+                  ></textarea>
                 </label>
-              </fieldset>
-              <p id="contribute-form-status" class="contribute-form-status" aria-live="polite"></p>
+                <label>
+                  Links
+                  <textarea
+                    name="links"
+                    placeholder="One link per line (article, source, profile, institution, etc.)"
+                  ></textarea>
+                </label>
+                <label>
+                  Attachments
+                  <input type="file" name="attachments" multiple />
+                </label>
+                <fieldset class="contribute-form-contact">
+                  <legend>Contact representative</legend>
+                  <div class="contribute-form-row">
+                    <label>
+                      Name
+                      <input
+                        type="text"
+                        name="contactName"
+                        placeholder="Representative name"
+                      />
+                    </label>
+                    <label>
+                      Role
+                      <input
+                        type="text"
+                        name="contactRole"
+                        placeholder="Representative role"
+                      />
+                    </label>
+                  </div>
+                  <label>
+                    Email
+                    <input
+                      type="email"
+                      name="contactEmail"
+                      placeholder="representative@example.org"
+                    />
+                  </label>
+                </fieldset>
+              </section>
               <div class="contribute-form-actions">
+                <p
+                  id="contribute-form-status"
+                  class="contribute-form-status"
+                  aria-live="polite"
+                ></p>
                 <button
                   class="contribute-form-btn secondary"
                   id="contribute-cancel-btn"
@@ -4146,101 +4146,108 @@
               <input type="hidden" name="mode" value="representative" />
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" value="representatives" />
-              <p class="contribute-form-section-title">Personal data</p>
-              <div class="contribute-form-row">
-                <label>
-                  Your Name
-                  <input
-                    type="text"
-                    name="submitterName"
-                    placeholder="Your full name"
-                    required
-                  />
-                </label>
-                <label>
-                  Your Email
-                  <input
-                    type="email"
-                    name="submitterEmail"
-                    placeholder="you@example.org"
-                    required
-                  />
-                </label>
-              </div>
-              <p class="contribute-form-section-title">Representative details</p>
-              <div class="contribute-form-row">
-                <label>
-                  Representative Name
-                  <input
-                    type="text"
-                    name="representativeName"
-                    placeholder="Full name"
-                    required
-                  />
-                </label>
-                <label>
-                  Representative Title
-                  <input
-                    type="text"
-                    name="representativeTitle"
-                    placeholder="Role / title"
-                    required
-                  />
-                </label>
-              </div>
-              <label>
-                Organisation
-                <input
-                  type="text"
-                  name="organisation"
-                  placeholder="Organisation name"
-                  required
-                />
-              </label>
-              <label>
-                Upload Photo
-                <input
-                  id="contribute-rep-photo"
-                  type="file"
-                  name="representativePhoto"
-                  accept="image/*"
-                  required
-                />
-              </label>
-              <section class="contribute-rep-cropper">
-                <div
-                  id="contribute-rep-crop-preview"
-                  class="contribute-rep-crop-preview"
-                >
-                  <img id="contribute-rep-crop-image" alt="Crop preview" />
-                  <div
-                    id="contribute-rep-crop-frame"
-                    class="contribute-rep-crop-frame"
-                  >
-                    <span
-                      id="contribute-rep-crop-handle"
-                      class="contribute-rep-crop-frame-handle"
-                    ></span>
-                  </div>
-                </div>
-                <div class="contribute-rep-crop-meta">
-                  <span class="contribute-rep-crop-tip"
-                    >Move frame and resize from the corner handle.</span
-                  >
-                  <span
-                    id="contribute-rep-crop-status"
-                    class="contribute-rep-crop-status"
-                    aria-live="polite"
-                    >No image selected yet.</span
-                  >
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">Personal data</p>
+                <div class="contribute-form-row">
+                  <label>
+                    Your Name
+                    <input
+                      type="text"
+                      name="submitterName"
+                      placeholder="Your full name"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Your Email
+                    <input
+                      type="email"
+                      name="submitterEmail"
+                      placeholder="you@example.org"
+                      required
+                    />
+                  </label>
                 </div>
               </section>
-              <p
-                id="contribute-rep-form-status"
-                class="contribute-form-status"
-                aria-live="polite"
-              ></p>
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">
+                  Suggested public information
+                </p>
+                <p class="contribute-form-section-title">Representative details</p>
+                <div class="contribute-form-row">
+                  <label>
+                    Representative Name
+                    <input
+                      type="text"
+                      name="representativeName"
+                      placeholder="Full name"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Representative Title
+                    <input
+                      type="text"
+                      name="representativeTitle"
+                      placeholder="Role / title"
+                      required
+                    />
+                  </label>
+                </div>
+                <label>
+                  Organisation
+                  <input
+                    type="text"
+                    name="organisation"
+                    placeholder="Organisation name"
+                    required
+                  />
+                </label>
+                <label>
+                  Upload Photo
+                  <input
+                    id="contribute-rep-photo"
+                    type="file"
+                    name="representativePhoto"
+                    accept="image/*"
+                    required
+                  />
+                </label>
+                <section class="contribute-rep-cropper">
+                  <div
+                    id="contribute-rep-crop-preview"
+                    class="contribute-rep-crop-preview"
+                  >
+                    <img id="contribute-rep-crop-image" alt="Crop preview" />
+                    <div
+                      id="contribute-rep-crop-frame"
+                      class="contribute-rep-crop-frame"
+                    >
+                      <span
+                        id="contribute-rep-crop-handle"
+                        class="contribute-rep-crop-frame-handle"
+                      ></span>
+                    </div>
+                  </div>
+                  <div class="contribute-rep-crop-meta">
+                    <span class="contribute-rep-crop-tip"
+                      >Move frame and resize from the corner handle.</span
+                    >
+                    <span
+                      id="contribute-rep-crop-status"
+                      class="contribute-rep-crop-status"
+                      aria-live="polite"
+                      >No image selected yet.</span
+                    >
+                  </div>
+                </section>
+              </section>
               <div class="contribute-form-actions">
+                <p
+                  id="contribute-rep-form-status"
+                  class="contribute-form-status"
+                  aria-live="polite"
+                ></p>
                 <button
                   class="contribute-form-btn secondary"
                   id="contribute-rep-cancel-btn"
@@ -4254,20 +4261,6 @@
               </div>
             </form>
           </div>
-          <section id="contribute-success-view" class="contribute-success-view" hidden>
-            <h4 class="contribute-success-title">Felicitări!</h4>
-            <p id="contribute-success-message" class="contribute-success-message">
-              Felicitări, recomandarea a fost trimisă, un moderator al paginii o
-              va vizualiza și prelucra.
-            </p>
-            <button
-              id="contribute-success-close-btn"
-              class="contribute-form-btn primary"
-              type="button"
-            >
-              Close
-            </button>
-          </section>
         </section>
       </div>
       <div id="tepace-modal" class="tepace-modal" aria-hidden="true">
@@ -5228,8 +5221,6 @@
       );
       const embedCopyStatus = document.getElementById("embed-copy-status");
       const contributeModal = document.getElementById("contribute-modal");
-      const contributeModalDialog =
-        contributeModal && contributeModal.querySelector(".contribute-modal-dialog");
       const contributeModalClose = document.getElementById(
         "contribute-modal-close",
       );
@@ -5283,15 +5274,6 @@
       );
       const contributeRepCropStatus = document.getElementById(
         "contribute-rep-crop-status",
-      );
-      const contributeSuccessView = document.getElementById(
-        "contribute-success-view",
-      );
-      const contributeSuccessMessage = document.getElementById(
-        "contribute-success-message",
-      );
-      const contributeSuccessCloseBtn = document.getElementById(
-        "contribute-success-close-btn",
       );
       const tepaceModal = document.getElementById("tepace-modal");
       const tepaceModalClose = document.getElementById("tepace-modal-close");
@@ -5674,21 +5656,6 @@
         return REP_FORM_COPY.en;
       }
 
-      function setContributeSuccessView(visible) {
-        if (contributeSuccessView) {
-          contributeSuccessView.hidden = !visible;
-        }
-        if (contributeModalMain) {
-          contributeModalMain.classList.toggle("is-hidden", Boolean(visible));
-        }
-        if (contributeModalDialog) {
-          const cleanSuccess = Boolean(
-            visible && contributeContext && contributeContext.mode === "representative",
-          );
-          contributeModalDialog.classList.toggle("is-success-clean", cleanSuccess);
-        }
-      }
-
       function resetContributeRepCrop() {
         contributeRepCropSource = "";
         contributeRepCropFilename = "representative-image.png";
@@ -5981,13 +5948,6 @@
         contributeModalInfoBody.innerHTML = info.paragraphs
           .map((p) => `<p>${p}</p>`)
           .join("");
-        setContributeSuccessView(false);
-        if (contributeSuccessMessage) {
-          contributeSuccessMessage.textContent = repCopy.success;
-        }
-        if (contributeSuccessCloseBtn) {
-          contributeSuccessCloseBtn.textContent = repCopy.close;
-        }
         if (contributeForm) {
           contributeForm.reset();
           contributeForm.hidden = mode === "representative";
@@ -6054,7 +6014,6 @@
         contributeModal.setAttribute("aria-hidden", "true");
         setContributeStatus("");
         setContributeRepStatus("");
-        setContributeSuccessView(false);
         resetContributeRepCrop();
         syncGlobalScrollLock();
       }
@@ -6412,10 +6371,6 @@
         contributeRepCancelBtn.addEventListener("click", closeContributeModal);
       }
 
-      if (contributeSuccessCloseBtn) {
-        contributeSuccessCloseBtn.addEventListener("click", closeContributeModal);
-      }
-
       if (contributeForm) {
         contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
@@ -6492,7 +6447,7 @@
             setContributeStatus("Suggestion sent for review.", "success");
             window.setTimeout(() => {
               closeContributeModal();
-            }, 260);
+            }, 3000);
           } catch (error) {
             setContributeStatus(
               "Could not submit your suggestion. Please try again.",
@@ -6594,7 +6549,9 @@
               throw new Error("map_frame_not_ready");
             }
             setContributeRepStatus("Suggestion sent for review.", "success");
-            setContributeSuccessView(true);
+            window.setTimeout(() => {
+              closeContributeModal();
+            }, 3000);
           } catch (_error) {
             setContributeRepStatus(
               "Could not submit your recommendation. Please try again.",
