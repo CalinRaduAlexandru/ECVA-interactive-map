@@ -416,6 +416,9 @@
         const countryId = normalizeManageCountryCode(selectEl.getAttribute('data-country-id'));
         const nextStatus = normalizeStatusValue(selectEl.value);
         if (!countryId) return;
+        const statusMeta = normalizeStatus(getStatusLabelFromValue(nextStatus));
+        selectEl.classList.remove('is-leading', 'is-momentum', 'is-development', 'is-pending', 'is-no-data');
+        selectEl.classList.add(statusMeta.className);
         postToMap('ecva-editor-update-country-status', {
           countryId,
           status: nextStatus,
@@ -427,6 +430,7 @@
   function buildStatusSelectHtml(countryId, currentStatus, variant) {
     const value = normalizeStatusValue(currentStatus);
     const country = normalizeManageCountryCode(countryId);
+    const statusMeta = normalizeStatus(getStatusLabelFromValue(value));
     const allOptions = [
       { value: 'leading', label: 'Leading' },
       { value: 'high_momentum', label: 'High Momentum' },
@@ -445,7 +449,7 @@
         return `<option value="${option.value}"${selected}>${option.label}</option>`;
       })
       .join('');
-    return `<select class="ecva-manage-status-select" data-country-id="${country}">${optionsHtml}</select>`;
+    return `<select class="ecva-manage-status-select ${statusMeta.className}" data-country-id="${country}" aria-label="Edit country status">${optionsHtml}</select>`;
   }
 
   function buildCodeControlsHtml(countryId, statusValue) {
@@ -472,13 +476,11 @@
     const countryCode = normalizeManageCountryCode(country && country.code);
     if (!countryCode) return '';
     const statusValue = normalizeStatusValue(country && (country.statusValue || country.status));
-    const statusMeta = normalizeStatus(getStatusLabelFromValue(statusValue));
     const fullName = String(country && country.name ? country.name : '').trim();
     const displayLabel = fullName || displayCountryCode(countryCode);
     return `
       <article class="ecva-manage-access-row-item" data-access-code="${getAccessCodeForCountry(countryCode)}" data-revealed="false">
         <span class="ecva-manage-access-country">${String(country.flag || '')} ${escapeHtml(displayLabel)}</span>
-        <span class="ecva-manage-access-status ${statusMeta.className}">${getStatusLabelFromValue(statusValue)}</span>
         ${buildStatusSelectHtml(countryCode, statusValue, variant)}
         ${buildCodeControlsHtml(countryCode, statusValue)}
       </article>
@@ -515,7 +517,6 @@
           <div class="ecva-manage-access-table-head">
             <span>Country</span>
             <span>Status</span>
-            <span>Edit status</span>
             <span>App access*</span>
           </div>
           ${
@@ -533,7 +534,6 @@
           <div class="ecva-manage-access-table-head">
             <span>Country</span>
             <span>Status</span>
-            <span>Edit status</span>
             <span>App access*</span>
           </div>
           ${

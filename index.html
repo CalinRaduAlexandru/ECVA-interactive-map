@@ -3513,8 +3513,7 @@
       .ecva-manage-access-row-item {
         display: grid;
         grid-template-columns:
-          minmax(120px, 0.75fr) minmax(130px, 0.9fr)
-          minmax(170px, 1fr) minmax(260px, 1.35fr);
+          minmax(220px, 1.15fr) minmax(190px, 1fr) minmax(260px, 1.35fr);
         gap: 10px;
         align-items: center;
       }
@@ -3541,56 +3540,51 @@
         color: #1f3642;
       }
 
-      .ecva-manage-access-status {
-        display: inline-flex;
-        width: fit-content;
-        min-height: 30px;
-        align-items: center;
-        padding: 0 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(106, 130, 143, 0.45);
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-      }
-
-      .ecva-manage-access-status.is-leading {
-        color: #e9f7ff;
-        background: #254454;
-        border-color: #254454;
-      }
-
-      .ecva-manage-access-status.is-momentum {
-        color: #183543;
-        background: #bfd7e3;
-      }
-
-      .ecva-manage-access-status.is-development {
-        color: #27414d;
-        background: #dce9ef;
-      }
-
-      .ecva-manage-access-status.is-pending {
-        color: #324853;
-        background: #e9eef2;
-      }
-
-      .ecva-manage-access-status.is-no-data {
-        color: #617986;
-        background: #f3f8fa;
-      }
-
       .ecva-manage-status-select {
         width: 100%;
-        min-height: 36px;
-        border-radius: 10px;
+        min-height: 40px;
+        border-radius: 999px;
         border: 1px solid rgba(120, 144, 156, 0.58);
-        background: #f5fbfd;
+        background: #e8f1f5;
         color: #27414d;
-        padding: 0 10px;
+        padding: 0 40px 0 14px;
         font-family: "Alexandria", sans-serif;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 800;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23344f5c' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 13px center;
+        background-size: 14px 14px;
+      }
+
+      .ecva-manage-status-select.is-leading {
+        color: #e9f7ff;
+        background-color: #254454;
+        border-color: #254454;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23e9f7ff' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+      }
+
+      .ecva-manage-status-select.is-momentum {
+        color: #183543;
+        background-color: #bfd7e3;
+      }
+
+      .ecva-manage-status-select.is-development {
+        color: #27414d;
+        background-color: #dce9ef;
+      }
+
+      .ecva-manage-status-select.is-pending {
+        color: #324853;
+        background-color: #e9eef2;
+      }
+
+      .ecva-manage-status-select.is-no-data {
+        color: #617986;
+        background-color: #f3f8fa;
       }
 
       .ecva-manage-access-controls {
