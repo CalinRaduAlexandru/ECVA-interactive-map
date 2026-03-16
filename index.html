@@ -1151,15 +1151,16 @@
 
       .contribute-language-pricing-tabs {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(4, minmax(150px, 1fr));
         gap: 8px;
       }
 
-      .contribute-language-pricing-tab {
+      .contribute-form label.contribute-language-pricing-tab {
         min-width: 0;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        flex-wrap: nowrap;
         gap: 8px;
         min-height: 40px;
         padding: 8px 10px;
@@ -1212,6 +1213,13 @@
 
       .contribute-language-pricing-label {
         white-space: nowrap;
+        line-height: 1;
+      }
+
+      @media (max-width: 1280px) {
+        .contribute-language-pricing-tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
       }
 
       .contribute-form input.is-invalid,
@@ -8606,18 +8614,25 @@
               : "Send for review";
           }
           if (mode === "article") {
-            if (
-              contributeContext.editEntryTarget &&
-              config &&
-              config.entryData
-            ) {
-              initializeResourceFormForEdit(
-                countryId,
-                config.entryData,
-                config.fallbackData || {},
+            try {
+              if (
+                contributeContext.editEntryTarget &&
+                config &&
+                config.entryData
+              ) {
+                initializeResourceFormForEdit(
+                  countryId,
+                  config.entryData,
+                  config.fallbackData || {},
+                );
+              } else {
+                initializeResourceFormForCountry(countryId);
+              }
+            } catch (_resourceInitError) {
+              setContributeStatus(
+                "Could not load editor data. Please close and try again.",
+                "error",
               );
-            } else {
-              initializeResourceFormForCountry(countryId);
             }
           }
         }
@@ -9752,3 +9767,16 @@
     <script src="app-editor.js"></script>
   </body>
 </html>
+      function ensureTopLayerModals() {
+        const host =
+          document.body instanceof HTMLElement ? document.body : null;
+        if (!host) return;
+        if (contributeModal && contributeModal.parentElement !== host) {
+          host.appendChild(contributeModal);
+        }
+        if (tepaceModal && tepaceModal.parentElement !== host) {
+          host.appendChild(tepaceModal);
+        }
+      }
+
+      ensureTopLayerModals();
