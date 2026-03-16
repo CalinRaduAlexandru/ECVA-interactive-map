@@ -8099,6 +8099,53 @@
         }
       }
 
+      async function copyTextToClipboardSafe(text) {
+        const value = String(text || "");
+        if (!value) return false;
+        try {
+          await navigator.clipboard.writeText(value);
+          return true;
+        } catch (_clipboardError) {
+          // Clipboard API can be blocked by iframe permissions policy.
+        }
+        const helper = document.createElement("textarea");
+        helper.value = value;
+        helper.setAttribute("readonly", "readonly");
+        helper.style.position = "fixed";
+        helper.style.top = "0";
+        helper.style.left = "0";
+        helper.style.width = "1px";
+        helper.style.height = "1px";
+        helper.style.opacity = "0";
+        helper.style.pointerEvents = "none";
+        const activeEl =
+          document.activeElement instanceof HTMLElement
+            ? document.activeElement
+            : null;
+        document.body.appendChild(helper);
+        try {
+          helper.focus({ preventScroll: true });
+        } catch (_focusError) {
+          helper.focus();
+        }
+        helper.select();
+        let copied = false;
+        try {
+          copied = Boolean(document.execCommand("copy"));
+        } catch (_execError) {
+          copied = false;
+        }
+        document.body.removeChild(helper);
+        if (activeEl && typeof activeEl.focus === "function") {
+          try {
+            activeEl.focus({ preventScroll: true });
+          } catch (_focusBackError) {
+            activeEl.focus();
+          }
+        }
+        return copied;
+      }
+
       function openEmbedCodeModal() {
         if (!embedCodeModal) return;
         jumpToCountryWindowTopAcrossContexts();
@@ -8112,7 +8159,7 @@
         if (!embedCodeModal) return;
         releaseFocusBeforeHide(
           embedCodeModal,
-          embedCodeTrigger || modalClose || legendLogo || frame,
+          embedLaunchBtn || modalClose || legendLogo || frame,
         );
         embedCodeModal.classList.remove("is-visible");
         embedCodeModal.setAttribute("aria-hidden", "true");
@@ -8844,7 +8891,8 @@
               }, 1400);
             };
             try {
-              await navigator.clipboard.writeText(emailValue);
+              const copied = await copyTextToClipboardSafe(emailValue);
+              if (!copied) throw new Error("copy_failed");
               showStatus("Copied");
             } catch (_error) {
               showStatus("Copy failed");
@@ -9612,27 +9660,11 @@
           event.stopPropagation();
           if (!embedCodePreview) return;
           try {
-            await navigator.clipboard.writeText(embedCodePreview.value);
+            const copied = await copyTextToClipboardSafe(embedCodePreview.value);
+            if (!copied) throw new Error("copy_failed");
             showCopyStatus();
-          } catch (error) {
-            const helper = document.createElement("textarea");
-            helper.value = embedCodePreview.value;
-            helper.setAttribute("readonly", "readonly");
-            helper.style.position = "fixed";
-            helper.style.top = "0";
-            helper.style.left = "0";
-            helper.style.opacity = "0";
-            helper.style.pointerEvents = "none";
-            document.body.appendChild(helper);
-            try {
-              helper.focus({ preventScroll: true });
-            } catch (_focusError) {
-              helper.focus();
-            }
-            helper.select();
-            document.execCommand("copy");
-            document.body.removeChild(helper);
-            showCopyStatus();
+          } catch (_error) {
+            // no-op: keep UI stable when copy is blocked
           }
         });
       }
