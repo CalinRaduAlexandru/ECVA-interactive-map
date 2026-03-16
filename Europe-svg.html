@@ -2256,8 +2256,9 @@
                       const ownershipInlineHtml =
                         pillar.id === "resources"
                           ? `
-                            <div class="country-modal-entry-ownership-row">
-                              <span class="country-modal-entry-ownership-label">Ownership:</span>
+                            <section class="country-modal-entry-block country-modal-entry-ownership-block">
+                              <h6>Ownership</h6>
+                              <div class="country-modal-entry-ownership-row">
                               <div class="country-modal-entry-ownership-pills">
                                 ${
                                   ownershipType
@@ -2270,7 +2271,8 @@
                                     : `<span class="country-modal-entry-ownership-name">-</span>`
                                 }
                               </div>
-                            </div>
+                              </div>
+                            </section>
                           `
                           : "";
                       const contactHtml =
@@ -2298,15 +2300,10 @@
                           </div>
                         `
                         : "";
-                      const primaryResourceType = pillar.id === "resources"
-                        ? (() => {
-                            const first = resourceLanguages[0] || null;
-                            if (!first) return "";
-                            return inferResourceTypeLabel(first);
-                          })()
-                        : "";
                       const resourceMetaPills = pillar.id === "resources"
-                        ? [primaryResourceType]
+                        ? [...new Set(resourceLanguages
+                            .map((item) => inferResourceTypeLabel(item))
+                            .filter(Boolean))]
                             .filter(Boolean)
                             .map(
                               (text) =>
@@ -2343,10 +2340,10 @@
                             <button class="country-modal-entry-btn country-modal-entry-readmore-btn" type="button" aria-expanded="false">Read More</button>
                           </div>
                           <div class="country-modal-entry-expand" hidden>
+                            ${pillar.id === "resources" ? ownershipInlineHtml : ""}
                             ${pillar.id === "resources" ? resourceVersionsHtml : methodsHtml}
                             ${pillar.id === "resources" ? "" : programsHtml}
                             ${pillar.id === "resources" ? "" : impactHtml}
-                            ${pillar.id === "resources" ? ownershipInlineHtml : ""}
                             ${pillar.id === "resources" ? contactHtml : ""}
                             ${pillar.id !== "resources" && !methods.length && !programs.length && !impact.length ? `<p class="country-modal-entry-extra">${escapeHtml("No more details available.")}</p>` : ""}
                           </div>
