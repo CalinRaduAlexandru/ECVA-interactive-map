@@ -6268,8 +6268,8 @@
         maxLanguages: 3,
       };
       const RESOURCE_UPLOAD_ACCEPT =
-        ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg,.mp3,.wav,.m4a,.mp4,.mov,.webm";
-      const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g|mp3|wav|m4a|mp4|mov|webm)$/i;
+        ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
+      const RESOURCE_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g)$/i;
       const RESOURCE_TYPE_OPTIONS = [
         {
           value: "webpage",
@@ -6284,10 +6284,10 @@
           openLabel: "File",
         },
         {
-          value: "audio-video",
-          label: "Audio/Video",
-          inputMode: "file",
-          openLabel: "Audio/Video",
+          value: "youtube",
+          label: "Youtube",
+          inputMode: "url",
+          openLabel: "Youtube",
         },
         {
           value: "image",
@@ -6355,9 +6355,10 @@
       }
 
       function getResourceTypeConfig(resourceTypeValue) {
-        const value = String(resourceTypeValue || "")
+        const rawValue = String(resourceTypeValue || "")
           .trim()
           .toLowerCase();
+        const value = rawValue === "audio-video" ? "youtube" : rawValue;
         return (
           RESOURCE_TYPE_OPTIONS.find((option) => option.value === value) ||
           RESOURCE_TYPE_OPTIONS[0]
