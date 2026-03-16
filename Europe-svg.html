@@ -2227,7 +2227,7 @@
                                       String(item.languageFlag || "").trim() ||
                                       getFlagFromLanguageCode(item.languageCode);
                                     const typeLabel = inferResourceTypeLabel(item);
-                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}Open ${typeLabel}`.trim();
+                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}Download ${typeLabel}`.trim();
                                     return `
                                       <article class="country-modal-resource-version">
                                         <div class="country-modal-resource-version-head">
@@ -2272,7 +2272,7 @@
                                 }
                                 ${
                                   ownershipName
-                                    ? `<span class="country-modal-entry-meta-pill"><span>${escapeHtml(ownershipName)}</span></span>`
+                                    ? `<span class="country-modal-entry-ownership-name">${escapeHtml(ownershipName)}</span>`
                                     : ""
                                 }
                               </div>
@@ -2312,7 +2312,7 @@
                           })()
                         : "";
                       const resourceMetaPills = pillar.id === "resources"
-                        ? [primaryResourceType, ownershipType, ownershipName]
+                        ? [primaryResourceType]
                             .filter(Boolean)
                             .map(
                               (text) =>
