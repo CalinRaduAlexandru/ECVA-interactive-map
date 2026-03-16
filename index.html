@@ -2342,6 +2342,9 @@
         gap: var(--country-card-gap, clamp(12px, 1.4vw, 18px));
         align-items: stretch;
         align-content: start;
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 4px;
       }
 
       .country-modal-detail-card,
@@ -5853,6 +5856,10 @@
         de: "Text kopiert",
         es: "Texto copiado",
       };
+      const ENTRY_TOGGLE_TEXT = {
+        more: "Read More",
+        less: "Show Less",
+      };
       const PILLAR_ICON_PATHS = [
         "/assets/Resources.png",
         "/assets/Events.png",
@@ -7348,6 +7355,15 @@
       }
 
       async function initEmbedUiText() {
+        if (activeLang !== "en") {
+          const [moreLabel, lessLabel] = await translateBatch(
+            ["Read More", "Show Less"],
+            activeLang,
+          );
+          ENTRY_TOGGLE_TEXT.more = String(moreLabel || "Read More");
+          ENTRY_TOGGLE_TEXT.less = String(lessLabel || "Show Less");
+          updateEntryToggleLabels();
+        }
         if (activeLang === "en") return;
         const base = [
           "Copy code",
@@ -7366,6 +7382,19 @@
         if (embedCodeHint) embedCodeHint.textContent = hint;
         if (embedLanguageLabel) embedLanguageLabel.textContent = label;
         if (embedCopyBtn) embedCopyBtn.textContent = copy;
+      }
+
+      function updateEntryToggleLabels() {
+        if (!modalContent) return;
+        const buttons = modalContent.querySelectorAll(
+          ".country-modal-entry-readmore-btn",
+        );
+        buttons.forEach((btn) => {
+          const expanded = btn.getAttribute("aria-expanded") === "true";
+          btn.textContent = expanded
+            ? ENTRY_TOGGLE_TEXT.less
+            : ENTRY_TOGGLE_TEXT.more;
+        });
       }
 
       function showCopyStatus() {
@@ -8195,6 +8224,7 @@
           if (!btn || !panel) return;
           panel.hidden = true;
           panel.style.height = "0px";
+          btn.textContent = ENTRY_TOGGLE_TEXT.more;
           btn.addEventListener("click", () => {
             const isOpen = entry.classList.contains("is-open");
             if (isOpen) {
@@ -8203,7 +8233,7 @@
               requestAnimationFrame(() => {
                 entry.classList.remove("is-open");
                 btn.setAttribute("aria-expanded", "false");
-                btn.textContent = "Read More";
+                btn.textContent = ENTRY_TOGGLE_TEXT.more;
                 panel.style.height = "0px";
               });
               window.setTimeout(() => {
@@ -8218,7 +8248,7 @@
               const target = panel.scrollHeight;
               entry.classList.add("is-open");
               btn.setAttribute("aria-expanded", "true");
-              btn.textContent = "Show Less";
+              btn.textContent = ENTRY_TOGGLE_TEXT.less;
               panel.style.height = `${target}px`;
             });
             window.setTimeout(() => {
