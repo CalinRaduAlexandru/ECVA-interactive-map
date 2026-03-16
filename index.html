@@ -6378,6 +6378,7 @@
         countryName: "",
         pillarId: "",
         pillarLabel: "",
+        editEntryTarget: null,
       };
       let contributeRepCropSource = "";
       let contributeRepCropFilename = "representative-image.png";
@@ -7094,6 +7095,113 @@
           if (resourceDescriptionInput) resourceDescriptionInput.value = "";
           if (resourceOwnershipTypeInput) resourceOwnershipTypeInput.value = "";
           if (resourceOwnershipNameInput) resourceOwnershipNameInput.value = "";
+        }
+        updateResourceCounter(
+          resourceTitleInput,
+          resourceTitleCount,
+          RESOURCE_LIMITS.title,
+        );
+        updateResourceCounter(
+          resourceDescriptionInput,
+          resourceDescriptionCount,
+          RESOURCE_LIMITS.description,
+        );
+        renderResourceLanguageItems();
+        validateResourceForm(false);
+      }
+
+      function initializeResourceFormForEdit(countryId, entry, fallback) {
+        const normalizedCountry = String(countryId || "")
+          .trim()
+          .toUpperCase();
+        const defaultLanguage = getCountryDefaultLanguage(normalizedCountry);
+        const safeEntry =
+          entry && typeof entry === "object" ? entry : {};
+        const safeFallback =
+          fallback && typeof fallback === "object" ? fallback : {};
+        const resourceLanguages = Array.isArray(safeEntry.resourceLanguages)
+          ? safeEntry.resourceLanguages
+          : [];
+
+        resourceLanguageItems = resourceLanguages
+          .slice(0, RESOURCE_LIMITS.maxLanguages)
+          .map((item, index) => {
+            const languageCode = String(item.languageCode || "")
+              .trim()
+              .toLowerCase();
+            const normalizedCode = languageCode
+              ? getResourceLanguageOption(languageCode).code
+              : defaultLanguage;
+            const typeValue = getResourceTypeConfig(
+              item.resourceType ||
+                (String(item.accessType || "")
+                  .trim()
+                  .toLowerCase() === "file"
+                  ? "document"
+                  : "webpage"),
+            ).value;
+            return {
+              id: createResourceLanguageItem(normalizedCode, index === 0).id,
+              languageCode: normalizedCode,
+              resourceType: typeValue,
+              resourceUrl: String(item.resourceUrl || "").trim(),
+              file: null,
+              fileDataUrl: "",
+              fileName: String(item.fileName || "").trim(),
+              isPrimary: index === 0,
+            };
+          })
+          .filter(Boolean);
+
+        if (!resourceLanguageItems.length) {
+          resourceLanguageItems = [
+            createResourceLanguageItem(defaultLanguage, true),
+          ];
+        }
+        resourceLanguageItems[0].isPrimary = true;
+        resourceValidationTriggered = false;
+
+        if (resourceTitleInput) {
+          resourceTitleInput.value = String(
+            safeEntry.title || safeFallback.title || "",
+          );
+        }
+        if (resourceDescriptionInput) {
+          resourceDescriptionInput.value = String(
+            safeEntry.description ||
+              safeEntry.summary ||
+              safeFallback.description ||
+              "",
+          );
+        }
+        if (resourceOwnershipTypeInput) {
+          resourceOwnershipTypeInput.value = String(
+            (safeEntry.ownership && safeEntry.ownership.type) || "",
+          );
+        }
+        if (resourceOwnershipNameInput) {
+          resourceOwnershipNameInput.value = String(
+            (safeEntry.ownership && safeEntry.ownership.name) || "",
+          );
+        }
+        const contact =
+          safeEntry.representativeContact &&
+          typeof safeEntry.representativeContact === "object"
+            ? safeEntry.representativeContact
+            : {};
+        const contactNameInput = contributeForm.querySelector(
+          '[name="contactName"]',
+        );
+        const contactRoleInput = contributeForm.querySelector(
+          '[name="contactRole"]',
+        );
+        const contactEmailInput = contributeForm.querySelector(
+          '[name="contactEmail"]',
+        );
+        if (contactNameInput) contactNameInput.value = String(contact.name || "");
+        if (contactRoleInput) contactRoleInput.value = String(contact.role || "");
+        if (contactEmailInput) {
+          contactEmailInput.value = String(contact.email || "");
         }
         updateResourceCounter(
           resourceTitleInput,
@@ -8061,6 +8169,20 @@
           pillarLabel,
           countryId,
           countryName,
+          editEntryTarget:
+            config &&
+            config.editEntryTarget &&
+            typeof config.editEntryTarget === "object"
+              ? {
+                  countryId: String(config.editEntryTarget.countryId || "")
+                    .trim()
+                    .toUpperCase(),
+                  pillarId: String(config.editEntryTarget.pillarId || "")
+                    .trim()
+                    .toLowerCase(),
+                  entryIndex: Number(config.editEntryTarget.entryIndex),
+                }
+              : null,
         };
         const infoKey = mode === "representative" ? "representative" : pillarId;
         const info = contributeInfoByPillar[infoKey] || {
@@ -8098,8 +8220,23 @@
               mode === "representative"
                 ? "Representatives"
                 : pillarLabel || "Pillar";
+          const articleSubmitBtn =
+            contributeForm.querySelector('[type="submit"]');
+          if (articleSubmitBtn) {
+            articleSubmitBtn.textContent = contributeContext.editEntryTarget
+              ? "Save changes"
+              : "Send for review";
+          }
           if (mode === "article") {
-            initializeResourceFormForCountry(countryId);
+            if (contributeContext.editEntryTarget && config && config.entryData) {
+              initializeResourceFormForEdit(
+                countryId,
+                config.entryData,
+                config.fallbackData || {},
+              );
+            } else {
+              initializeResourceFormForCountry(countryId);
+            }
           }
         }
         if (contributeRepForm) {
@@ -8122,7 +8259,9 @@
             ? activeLang === "ro"
               ? `Trimite o recomandare de reprezentant pentru ${leadCountry}.`
               : `Share a representative suggestion for ${leadCountry}.`
-            : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
+            : contributeContext.editEntryTarget
+              ? `Edit this ${pillarLabel || "resource"} entry for ${leadCountry}.`
+              : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
         const leadNode = contributeModal.querySelector(
           ".contribute-modal-lead",
         );
@@ -8152,6 +8291,7 @@
           window.clearTimeout(contributeSuccessFlowTimer);
           contributeSuccessFlowTimer = null;
         }
+        contributeContext.editEntryTarget = null;
         syncGlobalScrollLock();
       }
 
@@ -8663,50 +8803,95 @@
             const contactEmail = String(
               formData.get("contactEmail") || "",
             ).trim();
-            const submission = {
-              id: `${countryId}-${Date.now()}-${Math.random()
-                .toString(36)
-                .slice(2, 7)}`,
-              type: "article",
-              status: "new",
-              pillarId,
-              pillarLabel: pillarLabel || "Pillar",
-              title,
-              description,
-              ownership: {
-                type: ownershipType,
-                name: ownershipName,
-              },
-              languageAvailability,
-              links,
-              attachments,
-              resourceLanguages,
-              submittedBy: {
-                name: contactName,
-                email: contactEmail,
-              },
-              representativeContact: {
-                name: contactName,
-                role: contactRole,
-                email: contactEmail,
-              },
-              createdAt: new Date().toISOString(),
-            };
-            if (
-              !postToMapFrame("ecva-editor-add-submission", {
-                countryId,
-                submission,
-              })
-            ) {
-              throw new Error("map_frame_not_ready");
+            if (contributeContext.editEntryTarget) {
+              const editTarget = contributeContext.editEntryTarget;
+              if (
+                !editTarget ||
+                !editTarget.countryId ||
+                !editTarget.pillarId ||
+                !Number.isInteger(editTarget.entryIndex) ||
+                editTarget.entryIndex < 0
+              ) {
+                throw new Error("missing_edit_target");
+              }
+              const languageFlags = resourceLanguages
+                .map((item) => String(item.languageFlag || "").trim())
+                .filter(Boolean);
+              if (
+                !postToMapFrame("ecva-editor-update-entry", {
+                  countryId: editTarget.countryId,
+                  pillarId: editTarget.pillarId,
+                  entryIndex: editTarget.entryIndex,
+                  fields: {
+                    title,
+                    summary: description,
+                    description,
+                    languages: [...new Set(languageFlags)],
+                    ownership: {
+                      type: ownershipType,
+                      name: ownershipName,
+                    },
+                    resourceLanguages,
+                    representativeContact: {
+                      name: contactName,
+                      role: contactRole,
+                      email: contactEmail,
+                    },
+                  },
+                })
+              ) {
+                throw new Error("map_frame_not_ready");
+              }
+              setContributeStatus("Changes saved.", "success");
+              window.setTimeout(() => {
+                closeContributeModal();
+              }, 800);
+            } else {
+              const submission = {
+                id: `${countryId}-${Date.now()}-${Math.random()
+                  .toString(36)
+                  .slice(2, 7)}`,
+                type: "article",
+                status: "new",
+                pillarId,
+                pillarLabel: pillarLabel || "Pillar",
+                title,
+                description,
+                ownership: {
+                  type: ownershipType,
+                  name: ownershipName,
+                },
+                languageAvailability,
+                links,
+                attachments,
+                resourceLanguages,
+                submittedBy: {
+                  name: contactName,
+                  email: contactEmail,
+                },
+                representativeContact: {
+                  name: contactName,
+                  role: contactRole,
+                  email: contactEmail,
+                },
+                createdAt: new Date().toISOString(),
+              };
+              if (
+                !postToMapFrame("ecva-editor-add-submission", {
+                  countryId,
+                  submission,
+                })
+              ) {
+                throw new Error("map_frame_not_ready");
+              }
+              runContributeConfetti();
+              triggerContributeSuccessFlow();
+              setContributeStatus("Suggestion sent for review.", "success");
+              clearResourceDraft();
+              window.setTimeout(() => {
+                closeContributeModal();
+              }, 3000);
             }
-            runContributeConfetti();
-            triggerContributeSuccessFlow();
-            setContributeStatus("Suggestion sent for review.", "success");
-            clearResourceDraft();
-            window.setTimeout(() => {
-              closeContributeModal();
-            }, 3000);
           } catch (error) {
             if (
               String((error && error.message) || "") ===
@@ -8731,6 +8916,10 @@
                 "File too large. Maximum allowed size is 15MB per file.",
                 "error",
               );
+            } else if (
+              String((error && error.message) || "") === "missing_edit_target"
+            ) {
+              setContributeStatus("Edit target is missing.", "error");
             } else {
               setContributeStatus(
                 "Could not submit your suggestion. Please try again.",
@@ -8857,6 +9046,42 @@
           }
         });
       }
+
+      window.addEventListener("ecva-open-resource-entry-editor", (event) => {
+        const detail =
+          event && event.detail && typeof event.detail === "object"
+            ? event.detail
+            : null;
+        if (!detail) return;
+        const countryId = String(detail.countryId || "")
+          .trim()
+          .toUpperCase();
+        const pillarId = String(detail.pillarId || "")
+          .trim()
+          .toLowerCase();
+        const entryIndex = Number(detail.entryIndex);
+        if (!countryId || pillarId !== "resources" || !Number.isInteger(entryIndex)) {
+          return;
+        }
+        openContributeModal({
+          mode: "article",
+          countryId,
+          countryName: countryId,
+          pillarId: "resources",
+          pillarLabel: "Resources",
+          editEntryTarget: {
+            countryId,
+            pillarId: "resources",
+            entryIndex,
+          },
+          entryData:
+            detail.entry && typeof detail.entry === "object" ? detail.entry : {},
+          fallbackData:
+            detail.fallback && typeof detail.fallback === "object"
+              ? detail.fallback
+              : {},
+        });
+      });
 
       if (contributeRepPhotoInput) {
         contributeRepPhotoInput.addEventListener("change", () => {

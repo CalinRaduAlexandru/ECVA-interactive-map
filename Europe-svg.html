@@ -3023,8 +3023,62 @@
                   entry[key] = String(fields[key] || "").trim();
                 }
               });
+              if (Array.isArray(fields.languages)) {
+                entry.languages = fields.languages
+                  .map((next) => String(next || "").trim())
+                  .filter(Boolean);
+              }
+              if (Array.isArray(fields.resourceLanguages)) {
+                entry.resourceLanguages = fields.resourceLanguages
+                  .filter((item) => item && typeof item === "object")
+                  .map((item) => ({
+                    languageCode: String(item.languageCode || "").trim().toLowerCase(),
+                    languageLabel: String(item.languageLabel || "").trim(),
+                    languageFlag: String(item.languageFlag || "").trim(),
+                    resourceType: String(item.resourceType || "").trim().toLowerCase(),
+                    resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                    accessType:
+                      String(item.accessType || "url").trim().toLowerCase() === "file"
+                        ? "file"
+                        : "url",
+                    resourceUrl: String(item.resourceUrl || "").trim(),
+                    fileName: String(item.fileName || "").trim(),
+                  }))
+                  .filter((item) => item.languageCode && item.resourceUrl);
+              }
+              if (fields.ownership && typeof fields.ownership === "object") {
+                entry.ownership = {
+                  type: String(fields.ownership.type || "").trim(),
+                  name: String(fields.ownership.name || "").trim(),
+                };
+              }
+              if (
+                fields.representativeContact &&
+                typeof fields.representativeContact === "object"
+              ) {
+                entry.representativeContact = {
+                  name: String(fields.representativeContact.name || "").trim(),
+                  role: String(fields.representativeContact.role || "").trim(),
+                  email: String(fields.representativeContact.email || "").trim(),
+                };
+              }
               syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: index };
+            }
+
+            function getEntryDataForEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const countryId = String(payload.countryId || "").trim();
+              const pillarId = String(payload.pillarId || "").trim();
+              const index = Number(payload.entryIndex);
+              if (!countryId || !pillarId || !Number.isInteger(index) || index < 0) return null;
+              const country = pillarConfigByCountry[countryId];
+              if (!country || typeof country !== "object") return null;
+              const pillar = country[pillarId];
+              if (!pillar || !Array.isArray(pillar.entries)) return null;
+              const entry = pillar.entries[index];
+              if (!entry || typeof entry !== "object") return null;
+              return JSON.parse(JSON.stringify(entry));
             }
 
             function removeEntryFromEditor(payload) {
@@ -3909,6 +3963,25 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-request-entry-data") {
+                const requestId = String(payload.requestId || "").trim();
+                const entryData = getEntryDataForEditor(payload);
+                window.parent.postMessage(
+                  {
+                    type: "ecva-entry-data",
+                    payload: {
+                      requestId,
+                      countryId: String(payload.countryId || "").trim(),
+                      pillarId: String(payload.pillarId || "").trim(),
+                      entryIndex: Number(payload.entryIndex),
+                      entry: entryData,
+                    },
                   },
                   "*",
                 );

@@ -292,6 +292,7 @@
   let representativeManageAddBtn = null;
   let representativeManageCountryId = "";
   let removeConfirmTimer = null;
+  let pendingEntryDataRequests = new Map();
 
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
@@ -2438,6 +2439,32 @@
       (entryEl.querySelector(".country-modal-entry-description") || {})
         .textContent || "";
 
+    if (pillarId === "resources") {
+      const requestId = `entry-data-${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2, 8)}`;
+      const timeout = window.setTimeout(() => {
+        pendingEntryDataRequests.delete(requestId);
+        showToast("Could not load resource editor data.", true);
+      }, 2500);
+      pendingEntryDataRequests.set(requestId, {
+        timeout,
+        countryId,
+        pillarId,
+        entryIndex,
+        title: title.trim(),
+        subtitle: subtitle.trim(),
+        description: description.trim(),
+      });
+      postToMap("ecva-request-entry-data", {
+        requestId,
+        countryId,
+        pillarId,
+        entryIndex,
+      });
+      return;
+    }
+
     clearEditorFields();
     if (editorTitle) editorTitle.value = title.trim();
     if (editorSubtitle) editorSubtitle.value = subtitle.trim();
@@ -3629,6 +3656,33 @@
 
     if (type === "ecva-editor-state-changed") {
       schedulePersist(payload.state, payload.countryId || "");
+      return;
+    }
+
+    if (type === "ecva-entry-data") {
+      const requestId = String(payload.requestId || "").trim();
+      if (!requestId || !pendingEntryDataRequests.has(requestId)) return;
+      const pending = pendingEntryDataRequests.get(requestId);
+      pendingEntryDataRequests.delete(requestId);
+      if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+      const detail = {
+        countryId: pending.countryId,
+        pillarId: pending.pillarId,
+        entryIndex: pending.entryIndex,
+        entry:
+          payload && payload.entry && typeof payload.entry === "object"
+            ? payload.entry
+            : null,
+        fallback: {
+          title: pending.title,
+          subtitle: pending.subtitle,
+          description: pending.description,
+        },
+      };
+      closeManage();
+      window.dispatchEvent(
+        new CustomEvent("ecva-open-resource-entry-editor", { detail }),
+      );
     }
   });
 
