@@ -2687,9 +2687,10 @@
 
             function normalizeSubmissionStatus(rawStatus) {
               const value = String(rawStatus || "").trim().toLowerCase();
+              if (value === "pending") return "pending";
               if (value === "in_progress" || value === "in progress" || value === "processing")
-                return "in_progress";
-              if (value === "rejected" || value === "declined") return "rejected";
+                return "pending";
+              if (value === "rejected" || value === "declined") return "pending";
               if (value === "archived" || value === "done" || value === "used") return "archived";
               return "new";
             }

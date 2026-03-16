@@ -3859,10 +3859,10 @@
         color: #2f4f64;
       }
 
-      .ecva-country-flow-summary .is-rejected {
-        background: #faecef;
-        border-color: rgba(178, 128, 137, 0.46);
-        color: #5e3f46;
+      .ecva-country-flow-summary .is-pending {
+        background: #fff1e6;
+        border-color: rgba(204, 134, 75, 0.46);
+        color: #7a4a1d;
       }
 
       .ecva-country-flow-summary .is-archived {
@@ -4009,12 +4009,6 @@
         display: none !important;
       }
 
-      .ecva-inbox-card-head {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
       .ecva-inbox-type,
       .ecva-inbox-pillar {
         display: inline-flex;
@@ -4126,38 +4120,25 @@
         overflow-wrap: anywhere;
       }
 
-      .ecva-inbox-links,
-      .ecva-inbox-attachments {
-        display: grid;
-        gap: 4px;
-      }
-
-      .ecva-inbox-links a,
-      .ecva-inbox-attachments a {
-        font-size: 12px;
-        font-weight: 700;
-        color: #25546f;
-        text-decoration: none;
-        overflow-wrap: anywhere;
-      }
-
-      .ecva-inbox-attachments span {
-        font-size: 12px;
-        font-weight: 700;
-        color: #456675;
-      }
-
       .ecva-inbox-contact {
         margin: 0;
         font-size: 12px;
         font-weight: 700;
         color: #2d4a57;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
       }
 
       .ecva-inbox-actions {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 6px;
+      }
+
+      .ecva-inbox-actions.ecva-inbox-actions--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .ecva-inbox-footer {
@@ -4167,9 +4148,13 @@
         gap: 10px;
       }
 
+      .ecva-inbox-footer.is-delete-only {
+        grid-template-columns: 1fr;
+      }
+
       .ecva-inbox-action {
         width: 100%;
-        min-height: 36px;
+        min-height: 42px;
         border-radius: 10px;
         border: 1px solid rgba(108, 132, 145, 0.54);
         background: #eaf2f6;
@@ -4180,10 +4165,26 @@
         cursor: pointer;
       }
 
-      .ecva-inbox-action.is-reject {
-        background: #fbe8eb;
-        color: #7a2e35;
-        border-color: rgba(161, 91, 102, 0.45);
+      .ecva-inbox-action.is-accept {
+        background: #a44a4a;
+        color: #fff;
+        border-color: rgba(120, 35, 35, 0.82);
+      }
+
+      .ecva-inbox-action.is-pending {
+        background: #d98539;
+        color: #fff;
+        border-color: rgba(162, 97, 38, 0.78);
+      }
+
+      .ecva-inbox-action.is-delete {
+        background: #a44a4a;
+        color: #fff;
+        border-color: rgba(120, 35, 35, 0.82);
+      }
+
+      .ecva-inbox-action.is-confirm {
+        filter: brightness(1.06);
       }
 
       .ecva-inbox-delete-btn {
@@ -4233,6 +4234,10 @@
 
       .ecva-inbox-delete-btn.is-confirm .ecva-inbox-delete-confirm-text {
         display: inline;
+      }
+
+      .ecva-inbox-footer.is-delete-only .ecva-inbox-delete-btn {
+        justify-self: center;
       }
 
       .ecva-inbox-empty {

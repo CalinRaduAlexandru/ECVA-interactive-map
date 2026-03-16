@@ -197,14 +197,15 @@
     const value = String(rawStatus || "")
       .trim()
       .toLowerCase();
+    if (value === "pending") return "pending";
     if (
       value === "in_progress" ||
       value === "in progress" ||
       value === "processing"
     ) {
-      return "in_progress";
+      return "pending";
     }
-    if (value === "rejected" || value === "declined") return "rejected";
+    if (value === "rejected" || value === "declined") return "pending";
     if (value === "archived" || value === "used" || value === "done")
       return "archived";
     return "new";
@@ -212,7 +213,7 @@
 
   function getSubmissionStatusLabel(statusValue) {
     const value = normalizeSubmissionStatus(statusValue);
-    if (value === "rejected") return "Rejected";
+    if (value === "pending") return "Pending";
     if (value === "archived") return "Accepted";
     return "Entries";
   }
@@ -2843,6 +2844,198 @@
     return "";
   }
 
+  function normalizeResourceDeliveryUrl(url, accessType, fileName) {
+    const value = String(url || "").trim();
+    if (!value) return "";
+    const isFile = String(accessType || "").trim().toLowerCase() === "file";
+    const name = String(fileName || "").trim().toLowerCase();
+    const looksLikeDoc =
+      isFile &&
+      (/\.(pdf|doc|docx|ppt|pptx)$/i.test(value) ||
+        /\.(pdf|doc|docx|ppt|pptx)$/i.test(name));
+    if (
+      looksLikeDoc &&
+      value.includes("res.cloudinary.com/") &&
+      value.includes("/image/upload/")
+    ) {
+      return value.replace("/image/upload/", "/raw/upload/");
+    }
+    return value;
+  }
+
+  function inferResourceTypeLabelFromSubmission(item) {
+    const resourceType = String((item && item.resourceType) || "")
+      .trim()
+      .toLowerCase();
+    if (resourceType === "image") return "Image";
+    if (resourceType === "youtube") return "Youtube";
+    if (resourceType === "webpage") return "Webpage";
+    if (resourceType === "document") return "Document";
+    const explicit = String((item && item.resourceTypeLabel) || "").trim();
+    if (explicit && !/^document$/i.test(explicit)) return explicit;
+    const accessType = String((item && item.accessType) || "")
+      .trim()
+      .toLowerCase();
+    if (accessType === "url") return "Webpage";
+    const probe = `${String((item && item.fileName) || "")} ${String(
+      (item && item.resourceUrl) || "",
+    )}`.toLowerCase();
+    if (/\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i.test(probe)) return "Image";
+    if (/\.(pdf|docx?|pptx?)(\?|#|$)/i.test(probe)) return "Document";
+    if (/youtube\.com|youtu\.be/.test(probe)) return "Youtube";
+    return explicit || (accessType === "file" ? "File" : "Webpage");
+  }
+
+  function inferResourcePricingFromSubmission(item) {
+    const raw = String((item && item.resourcePricing) || "")
+      .trim()
+      .toLowerCase();
+    if (raw === "paid")
+      return { value: "paid", label: "Cu plată", icon: "coin" };
+    if (raw === "freemium")
+      return { value: "freemium", label: "Freemium", icon: "trophy" };
+    if (raw === "subscription")
+      return { value: "subscription", label: "Abonament", icon: "calendar" };
+    return { value: "free", label: "Gratuit", icon: "gift" };
+  }
+
+  function renderResourcePricingIconSvg(iconName) {
+    if (iconName === "coin") {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15.2 8.7a4.2 4.2 0 1 0 0 6.6"></path><path d="M7.5 11h6"></path><path d="M7.5 13h6"></path></svg>';
+    }
+    if (iconName === "trophy") {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M6 4h12v3a6 10 0 0 1-12 0V4z"></path><path d="M6 5H4a2 2 0 0 0 2 4"></path><path d="M18 5h2a2 2 0 0 1-2 4"></path></svg>';
+    }
+    if (iconName === "calendar") {
+      return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path></svg>';
+    }
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"></rect><path d="M12 8v13"></path><path d="M3 12h18"></path><path d="M12 8s-2.5-3-4.5-3S5 6.5 7 8h5z"></path><path d="M12 8s2.5-3 4.5-3S19 6.5 17 8h-5z"></path></svg>';
+  }
+
+  function getSubmissionResourceVersions(item) {
+    const resourceLanguages = Array.isArray(item && item.resourceLanguages)
+      ? item.resourceLanguages
+          .filter((next) => next && typeof next === "object")
+          .map((next) => ({
+            languageCode: String(next.languageCode || "")
+              .trim()
+              .toLowerCase(),
+            languageLabel: String(next.languageLabel || "").trim(),
+            languageFlag: String(next.languageFlag || "").trim(),
+            accessType:
+              String(next.accessType || "").trim().toLowerCase() === "file"
+                ? "file"
+                : "url",
+            resourceType: String(next.resourceType || "")
+              .trim()
+              .toLowerCase(),
+            resourceTypeLabel: inferResourceTypeLabelFromSubmission(next),
+            resourcePricing: String(next.resourcePricing || "free")
+              .trim()
+              .toLowerCase(),
+            resourcePricingLabel: String(next.resourcePricingLabel || "").trim(),
+            fileName: String(next.fileName || "").trim(),
+            resourceUrl: normalizeResourceDeliveryUrl(
+              String(next.resourceUrl || "").trim(),
+              next.accessType,
+              next.fileName,
+            ),
+          }))
+          .filter((next) => next.resourceUrl)
+      : [];
+    if (resourceLanguages.length) return resourceLanguages;
+    const links = Array.isArray(item && item.links)
+      ? item.links.map((next) => String(next || "").trim()).filter(Boolean)
+      : [];
+    const attachments = Array.isArray(item && item.attachments)
+      ? item.attachments
+          .filter((next) => next && typeof next === "object")
+          .map((next) => ({
+            name: String(next.name || "").trim(),
+            url: String(next.url || "").trim(),
+          }))
+          .filter((next) => next.url)
+      : [];
+    return links.map((url, index) => {
+      const attachment = attachments.find((next) => next.url === url);
+      const accessType = attachment ? "file" : "url";
+      const typeLabel = inferResourceTypeLabelFromSubmission({
+        accessType,
+        resourceUrl: url,
+        fileName: attachment ? attachment.name : "",
+      });
+      return {
+        languageCode: "",
+        languageLabel: "",
+        languageFlag: "",
+        accessType,
+        resourceType: typeLabel.toLowerCase(),
+        resourceTypeLabel: typeLabel,
+        resourcePricing: "free",
+        resourcePricingLabel: "Gratuit",
+        fileName: attachment ? attachment.name : "",
+        resourceUrl: normalizeResourceDeliveryUrl(
+          url,
+          accessType,
+          attachment ? attachment.name : "",
+        ),
+      };
+    });
+  }
+
+  function renderSubmissionResourceVersions(item) {
+    const versions = getSubmissionResourceVersions(item);
+    if (!versions.length) return "";
+    return `<section class="country-modal-entry-block country-modal-resource-versions">
+      <h6>Resource Versions</h6>
+      <div class="country-modal-resource-version-list">
+        ${versions
+          .map((version) => {
+            const displayFlag =
+              String(version.languageFlag || "").trim() ||
+              getFlagFromLanguageCode(version.languageCode) ||
+              getFlagFromLanguageLabel(version.languageLabel);
+            const typeLabel = inferResourceTypeLabelFromSubmission(version);
+            const isOpenAction =
+              String(version.accessType || "").trim().toLowerCase() === "url" ||
+              String(version.resourceType || "").trim().toLowerCase() ===
+                "webpage" ||
+              String(version.resourceType || "").trim().toLowerCase() ===
+                "youtube";
+            const actionVerb = isOpenAction ? "Deschideți" : "Descărcați";
+            const actionLabel = `${actionVerb} ${typeLabel}`.trim();
+            const pricing = inferResourcePricingFromSubmission(version);
+            const pricingLabel =
+              String(version.resourceType || "").trim().toLowerCase() ===
+              "webpage"
+                ? String(version.resourcePricingLabel || "").trim() ||
+                  pricing.label
+                : "Gratuit";
+            const pricingIconName =
+              String(version.resourceType || "").trim().toLowerCase() ===
+              "webpage"
+                ? pricing.icon
+                : "gift";
+            return `<article class="country-modal-resource-version">
+              <div class="country-modal-resource-version-main">
+                <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
+                <a class="country-modal-entry-btn country-modal-entry-link-btn" href="${escapeHtml(
+                  version.resourceUrl,
+                )}" target="_blank" rel="noopener noreferrer">${escapeHtml(actionLabel)}</a>
+                <span class="country-modal-resource-pricing-pill">
+                  <span class="country-modal-resource-pricing-pill-icon" aria-hidden="true">${renderResourcePricingIconSvg(
+                    pricingIconName,
+                  )}</span>
+                  <span>${escapeHtml(pricingLabel)}</span>
+                </span>
+              </div>
+            </article>`;
+          })
+          .join("")}
+      </div>
+    </section>`;
+  }
+
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
     const title = String(safeItem.title || "").trim() || "Untitled entry";
@@ -3162,18 +3355,18 @@
       item && item.submittedBy && typeof item.submittedBy === "object"
         ? item.submittedBy
         : { name: "", email: "" };
-    const links = Array.isArray(item && item.links)
-      ? item.links.filter(Boolean)
-      : [];
-    const attachments = Array.isArray(item && item.attachments)
-      ? item.attachments.filter((next) => next && (next.name || next.url))
-      : [];
     const contact =
       item &&
       item.representativeContact &&
       typeof item.representativeContact === "object"
         ? item.representativeContact
         : { name: "", role: "", email: "" };
+    const ownership =
+      item && item.ownership && typeof item.ownership === "object"
+        ? item.ownership
+        : { type: "", name: "" };
+    const ownershipType = String(ownership.type || "").trim();
+    const ownershipName = String(ownership.name || "").trim();
     const representativeImage = String(
       (representativeDraft &&
         (representativeDraft.image || representativeDraft.sourceImage)) ||
@@ -3191,16 +3384,30 @@
       (representativeDraft && representativeDraft.organisation) || "",
     ).trim();
     const actions = [];
-    const canManage =
-      currentStatus === "new" || currentStatus === "in_progress";
-    if (currentStatus === "new" || currentStatus === "in_progress") {
+    const canManage = currentStatus === "new";
+    if (currentStatus === "new") {
       actions.push(
-        '<button type="button" class="ecva-inbox-action" data-action-status="archived" data-action-accept="true">Accept</button>',
+        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
       );
       actions.push(
-        '<button type="button" class="ecva-inbox-action is-reject" data-action-status="rejected">Reject</button>',
+        '<button type="button" class="ecva-inbox-action is-pending" data-action-status="pending">Pending</button>',
+      );
+      actions.push(
+        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
+      );
+    } else if (currentStatus === "pending") {
+      actions.push(
+        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
+      );
+      actions.push(
+        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
       );
     }
+    const useTrashDelete = actions.length === 0;
+    const contactLine = [contact.name, contact.role, contact.email]
+      .map((next) => String(next || "").trim())
+      .filter(Boolean)
+      .join(" • ");
     return `
       <article class="ecva-inbox-card ecva-inbox-item" data-submission-id="${escapeHtml(item.id)}">
         <div class="ecva-inbox-summary">
@@ -3216,13 +3423,6 @@
           </button>
         </div>
         <div class="ecva-inbox-details" hidden>
-          ${
-            !isRepresentative
-              ? `<header class="ecva-inbox-card-head">
-                   <span class="ecva-inbox-pillar">${escapeHtml(getSubmissionPillarLabel(item))}</span>
-                 </header>`
-              : ""
-          }
           ${
             isRepresentative
               ? `<div class="ecva-inbox-rep-layout">
@@ -3254,7 +3454,7 @@
                             </div>`
                          : ""
                      }
-                   </div>
+                  </div>
                  </div>`
               : ""
           }
@@ -3263,59 +3463,48 @@
               ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>`
               : ""
           }
-          <dl class="ecva-inbox-meta">
-            <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || "-")}</dd></div>
-            <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || "-")}</dd></div>
-            ${
-              isRepresentative
-                ? ""
-                : `<div><dt>Languages</dt><dd>${escapeHtml(item.languageAvailability || "-")}</dd></div>`
-            }
-            <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
-          </dl>
           ${
-            links.length
-              ? `<div class="ecva-inbox-links">${links
-                  .slice(0, 3)
-                  .map(
-                    (url) =>
-                      `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`,
-                  )
-                  .join("")}</div>`
+            !isRepresentative
+              ? renderSubmissionResourceVersions(item)
               : ""
           }
           ${
-            attachments.length
-              ? `<div class="ecva-inbox-attachments">${attachments
-                  .slice(0, 4)
-                  .map((item) => {
-                    const label = escapeHtml(
-                      item.name || item.url || "Attachment",
-                    );
-                    const href = escapeHtml(item.url || "#");
-                    if (!item.url) return `<span>${label}</span>`;
-                    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${label}</a>`;
-                  })
-                  .join("")}</div>`
+            !isRepresentative && (ownershipType || ownershipName)
+              ? `<p class="ecva-inbox-contact"><strong>Owner:</strong> ${
+                  ownershipType
+                    ? `<span class="ecva-inbox-pillar">${escapeHtml(ownershipType)}</span>`
+                    : ""
+                } ${escapeHtml(ownershipName || "-")}</p>`
               : ""
           }
           ${
-            !isRepresentative && (contact.name || contact.role || contact.email)
-              ? `<p class="ecva-inbox-contact"><strong>Representative:</strong> ${escapeHtml(
-                  [contact.name, contact.role, contact.email]
-                    .filter(Boolean)
-                    .join(" • ") || "-",
+            !isRepresentative && contactLine
+              ? `<p class="ecva-inbox-contact"><strong>Contact:</strong> ${escapeHtml(
+                  contactLine,
                 )}</p>`
               : ""
           }
-          <div class="ecva-inbox-footer">
-            ${actions.length ? `<div class="ecva-inbox-actions">${actions.join("")}</div>` : "<span></span>"}
-            <button type="button" class="ecva-inbox-delete-btn" data-action-delete aria-label="Delete entry permanently" title="Delete entry permanently">
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path d="M8 3.8A1.8 1.8 0 0 1 9.8 2h4.4A1.8 1.8 0 0 1 16 3.8V5h3.2a1 1 0 1 1 0 2H18v11.1A2.9 2.9 0 0 1 15.1 21H8.9A2.9 2.9 0 0 1 6 18.1V7H4.8a1 1 0 0 1 0-2H8V3.8Zm2 1.2h4V4h-4v1Zm-2 2v11.1c0 .5.4.9.9.9h6.2c.5 0 .9-.4.9-.9V7H8Zm2.2 2.1a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Zm3.6 0a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Z"></path>
-              </svg>
-              <span class="ecva-inbox-delete-confirm-text">Confirm</span>
-            </button>
+          <dl class="ecva-inbox-meta">
+            <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || "-")}</dd></div>
+            <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || "-")}</dd></div>
+            <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
+          </dl>
+          <div class="ecva-inbox-footer${actions.length ? "" : " is-delete-only"}">
+            ${
+              actions.length
+                ? `<div class="ecva-inbox-actions ecva-inbox-actions--${actions.length}">${actions.join("")}</div>`
+                : ""
+            }
+            ${
+              useTrashDelete
+                ? `<button type="button" class="ecva-inbox-delete-btn" data-action-delete aria-label="Delete entry permanently" title="Delete entry permanently">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                      <path d="M8 3.8A1.8 1.8 0 0 1 9.8 2h4.4A1.8 1.8 0 0 1 16 3.8V5h3.2a1 1 0 1 1 0 2H18v11.1A2.9 2.9 0 0 1 15.1 21H8.9A2.9 2.9 0 0 1 6 18.1V7H4.8a1 1 0 0 1 0-2H8V3.8Zm2 1.2h4V4h-4v1Zm-2 2v11.1c0 .5.4.9.9.9h6.2c.5 0 .9-.4.9-.9V7H8Zm2.2 2.1a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Zm3.6 0a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Z"></path>
+                    </svg>
+                    <span class="ecva-inbox-delete-confirm-text">Confirm</span>
+                  </button>`
+                : ""
+            }
           </div>
         </div>
       </article>
@@ -3441,6 +3630,31 @@
         });
       });
     panel
+      .querySelectorAll(".ecva-inbox-action[data-action-delete-inline]")
+      .forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const card = btn.closest(".ecva-inbox-card[data-submission-id]");
+          const submissionId = card
+            ? card.getAttribute("data-submission-id")
+            : "";
+          if (!submissionId) return;
+          if (!btn.classList.contains("is-confirm")) {
+            btn.classList.add("is-confirm");
+            btn.textContent = "Confirm";
+            window.setTimeout(() => {
+              if (!btn.isConnected) return;
+              btn.classList.remove("is-confirm");
+              btn.textContent = "Delete";
+            }, 3800);
+            return;
+          }
+          postToMap("ecva-editor-delete-submission", {
+            countryId,
+            submissionId: String(submissionId),
+          });
+        });
+      });
+    panel
       .querySelectorAll(".ecva-inbox-delete-btn[data-action-delete]")
       .forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -3487,10 +3701,10 @@
     });
     const next = orderedInbox.filter((item) => {
       const status = normalizeSubmissionStatus(item.status);
-      return status === "new" || status === "in_progress";
+      return status === "new";
     });
-    const rejected = orderedInbox.filter(
-      (item) => normalizeSubmissionStatus(item.status) === "rejected",
+    const pending = orderedInbox.filter(
+      (item) => normalizeSubmissionStatus(item.status) === "pending",
     );
     const archived = orderedInbox.filter(
       (item) => normalizeSubmissionStatus(item.status) === "archived",
@@ -3505,13 +3719,13 @@
         </div>
         <div class="ecva-country-flow-summary">
           <span class="is-new">Entries ${next.length}</span>
-          <span class="is-rejected">Rejected ${rejected.length}</span>
+          <span class="is-pending">Pending ${pending.length}</span>
           <span class="is-archived">Accepted ${archived.length}</span>
         </div>
       </header>
       <div class="ecva-country-flow-grid">
         ${buildInboxColumnHtml("Entries", "new", next, "No entries yet.")}
-        ${buildInboxColumnHtml("Rejected", "rejected", rejected, "No rejected submissions.")}
+        ${buildInboxColumnHtml("Pending", "pending", pending, "No pending submissions.")}
         ${buildInboxColumnHtml("Accepted", "archived", archived, "No accepted submissions yet.")}
       </div>
     `;
