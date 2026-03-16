@@ -1225,11 +1225,13 @@
         color: #9a5a7d;
       }
 
-      .contribute-language-pricing-tab.is-active .contribute-language-pricing-icon {
+      .contribute-language-pricing-tab.is-active
+        .contribute-language-pricing-icon {
         color: #c4689b;
       }
 
-      .contribute-language-pricing-tab:has(input:checked) .contribute-language-pricing-icon {
+      .contribute-language-pricing-tab:has(input:checked)
+        .contribute-language-pricing-icon {
         color: #c4689b;
       }
 
@@ -5226,6 +5228,9 @@
                       <option value="Independent expert">
                         Independent expert
                       </option>
+                      <option value="Collaborative partnership">
+                        Collaborative partnership
+                      </option>
                       <option value="Other legal entity">
                         Other legal entity
                       </option>
@@ -6671,7 +6676,9 @@
         "resource-add-language-btn",
       );
       const resourceSubmitBtn = document.getElementById("resource-submit-btn");
-      const contributeRemoveBtn = document.getElementById("contribute-remove-btn");
+      const contributeRemoveBtn = document.getElementById(
+        "contribute-remove-btn",
+      );
       const contributeRepPhotoInput = document.getElementById(
         "contribute-rep-photo",
       );
@@ -7428,7 +7435,9 @@
             pricingWrap.appendChild(pricingTitle);
             const pricingTabs = document.createElement("div");
             pricingTabs.className = "contribute-language-pricing-tabs";
-            const activePricing = getResourcePricingConfig(item.resourcePricing);
+            const activePricing = getResourcePricingConfig(
+              item.resourcePricing,
+            );
             item.resourcePricing = activePricing.value;
             RESOURCE_PRICING_OPTIONS.forEach((option) => {
               const tab = document.createElement("label");
@@ -7442,7 +7451,9 @@
               input.value = option.value;
               input.checked = option.value === activePricing.value;
               input.addEventListener("change", () => {
-                item.resourcePricing = getResourcePricingConfig(input.value).value;
+                item.resourcePricing = getResourcePricingConfig(
+                  input.value,
+                ).value;
                 renderResourceLanguageItems(item.id);
                 saveResourceDraft();
                 validateResourceForm(resourceValidationTriggered);
@@ -7729,8 +7740,9 @@
           if (typeConfig.value !== "webpage") {
             item.resourcePricing = "free";
           } else {
-            item.resourcePricing = getResourcePricingConfig(item.resourcePricing)
-              .value;
+            item.resourcePricing = getResourcePricingConfig(
+              item.resourcePricing,
+            ).value;
           }
           if (typeConfig.inputMode === "file") {
             const hasFile =
@@ -7772,8 +7784,9 @@
               setFieldError(valueInput, false);
             }
             if (typeConfig.value === "webpage") {
-              const pricingValue = getResourcePricingConfig(item.resourcePricing)
-                .value;
+              const pricingValue = getResourcePricingConfig(
+                item.resourcePricing,
+              ).value;
               item.resourcePricing = pricingValue;
             } else {
               item.resourcePricing = "free";
@@ -7859,14 +7872,14 @@
               ? countryDefaultLanguage === "en"
                 ? ""
                 : used.has("en")
-                ? (
-                    resourceLanguageOptions.find(
-                      (item) => !used.has(item.code),
-                    ) || {
-                      code: "",
-                    }
-                  ).code
-                : "en"
+                  ? (
+                      resourceLanguageOptions.find(
+                        (item) => !used.has(item.code),
+                      ) || {
+                        code: "",
+                      }
+                    ).code
+                  : "en"
               : "";
             const item = createResourceLanguageItem(nextCode, false);
             resourceLanguageItems.push(item);
@@ -9196,7 +9209,8 @@
         if (event.data.type === "ecva-open-contribute-modal") {
           const payload = event.data.payload || {};
           openContributeModal({
-            mode: payload.mode === "representative" ? "representative" : "article",
+            mode:
+              payload.mode === "representative" ? "representative" : "article",
             countryId: String(payload.countryId || "").trim(),
             countryName: String(payload.countryName || "").trim(),
             pillarId: String(payload.pillarId || "").trim(),
@@ -9261,7 +9275,10 @@
           }
           if (!contributeRemoveBtn.classList.contains("is-confirm")) {
             contributeRemoveBtn.classList.add("is-confirm");
-            contributeRemoveBtn.setAttribute("aria-label", "Confirm delete article");
+            contributeRemoveBtn.setAttribute(
+              "aria-label",
+              "Confirm delete article",
+            );
             contributeRemoveBtn.setAttribute("title", "Confirm delete article");
             if (contributeRemoveConfirmTimer) {
               window.clearTimeout(contributeRemoveConfirmTimer);
@@ -9273,8 +9290,12 @@
           }
           if (
             !postToMapFrame("ecva-editor-remove-entry", {
-              countryId: String(target.countryId || "").trim().toUpperCase(),
-              pillarId: String(target.pillarId || "").trim().toLowerCase(),
+              countryId: String(target.countryId || "")
+                .trim()
+                .toUpperCase(),
+              pillarId: String(target.pillarId || "")
+                .trim()
+                .toLowerCase(),
               entryIndex: Number(target.entryIndex),
             })
           ) {
@@ -9519,7 +9540,9 @@
                 throw new Error("map_frame_not_ready");
               }
               setContributeStatus(
-                activeLang === "ro" ? "Articol publicat." : "Article published.",
+                activeLang === "ro"
+                  ? "Articol publicat."
+                  : "Article published.",
                 "success",
               );
               clearResourceDraft();
@@ -9912,7 +9935,9 @@
           event.stopPropagation();
           if (!embedCodePreview) return;
           try {
-            const copied = await copyTextToClipboardSafe(embedCodePreview.value);
+            const copied = await copyTextToClipboardSafe(
+              embedCodePreview.value,
+            );
             if (!copied) throw new Error("copy_failed");
             showCopyStatus();
           } catch (_error) {
