@@ -6250,6 +6250,23 @@
         );
       }
 
+      function postDefaultEmbedHeightToParent() {
+        if (window.parent === window) return;
+        const main = document.querySelector(".desktop-map");
+        const mainHeight = main ? main.getBoundingClientRect().height || 0 : 0;
+        const defaultHeight = Math.max(520, Math.ceil(mainHeight));
+        if (!Number.isFinite(defaultHeight) || defaultHeight < 320) return;
+        lastPostedEmbedHeight = 0;
+        window.parent.postMessage(
+          {
+            type: EMBED_HEIGHT_EVENT,
+            source: "ecva-map",
+            height: Math.ceil(defaultHeight),
+          },
+          "*",
+        );
+      }
+
       function scheduleEmbedHeightPost() {
         if (heightPostTimer) {
           window.clearTimeout(heightPostTimer);
@@ -9032,6 +9049,7 @@
           if (modalContent) {
             modalContent.innerHTML = "";
           }
+          postDefaultEmbedHeightToParent();
           scheduleEmbedHeightPost();
           modalCloseTimer = null;
         }, MODAL_CLOSE_MS);
@@ -9041,6 +9059,10 @@
         if (!event || !event.data) return;
         if (event.data.type === "ecva-scroll-parent-top") {
           forceScrollToTopAcrossContexts();
+          return;
+        }
+        if (event.data.type === "ecva-reset-embed-height") {
+          postDefaultEmbedHeightToParent();
           return;
         }
         if (event.data.type === "ecva-country-modal-html") {
@@ -9732,6 +9754,18 @@
       renderLanguageSwitch();
       syncGlobalScrollLock();
       scheduleEmbedHeightPost();
+      function ensureTopLayerModals() {
+        const host =
+          document.body instanceof HTMLElement ? document.body : null;
+        if (!host) return;
+        if (contributeModal && contributeModal.parentElement !== host) {
+          host.appendChild(contributeModal);
+        }
+        if (tepaceModal && tepaceModal.parentElement !== host) {
+          host.appendChild(tepaceModal);
+        }
+      }
+      ensureTopLayerModals();
       window.addEventListener("load", () => {
         scheduleEmbedHeightPost();
         preloadPillarIcons();
@@ -9781,16 +9815,3 @@
     <script src="app-editor.js"></script>
   </body>
 </html>
-      function ensureTopLayerModals() {
-        const host =
-          document.body instanceof HTMLElement ? document.body : null;
-        if (!host) return;
-        if (contributeModal && contributeModal.parentElement !== host) {
-          host.appendChild(contributeModal);
-        }
-        if (tepaceModal && tepaceModal.parentElement !== host) {
-          host.appendChild(tepaceModal);
-        }
-      }
-
-      ensureTopLayerModals();

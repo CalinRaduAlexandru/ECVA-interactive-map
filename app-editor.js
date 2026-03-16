@@ -1063,6 +1063,7 @@
     manageRoot.setAttribute("aria-hidden", "true");
     if (manageBody) manageBody.innerHTML = "";
     syncAdminOverlayScrollLock();
+    postToMap("ecva-reset-embed-height");
   }
 
   function openEditorModal() {
