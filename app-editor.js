@@ -2706,7 +2706,23 @@
       btn.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        openAddEntryEditor(countryId, pillarId, pillarLabel);
+        window.postMessage(
+          {
+            type: "ecva-open-contribute-modal",
+            payload: {
+              mode: "article",
+              countryId,
+              countryName:
+                selectedCountryData && selectedCountryData.name
+                  ? String(selectedCountryData.name)
+                  : "",
+              pillarId,
+              pillarLabel,
+              directPublish: true,
+            },
+          },
+          "*",
+        );
       });
     });
   }

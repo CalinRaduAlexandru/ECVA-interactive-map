@@ -6643,6 +6643,7 @@
         pillarId: "",
         pillarLabel: "",
         editEntryTarget: null,
+        directPublish: false,
       };
       let contributeRepCropSource = "";
       let contributeRepCropFilename = "representative-image.png";
@@ -8587,6 +8588,7 @@
           pillarLabel,
           countryId,
           countryName,
+          directPublish: Boolean(config && config.directPublish),
           editEntryTarget:
             config &&
             config.editEntryTarget &&
@@ -8609,7 +8611,13 @@
         };
         const repCopy = getRepFormCopy();
         const modeTitle =
-          mode === "representative" ? repCopy.title : "Suggest an article";
+          mode === "representative"
+            ? repCopy.title
+            : contributeContext.directPublish
+              ? activeLang === "ro"
+                ? "Postează articol"
+                : "Post article"
+              : "Suggest an article";
         if (contributeModalTitle) {
           contributeModalTitle.textContent = modeTitle;
         }
@@ -8643,7 +8651,11 @@
           if (articleSubmitBtn) {
             articleSubmitBtn.textContent = contributeContext.editEntryTarget
               ? "Save changes"
-              : "Send for review";
+              : contributeContext.directPublish
+                ? activeLang === "ro"
+                  ? "Postează"
+                  : "Post"
+                : "Send for review";
           }
           if (mode === "article") {
             try {
@@ -8690,7 +8702,11 @@
               : `Share a representative suggestion for ${leadCountry}.`
             : contributeContext.editEntryTarget
               ? `Edit this ${pillarLabel || "resource"} entry for ${leadCountry}.`
-              : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
+              : contributeContext.directPublish
+                ? activeLang === "ro"
+                  ? `Publică direct un articol pentru ${leadCountry}.`
+                  : `Publish an article directly for ${leadCountry}.`
+                : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
         const leadNode = contributeModal.querySelector(
           ".contribute-modal-lead",
         );
@@ -9090,6 +9106,19 @@
         }
         if (event.data.type === "ecva-open-country-modal") {
           openDesktopModal(event.data.payload && event.data.payload.html);
+          return;
+        }
+        if (event.data.type === "ecva-open-contribute-modal") {
+          const payload = event.data.payload || {};
+          openContributeModal({
+            mode: payload.mode === "representative" ? "representative" : "article",
+            countryId: String(payload.countryId || "").trim(),
+            countryName: String(payload.countryName || "").trim(),
+            pillarId: String(payload.pillarId || "").trim(),
+            pillarLabel: String(payload.pillarLabel || "").trim(),
+            directPublish: Boolean(payload.directPublish),
+          });
+          return;
         }
       });
 
@@ -9332,6 +9361,42 @@
               window.setTimeout(() => {
                 closeContributeModal();
               }, 800);
+            } else if (contributeContext.directPublish) {
+              const languageFlags = resourceLanguages
+                .map((item) => String(item.languageFlag || "").trim())
+                .filter(Boolean);
+              if (
+                !postToMapFrame("ecva-editor-add-entry", {
+                  countryId,
+                  pillarId,
+                  entry: {
+                    title,
+                    summary: description,
+                    description,
+                    languages: [...new Set(languageFlags)],
+                    ownership: {
+                      type: ownershipType,
+                      name: ownershipName,
+                    },
+                    resourceLanguages,
+                    representativeContact: {
+                      name: contactName,
+                      role: contactRole,
+                      email: contactEmail,
+                    },
+                  },
+                })
+              ) {
+                throw new Error("map_frame_not_ready");
+              }
+              setContributeStatus(
+                activeLang === "ro" ? "Articol publicat." : "Article published.",
+                "success",
+              );
+              clearResourceDraft();
+              window.setTimeout(() => {
+                closeContributeModal();
+              }, 900);
             } else {
               const submission = {
                 id: `${countryId}-${Date.now()}-${Math.random()
