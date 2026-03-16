@@ -2258,7 +2258,7 @@
                                       String(item.resourceType || "").trim().toLowerCase() === "webpage" ||
                                       String(item.resourceType || "").trim().toLowerCase() === "youtube";
                                     const actionVerb = isOpenAction ? "Deschideți" : "Descărcați";
-                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}${actionVerb} ${typeLabel}`.trim();
+                                    const actionLabel = `${actionVerb} ${typeLabel}`.trim();
                                     const pricing = inferResourcePricing(item);
                                     const pricingLabel =
                                       String(item.resourceType || "").trim().toLowerCase() === "webpage"
@@ -2271,6 +2271,7 @@
                                     return `
                                       <article class="country-modal-resource-version">
                                         <div class="country-modal-resource-version-main">
+                                          <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
                                           <a
                                             class="country-modal-entry-btn country-modal-entry-link-btn"
                                             href="${escapeHtml(item.resourceUrl)}"
@@ -2284,7 +2285,6 @@
                                             <span>${escapeHtml(pricingLabel)}</span>
                                           </span>
                                         </div>
-                                        <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
                                       </article>
                                     `;
                                   })
