@@ -2257,6 +2257,26 @@
                       const contactName = String(creatorContact.name || "").trim();
                       const contactRole = String(creatorContact.role || "").trim();
                       const contactEmail = String(creatorContact.email || "").trim();
+                      const ownershipInlineHtml =
+                        pillar.id === "resources" && (ownershipType || ownershipName)
+                          ? `
+                            <div class="country-modal-entry-ownership-row">
+                              <span class="country-modal-entry-ownership-label">Ownership:</span>
+                              <div class="country-modal-entry-ownership-pills">
+                                ${
+                                  ownershipType
+                                    ? `<span class="country-modal-entry-meta-pill"><span>${escapeHtml(ownershipType)}</span></span>`
+                                    : ""
+                                }
+                                ${
+                                  ownershipName
+                                    ? `<span class="country-modal-entry-meta-pill"><span>${escapeHtml(ownershipName)}</span></span>`
+                                    : ""
+                                }
+                              </div>
+                            </div>
+                          `
+                          : "";
                       const contactHtml =
                         contactName || contactRole || contactEmail
                           ? `
@@ -2332,6 +2352,7 @@
                             ${pillar.id === "resources" ? resourceVersionsHtml : methodsHtml}
                             ${pillar.id === "resources" ? "" : programsHtml}
                             ${pillar.id === "resources" ? "" : impactHtml}
+                            ${pillar.id === "resources" ? ownershipInlineHtml : ""}
                             ${pillar.id === "resources" ? contactHtml : ""}
                             ${pillar.id !== "resources" && !methods.length && !programs.length && !impact.length ? `<p class="country-modal-entry-extra">${escapeHtml("No more details available.")}</p>` : ""}
                           </div>
