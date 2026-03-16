@@ -6305,6 +6305,52 @@
         }
         return acc;
       }, {});
+      const CANONICAL_LANGUAGE_COUNTRY_CODE = {
+        en: "GB",
+        ro: "RO",
+        fr: "FR",
+        de: "DE",
+        es: "ES",
+        cs: "CZ",
+        da: "DK",
+        et: "EE",
+        fi: "FI",
+        el: "GR",
+        is: "IS",
+        no: "NO",
+        sv: "SE",
+        nl: "NL",
+        bg: "BG",
+        be: "BY",
+        sq: "AL",
+        hy: "AM",
+        bs: "BA",
+        ka: "GE",
+        hr: "HR",
+        hu: "HU",
+        it: "IT",
+        lt: "LT",
+        lb: "LU",
+        lv: "LV",
+        sr: "RS",
+        mk: "MK",
+        pl: "PL",
+        pt: "PT",
+        sl: "SI",
+        sk: "SK",
+        tr: "TR",
+        uk: "UA",
+        ca: "AD",
+      };
+
+      function getCanonicalCountryCodeForLanguage(languageCode) {
+        const code = String(languageCode || "").trim().toLowerCase();
+        return (
+          CANONICAL_LANGUAGE_COUNTRY_CODE[code] ||
+          languageCountryCodeByPrimary[code] ||
+          ""
+        );
+      }
       const resourceLanguageOptions = Array.from(
         new Set(Object.values(COUNTRY_PRIMARY_LANGUAGE).concat(["en"])),
       )
@@ -6318,7 +6364,9 @@
         .map((code) => ({
           code,
           label: LANGUAGE_ENDONYMS[code] || code.toUpperCase(),
-          flag: getFlagEmojiByCountryCode(languageCountryCodeByPrimary[code]),
+          flag: getFlagEmojiByCountryCode(
+            getCanonicalCountryCodeForLanguage(code),
+          ),
         }));
 
       function getFlagEmojiByCountryCode(countryCode) {
@@ -6338,7 +6386,9 @@
         return {
           code,
           label: LANGUAGE_ENDONYMS[code] || code.toUpperCase() || "Language",
-          flag: getFlagEmojiByCountryCode(languageCountryCodeByPrimary[code]),
+          flag: getFlagEmojiByCountryCode(
+            getCanonicalCountryCodeForLanguage(code),
+          ),
         };
       }
 
