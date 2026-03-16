@@ -2774,11 +2774,11 @@
         display: grid;
         grid-template-columns: auto 1px minmax(0, 1fr);
         gap: 16px;
-        width: min(100%, 760px);
-        max-width: min(100%, 720px);
-        align-self: center;
-        margin-left: auto;
-        margin-right: auto;
+        width: 100%;
+        max-width: 100%;
+        align-self: stretch;
+        margin-left: 0;
+        margin-right: 0;
         background: #ffffff;
       }
 
@@ -2790,6 +2790,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        opacity: 0.3;
       }
 
       .country-modal-entry-contact-info-icon {
@@ -2844,14 +2845,12 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        margin-left: 2px;
       }
 
-      .country-modal-entry-contact-copy-btn {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        border: 1px solid rgba(116, 139, 151, 0.58);
-        background: #eef5f8;
+      .country-modal-entry-email-copy-icon {
+        width: 16px;
+        height: 16px;
         color: #2c4958;
         display: inline-flex;
         align-items: center;
@@ -2859,17 +2858,22 @@
         cursor: pointer;
         transition:
           transform 0.16s ease,
-          filter 0.16s ease,
-          background-color 0.16s ease;
+          opacity 0.16s ease;
+        opacity: 0.72;
       }
 
-      .country-modal-entry-contact-copy-btn:hover {
+      .country-modal-entry-email-copy-icon:hover {
         transform: translateY(-1px);
-        filter: brightness(1.05);
-        background: #f7fbfd;
+        opacity: 1;
       }
 
-      .country-modal-entry-contact-copy-btn svg {
+      .country-modal-entry-email-copy-icon:focus-visible {
+        outline: 2px solid rgba(71, 116, 138, 0.58);
+        outline-offset: 2px;
+        border-radius: 4px;
+      }
+
+      .country-modal-entry-email-copy-icon svg {
         width: 16px;
         height: 16px;
         fill: currentColor;
@@ -2902,7 +2906,7 @@
       }
 
       .country-modal-entry-ownership-block {
-        margin: 24px 0;
+        margin: 14px 0 24px;
       }
 
       .country-modal-entry-ownership-label {
@@ -8814,12 +8818,14 @@
         });
 
         const emailCopyButtons = modalContent.querySelectorAll(
-          ".country-modal-entry-contact-copy-btn[data-copy-email]",
+          ".country-modal-entry-email-copy-icon[data-copy-email]",
         );
         emailCopyButtons.forEach((btn) => {
-          btn.addEventListener("click", async (event) => {
-            event.preventDefault();
-            event.stopPropagation();
+          const handleCopy = async (event) => {
+            if (event) {
+              event.preventDefault();
+              event.stopPropagation();
+            }
             const emailValue = String(
               btn.getAttribute("data-copy-email") || "",
             ).trim();
@@ -8829,32 +8835,25 @@
               btn.parentElement.querySelector(
                 ".country-modal-entry-contact-copy-status",
               );
-            const showStatus = () => {
+            const showStatus = (text) => {
               if (!statusEl) return;
-              statusEl.textContent = "Copied";
+              statusEl.textContent = text;
               statusEl.classList.add("is-visible");
               window.setTimeout(() => {
                 statusEl.classList.remove("is-visible");
-              }, 1200);
+              }, 1400);
             };
             try {
               await navigator.clipboard.writeText(emailValue);
-              showStatus();
+              showStatus("Copied");
             } catch (_error) {
-              const helper = document.createElement("textarea");
-              helper.value = emailValue;
-              helper.setAttribute("readonly", "readonly");
-              helper.style.position = "fixed";
-              helper.style.top = "0";
-              helper.style.left = "0";
-              helper.style.opacity = "0";
-              helper.style.pointerEvents = "none";
-              document.body.appendChild(helper);
-              helper.focus();
-              helper.select();
-              document.execCommand("copy");
-              document.body.removeChild(helper);
-              showStatus();
+              showStatus("Copy failed");
+            }
+          };
+          btn.addEventListener("click", handleCopy);
+          btn.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              handleCopy(event);
             }
           });
         });
