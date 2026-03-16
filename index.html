@@ -5306,6 +5306,21 @@
                   aria-live="polite"
                 ></p>
                 <button
+                  id="contribute-remove-btn"
+                  class="ecva-admin-btn danger ecva-editor-remove-btn"
+                  type="button"
+                  aria-label="Delete article"
+                  title="Delete article"
+                  style="display: none"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path
+                      d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"
+                    ></path>
+                  </svg>
+                  <span class="ecva-editor-remove-confirm-text">Confirm</span>
+                </button>
+                <button
                   class="contribute-form-btn secondary"
                   id="contribute-cancel-btn"
                   type="button"
@@ -6609,6 +6624,7 @@
         "resource-add-language-btn",
       );
       const resourceSubmitBtn = document.getElementById("resource-submit-btn");
+      const contributeRemoveBtn = document.getElementById("contribute-remove-btn");
       const contributeRepPhotoInput = document.getElementById(
         "contribute-rep-photo",
       );
@@ -6703,6 +6719,7 @@
       };
       let modalCloseTimer = null;
       let contributeSuccessFlowTimer = null;
+      let contributeRemoveConfirmTimer = null;
       let resourceLanguageItems = [];
       let resourceLangUid = 0;
       let resourceValidationTriggered = false;
@@ -8277,6 +8294,17 @@
         }
       }
 
+      function resetContributeRemoveConfirm() {
+        if (!contributeRemoveBtn) return;
+        contributeRemoveBtn.classList.remove("is-confirm");
+        contributeRemoveBtn.setAttribute("aria-label", "Delete article");
+        contributeRemoveBtn.setAttribute("title", "Delete article");
+        if (contributeRemoveConfirmTimer) {
+          window.clearTimeout(contributeRemoveConfirmTimer);
+          contributeRemoveConfirmTimer = null;
+        }
+      }
+
       function setContributeRepStatus(message, tone) {
         if (!contributeRepFormStatus) return;
         contributeRepFormStatus.textContent = String(message || "");
@@ -8657,6 +8685,13 @@
                   : "Post"
                 : "Send for review";
           }
+          if (contributeRemoveBtn) {
+            const shouldShowRemove = Boolean(contributeContext.editEntryTarget);
+            contributeRemoveBtn.style.display = shouldShowRemove
+              ? "inline-flex"
+              : "none";
+            resetContributeRemoveConfirm();
+          }
           if (mode === "article") {
             try {
               if (
@@ -8713,6 +8748,7 @@
         if (leadNode) leadNode.textContent = leadText;
         setContributeStatus("");
         setContributeRepStatus("");
+        resetContributeRemoveConfirm();
         contributeModal.classList.add("is-visible");
         contributeModal.setAttribute("aria-hidden", "false");
         syncGlobalScrollLock();
@@ -8737,6 +8773,8 @@
           contributeSuccessFlowTimer = null;
         }
         contributeContext.editEntryTarget = null;
+        contributeContext.directPublish = false;
+        resetContributeRemoveConfirm();
         syncGlobalScrollLock();
       }
 
@@ -9160,6 +9198,50 @@
 
       if (contributeRepCancelBtn) {
         contributeRepCancelBtn.addEventListener("click", closeContributeModal);
+      }
+
+      if (contributeRemoveBtn) {
+        contributeRemoveBtn.addEventListener("click", () => {
+          const target = contributeContext.editEntryTarget;
+          if (
+            !target ||
+            !target.countryId ||
+            !target.pillarId ||
+            !Number.isInteger(target.entryIndex) ||
+            target.entryIndex < 0
+          ) {
+            return;
+          }
+          if (!contributeRemoveBtn.classList.contains("is-confirm")) {
+            contributeRemoveBtn.classList.add("is-confirm");
+            contributeRemoveBtn.setAttribute("aria-label", "Confirm delete article");
+            contributeRemoveBtn.setAttribute("title", "Confirm delete article");
+            if (contributeRemoveConfirmTimer) {
+              window.clearTimeout(contributeRemoveConfirmTimer);
+            }
+            contributeRemoveConfirmTimer = window.setTimeout(() => {
+              resetContributeRemoveConfirm();
+            }, 2400);
+            return;
+          }
+          if (
+            !postToMapFrame("ecva-editor-remove-entry", {
+              countryId: String(target.countryId || "").trim().toUpperCase(),
+              pillarId: String(target.pillarId || "").trim().toLowerCase(),
+              entryIndex: Number(target.entryIndex),
+            })
+          ) {
+            setContributeStatus("Could not remove article right now.", "error");
+            return;
+          }
+          setContributeStatus(
+            activeLang === "ro" ? "Articol șters." : "Article deleted.",
+            "success",
+          );
+          window.setTimeout(() => {
+            closeContributeModal();
+          }, 320);
+        });
       }
 
       wireResourceForm();
