@@ -2716,6 +2716,35 @@
     );
   }
 
+  function getFlagFromLanguageLabel(languageLabel) {
+    const raw = String(languageLabel || "").trim().toLowerCase();
+    if (!raw) return "";
+    const normalized = raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/\./g, "")
+      .trim();
+    if (normalized.includes("english") || normalized.includes("engleza")) {
+      return getFlagFromLanguageCode("en");
+    }
+    if (normalized.includes("romana") || normalized.includes("romanian")) {
+      return getFlagFromLanguageCode("ro");
+    }
+    if (normalized.includes("francais") || normalized.includes("french")) {
+      return getFlagFromLanguageCode("fr");
+    }
+    if (normalized.includes("deutsch") || normalized.includes("german")) {
+      return getFlagFromLanguageCode("de");
+    }
+    if (normalized.includes("espanol") || normalized.includes("spanish")) {
+      return getFlagFromLanguageCode("es");
+    }
+    if (/^[a-z]{2}$/.test(normalized)) {
+      return getFlagFromLanguageCode(normalized);
+    }
+    return "";
+  }
+
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
     const title = String(safeItem.title || "").trim() || "Untitled entry";
@@ -2820,8 +2849,12 @@
           };
         });
     const links = fallbackLinks;
+    const availabilityFlags = availabilityLabels
+      .map((label) => getFlagFromLanguageLabel(label))
+      .filter(Boolean);
     const languageFlags = normalizedResourceLanguages
       .map((lang) => lang.languageFlag || getFlagFromLanguageCode(lang.languageCode))
+      .concat(availabilityFlags)
       .filter(Boolean);
     const methods = normalizedResourceLanguages.length
       ? normalizedResourceLanguages.map((lang) => {
@@ -2849,7 +2882,7 @@
       title,
       summary: description,
       description,
-      languages: languageFlags,
+      languages: [...new Set(languageFlags)],
       resourceLanguages: normalizedResourceLanguages,
       ownership: {
         type: String(ownership.type || "").trim(),

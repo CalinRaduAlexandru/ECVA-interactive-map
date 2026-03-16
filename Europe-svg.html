@@ -1919,30 +1919,74 @@
               );
             }
 
+            function getFlagFromLanguageLabel(languageLabel) {
+              const raw = String(languageLabel || "").trim().toLowerCase();
+              if (!raw) return "";
+              const normalized = raw
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/\./g, "")
+                .trim();
+              const tokens = normalized.split(/\s+/).filter(Boolean);
+              const text = tokens.join(" ");
+              if (
+                text.includes("english") ||
+                text.includes("engleza")
+              ) {
+                return getFlagFromLanguageCode("en");
+              }
+              if (text.includes("romana") || text.includes("romanian")) {
+                return getFlagFromLanguageCode("ro");
+              }
+              if (text.includes("francais") || text.includes("french")) {
+                return getFlagFromLanguageCode("fr");
+              }
+              if (text.includes("deutsch") || text.includes("german")) {
+                return getFlagFromLanguageCode("de");
+              }
+              if (text.includes("espanol") || text.includes("spanish")) {
+                return getFlagFromLanguageCode("es");
+              }
+              if (/^[a-z]{2}$/.test(text)) {
+                return getFlagFromLanguageCode(text);
+              }
+              return "";
+            }
+
+            function getEntryLanguageFlags(entry) {
+              if (!entry || typeof entry !== "object") return [];
+              const langsRaw = Array.isArray(entry.languages) ? entry.languages : [];
+              const resourceLangFlags = Array.isArray(entry.resourceLanguages)
+                ? entry.resourceLanguages
+                    .map((item) => {
+                      if (!item || typeof item !== "object") return "";
+                      const explicitFlag = String(item.languageFlag || "").trim();
+                      if (explicitFlag) return explicitFlag;
+                      const byCode = getFlagFromLanguageCode(item.languageCode);
+                      if (byCode) return byCode;
+                      return getFlagFromLanguageLabel(item.languageLabel);
+                    })
+                    .filter(Boolean)
+                : [];
+              const availabilityFlags = String(entry.languageAvailability || "")
+                .split(",")
+                .map((part) => getFlagFromLanguageLabel(part))
+                .filter(Boolean);
+              return [
+                ...new Set(
+                  langsRaw
+                    .concat(resourceLangFlags)
+                    .concat(availabilityFlags)
+                    .map((lang) => String(lang || "").trim())
+                    .filter(Boolean),
+                ),
+              ];
+            }
+
             function getLanguageCounts(entries) {
               const counts = new Map();
               entries.forEach((entry) => {
-                const langsRaw = Array.isArray(entry.languages)
-                  ? entry.languages
-                  : [];
-                const resourceLangFlags = Array.isArray(entry.resourceLanguages)
-                  ? entry.resourceLanguages
-                      .map((item) => {
-                        if (!item || typeof item !== "object") return "";
-                        const explicitFlag = String(item.languageFlag || "").trim();
-                        if (explicitFlag) return explicitFlag;
-                        return getFlagFromLanguageCode(item.languageCode);
-                      })
-                      .filter(Boolean)
-                  : [];
-                const uniqueLangs = [
-                  ...new Set(
-                    langsRaw
-                      .concat(resourceLangFlags)
-                      .map((lang) => String(lang || "").trim())
-                      .filter(Boolean),
-                  ),
-                ];
+                const uniqueLangs = getEntryLanguageFlags(entry);
                 uniqueLangs.forEach((lang) => {
                   counts.set(lang, (counts.get(lang) || 0) + 1);
                 });
@@ -2075,20 +2119,7 @@
                             }))
                             .filter((item) => item.resourceUrl)
                         : [];
-                      const langs = Array.isArray(entry.languages)
-                        ? entry.languages
-                            .map((lang) => String(lang || "").trim())
-                            .filter(Boolean)
-                        : [];
-                      const topFlags = langs.length
-                        ? langs
-                        : resourceLanguages
-                            .map(
-                              (item) =>
-                                String(item.languageFlag || "").trim() ||
-                                getFlagFromLanguageCode(item.languageCode),
-                            )
-                            .filter(Boolean);
+                      const topFlags = getEntryLanguageFlags(entry);
                       if (!topFlags.length) {
                         const countryFlag = String(
                           ((ensureCountryData(countryId) || {}).flag) || "",
