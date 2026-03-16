@@ -3716,7 +3716,6 @@
           description: pending.description,
         },
       };
-      closeManage();
       window.dispatchEvent(
         new CustomEvent("ecva-open-resource-entry-editor", { detail }),
       );
