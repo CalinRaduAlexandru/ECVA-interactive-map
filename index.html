@@ -1204,6 +1204,14 @@
         color: #6e3554;
       }
 
+      .contribute-language-pricing-tab:has(input:checked) {
+        border-width: 2.8px;
+        border-color: #c4689b;
+        background: #fcf6fa;
+        box-shadow: 0 4px 12px rgba(196, 104, 155, 0.18);
+        color: #6e3554;
+      }
+
       .contribute-language-pricing-tab input {
         display: none;
       }
@@ -1218,6 +1226,10 @@
       }
 
       .contribute-language-pricing-tab.is-active .contribute-language-pricing-icon {
+        color: #c4689b;
+      }
+
+      .contribute-language-pricing-tab:has(input:checked) .contribute-language-pricing-icon {
         color: #c4689b;
       }
 
