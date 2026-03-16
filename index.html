@@ -69,13 +69,13 @@
       }
 
       .map-ui-left {
-        transform: translate(60px, -32px);
+        transform: translate(60px, -26px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
 
       .map-ui-right {
-        transform: translate(-104px, -32px);
+        transform: translate(-104px, -26px);
         opacity: 0;
         animation: mapCornerUiIn 0.42s ease 1.94s forwards;
       }
@@ -1134,6 +1134,84 @@
         align-items: center;
         justify-content: flex-start;
         gap: 12px;
+      }
+
+      .contribute-language-pricing {
+        display: grid;
+        gap: 8px;
+      }
+
+      .contribute-language-pricing h6 {
+        margin: 0;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        color: #304554;
+      }
+
+      .contribute-language-pricing-tabs {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .contribute-language-pricing-tab {
+        min-width: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 8px 10px;
+        border: 1.4px solid #e2d7dd;
+        border-radius: 12px;
+        background: #fff;
+        color: #37454f;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+          border-color 0.16s ease,
+          background 0.16s ease,
+          box-shadow 0.16s ease;
+      }
+
+      .contribute-language-pricing-tab:hover {
+        border-color: #c4689b;
+        background: #faf3f7;
+      }
+
+      .contribute-language-pricing-tab.is-active {
+        border-color: #c4689b;
+        background: #fcf6fa;
+        box-shadow: 0 4px 12px rgba(196, 104, 155, 0.18);
+        color: #6e3554;
+      }
+
+      .contribute-language-pricing-tab input {
+        display: none;
+      }
+
+      .contribute-language-pricing-icon {
+        width: 18px;
+        height: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #9a5a7d;
+      }
+
+      .contribute-language-pricing-tab.is-active .contribute-language-pricing-icon {
+        color: #c4689b;
+      }
+
+      .contribute-language-pricing-icon svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .contribute-language-pricing-label {
+        white-space: nowrap;
       }
 
       .contribute-form input.is-invalid,
@@ -2563,6 +2641,14 @@
         gap: 10px;
       }
 
+      .country-modal-resource-version-main {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
       .country-modal-resource-version-head {
         display: flex;
         align-items: center;
@@ -2607,6 +2693,35 @@
 
       .country-modal-resource-version .country-modal-entry-link-btn {
         margin: 0;
+      }
+
+      .country-modal-resource-pricing-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 32px;
+        padding: 0 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(126, 146, 158, 0.45);
+        background: rgba(244, 249, 252, 0.94);
+        color: #2e4857;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        white-space: nowrap;
+      }
+
+      .country-modal-resource-pricing-pill-icon {
+        width: 16px;
+        height: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .country-modal-resource-pricing-pill-icon svg {
+        width: 16px;
+        height: 16px;
       }
 
       .country-modal-entry-block h6 {
@@ -3130,6 +3245,10 @@
         .contribute-language-controls {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        .contribute-language-pricing-tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .country-modal-header {
@@ -6578,23 +6697,29 @@
           openLabel: "Webpage",
         },
         {
-          value: "document",
-          label: "Document",
-          inputMode: "file",
-          openLabel: "File",
-        },
-        {
           value: "youtube",
           label: "Youtube",
           inputMode: "url",
           openLabel: "Youtube",
         },
         {
-          value: "image",
-          label: "Image",
+          value: "document",
+          label: "Document",
           inputMode: "file",
           openLabel: "File",
         },
+        {
+          value: "image",
+          label: "Image",
+          inputMode: "file",
+          openLabel: "Image",
+        },
+      ];
+      const RESOURCE_PRICING_OPTIONS = [
+        { value: "free", label: "Gratuit", icon: "gift" },
+        { value: "paid", label: "Cu plată", icon: "coin" },
+        { value: "freemium", label: "Freemium", icon: "trophy" },
+        { value: "subscription", label: "Abonament", icon: "calendar" },
       ];
       const languageCountryCodeByPrimary = Object.entries(
         COUNTRY_PRIMARY_LANGUAGE,
@@ -6739,6 +6864,32 @@
         );
       }
 
+      function getResourcePricingConfig(resourcePricingValue) {
+        const value = String(resourcePricingValue || "free")
+          .trim()
+          .toLowerCase();
+        return (
+          RESOURCE_PRICING_OPTIONS.find((option) => option.value === value) ||
+          RESOURCE_PRICING_OPTIONS[0]
+        );
+      }
+
+      function renderPricingIconSvg(iconName) {
+        const icon = String(iconName || "")
+          .trim()
+          .toLowerCase();
+        if (icon === "coin") {
+          return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15.2 8.7a4.2 4.2 0 1 0 0 6.6"></path><path d="M7.5 11h6"></path><path d="M7.5 13h6"></path></svg>`;
+        }
+        if (icon === "trophy") {
+          return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M6 4h12v3a6 10 0 0 1-12 0V4z"></path><path d="M6 5H4a2 2 0 0 0 2 4"></path><path d="M18 5h2a2 2 0 0 1-2 4"></path></svg>`;
+        }
+        if (icon === "calendar") {
+          return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path></svg>`;
+        }
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"></rect><path d="M12 8v13"></path><path d="M3 12h18"></path><path d="M12 8s-2.5-3-4.5-3S5 6.5 7 8h5z"></path><path d="M12 8s2.5-3 4.5-3S19 6.5 17 8h-5z"></path></svg>`;
+      }
+
       function createResourceLanguageItem(languageCode, isPrimary) {
         resourceLangUid += 1;
         const normalizedCode = String(languageCode || "")
@@ -6748,6 +6899,7 @@
           id: `lang-${resourceLangUid}`,
           languageCode: normalizedCode,
           resourceType: RESOURCE_TYPE_OPTIONS[0].value,
+          resourcePricing: "free",
           resourceUrl: "",
           file: null,
           fileDataUrl: "",
@@ -6800,6 +6952,7 @@
           resourceLanguages: resourceLanguageItems.map((item) => ({
             languageCode: item.languageCode,
             resourceType: item.resourceType,
+            resourcePricing: item.resourcePricing || "free",
             resourceUrl: item.resourceUrl,
             fileName: item.fileName || "",
             isPrimary: Boolean(item.isPrimary),
@@ -6885,6 +7038,9 @@
                       .toLowerCase() === "file"
                       ? "document"
                       : "webpage"),
+                ).value,
+                resourcePricing: getResourcePricingConfig(
+                  item.resourcePricing || "free",
                 ).value,
                 resourceUrl: String(item.resourceUrl || ""),
                 file: null,
@@ -7032,6 +7188,13 @@
           accessSelect.value = typeConfig.value;
           accessSelect.addEventListener("change", () => {
             item.resourceType = getResourceTypeConfig(accessSelect.value).value;
+            if (item.resourceType !== "webpage") {
+              item.resourcePricing = "free";
+            } else {
+              item.resourcePricing = getResourcePricingConfig(
+                item.resourcePricing,
+              ).value;
+            }
             renderResourceLanguageItems(item.id);
             saveResourceDraft();
             validateResourceForm(resourceValidationTriggered);
@@ -7147,6 +7310,48 @@
           fields.appendChild(valueLabel);
           card.appendChild(fields);
 
+          if (typeConfig.value === "webpage") {
+            const pricingWrap = document.createElement("section");
+            pricingWrap.className = "contribute-language-pricing";
+            const pricingTitle = document.createElement("h6");
+            pricingTitle.textContent = "Modul de acces la resursă";
+            pricingWrap.appendChild(pricingTitle);
+            const pricingTabs = document.createElement("div");
+            pricingTabs.className = "contribute-language-pricing-tabs";
+            const activePricing = getResourcePricingConfig(item.resourcePricing);
+            item.resourcePricing = activePricing.value;
+            RESOURCE_PRICING_OPTIONS.forEach((option) => {
+              const tab = document.createElement("label");
+              tab.className = "contribute-language-pricing-tab";
+              if (option.value === activePricing.value) {
+                tab.classList.add("is-active");
+              }
+              const input = document.createElement("input");
+              input.type = "radio";
+              input.name = `resourcePricing-${item.id}`;
+              input.value = option.value;
+              input.checked = option.value === activePricing.value;
+              input.addEventListener("change", () => {
+                item.resourcePricing = getResourcePricingConfig(input.value).value;
+                renderResourceLanguageItems(item.id);
+                saveResourceDraft();
+                validateResourceForm(resourceValidationTriggered);
+              });
+              const icon = document.createElement("span");
+              icon.className = "contribute-language-pricing-icon";
+              icon.innerHTML = renderPricingIconSvg(option.icon);
+              const label = document.createElement("span");
+              label.className = "contribute-language-pricing-label";
+              label.textContent = option.label;
+              tab.appendChild(input);
+              tab.appendChild(icon);
+              tab.appendChild(label);
+              pricingTabs.appendChild(tab);
+            });
+            pricingWrap.appendChild(pricingTabs);
+            card.appendChild(pricingWrap);
+          }
+
           if (duplicate) {
             const duplicateError = document.createElement("span");
             duplicateError.className = "contribute-field-error";
@@ -7215,8 +7420,7 @@
           .trim()
           .toUpperCase();
         const defaultLanguage = getCountryDefaultLanguage(normalizedCountry);
-        const safeEntry =
-          entry && typeof entry === "object" ? entry : {};
+        const safeEntry = entry && typeof entry === "object" ? entry : {};
         const safeFallback =
           fallback && typeof fallback === "object" ? fallback : {};
         const resourceLanguages = Array.isArray(safeEntry.resourceLanguages)
@@ -7244,6 +7448,8 @@
               id: createResourceLanguageItem(normalizedCode, index === 0).id,
               languageCode: normalizedCode,
               resourceType: typeValue,
+              resourcePricing: getResourcePricingConfig(item.resourcePricing)
+                .value,
               resourceUrl: String(item.resourceUrl || "").trim(),
               file: null,
               fileDataUrl: "",
@@ -7298,8 +7504,10 @@
         const contactEmailInput = contributeForm.querySelector(
           '[name="contactEmail"]',
         );
-        if (contactNameInput) contactNameInput.value = String(contact.name || "");
-        if (contactRoleInput) contactRoleInput.value = String(contact.role || "");
+        if (contactNameInput)
+          contactNameInput.value = String(contact.name || "");
+        if (contactRoleInput)
+          contactRoleInput.value = String(contact.role || "");
         if (contactEmailInput) {
           contactEmailInput.value = String(contact.email || "");
         }
@@ -7408,6 +7616,12 @@
             setFieldError(languageSelect, false);
           }
           const typeConfig = getResourceTypeConfig(item.resourceType);
+          if (typeConfig.value !== "webpage") {
+            item.resourcePricing = "free";
+          } else {
+            item.resourcePricing = getResourcePricingConfig(item.resourcePricing)
+              .value;
+          }
           if (typeConfig.inputMode === "file") {
             const hasFile =
               item.file instanceof File ||
@@ -7446,6 +7660,13 @@
               setFieldError(valueInput, shouldPaintInvalid);
             } else {
               setFieldError(valueInput, false);
+            }
+            if (typeConfig.value === "webpage") {
+              const pricingValue = getResourcePricingConfig(item.resourcePricing)
+                .value;
+              item.resourcePricing = pricingValue;
+            } else {
+              item.resourcePricing = "free";
             }
           }
         });
@@ -8328,7 +8549,11 @@
               : "Send for review";
           }
           if (mode === "article") {
-            if (contributeContext.editEntryTarget && config && config.entryData) {
+            if (
+              contributeContext.editEntryTarget &&
+              config &&
+              config.entryData
+            ) {
               initializeResourceFormForEdit(
                 countryId,
                 config.entryData,
@@ -8905,6 +9130,8 @@
                   languageFlag: languageOption.flag,
                   resourceType: typeConfig.value,
                   resourceTypeLabel: typeConfig.label,
+                  resourcePricing: "free",
+                  resourcePricingLabel: getResourcePricingConfig("free").label,
                   accessType: "file",
                   resourceUrl:
                     (uploaded && uploaded.url) ||
@@ -8922,6 +9149,14 @@
                 languageFlag: languageOption.flag,
                 resourceType: typeConfig.value,
                 resourceTypeLabel: typeConfig.label,
+                resourcePricing:
+                  typeConfig.value === "webpage"
+                    ? getResourcePricingConfig(item.resourcePricing).value
+                    : "free",
+                resourcePricingLabel:
+                  typeConfig.value === "webpage"
+                    ? getResourcePricingConfig(item.resourcePricing).label
+                    : getResourcePricingConfig("free").label,
                 accessType: "url",
                 resourceUrl: normalizeLikelyUrl(item.resourceUrl),
                 fileName: "",
@@ -9206,7 +9441,11 @@
           .trim()
           .toLowerCase();
         const entryIndex = Number(detail.entryIndex);
-        if (!countryId || pillarId !== "resources" || !Number.isInteger(entryIndex)) {
+        if (
+          !countryId ||
+          pillarId !== "resources" ||
+          !Number.isInteger(entryIndex)
+        ) {
           return;
         }
         openContributeModal({
@@ -9221,7 +9460,9 @@
             entryIndex,
           },
           entryData:
-            detail.entry && typeof detail.entry === "object" ? detail.entry : {},
+            detail.entry && typeof detail.entry === "object"
+              ? detail.entry
+              : {},
           fallbackData:
             detail.fallback && typeof detail.fallback === "object"
               ? detail.fallback

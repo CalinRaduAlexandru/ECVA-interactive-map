@@ -2030,6 +2030,10 @@
                     .trim()
                     .toLowerCase(),
                   resourceTypeLabel: String(next.resourceTypeLabel || "").trim(),
+                  resourcePricing: String(next.resourcePricing || "free")
+                    .trim()
+                    .toLowerCase(),
+                  resourcePricingLabel: String(next.resourcePricingLabel || "").trim(),
                   accessType:
                     String(next.accessType || "url").trim().toLowerCase() ===
                     "file"
@@ -2875,6 +2879,10 @@
               .trim()
               .toLowerCase(),
             resourceTypeLabel: String(lang.resourceTypeLabel || "").trim(),
+            resourcePricing: String(lang.resourcePricing || "free")
+              .trim()
+              .toLowerCase(),
+            resourcePricingLabel: String(lang.resourcePricingLabel || "").trim(),
             resourceUrl: normalizeResourceDeliveryUrl(
               String(lang.resourceUrl || "").trim(),
               lang.accessType,
@@ -2921,6 +2929,14 @@
             lang.resourceUrl,
             lang.fileName,
           ),
+          resourcePricing:
+            String(lang.resourceType || "").trim().toLowerCase() === "webpage"
+              ? String(lang.resourcePricing || "free").trim().toLowerCase() || "free"
+              : "free",
+          resourcePricingLabel:
+            String(lang.resourceType || "").trim().toLowerCase() === "webpage"
+              ? String(lang.resourcePricingLabel || "").trim() || "Gratuit"
+              : "Gratuit",
         }))
       : fallbackLinks.map((url, index) => {
           const matchingAttachment = fallbackAttachments.find(
@@ -2950,6 +2966,8 @@
               url,
               matchingAttachment ? matchingAttachment.name : "",
             ),
+            resourcePricing: "free",
+            resourcePricingLabel: "Gratuit",
             resourceUrl: normalizeResourceDeliveryUrl(
               url,
               mode,

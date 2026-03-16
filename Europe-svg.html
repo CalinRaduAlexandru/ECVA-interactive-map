@@ -2061,6 +2061,32 @@
                 return explicit || (accessType === "file" ? "File" : "Webpage");
               }
 
+              function inferResourcePricing(item) {
+                const raw = String((item && item.resourcePricing) || "")
+                  .trim()
+                  .toLowerCase();
+                if (raw === "paid")
+                  return { value: "paid", label: "Cu plată", icon: "coin" };
+                if (raw === "freemium")
+                  return { value: "freemium", label: "Freemium", icon: "trophy" };
+                if (raw === "subscription")
+                  return { value: "subscription", label: "Abonament", icon: "calendar" };
+                return { value: "free", label: "Gratuit", icon: "gift" };
+              }
+
+              function renderResourcePricingIconSvg(iconName) {
+                if (iconName === "coin") {
+                  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M15.2 8.7a4.2 4.2 0 1 0 0 6.6"></path><path d="M7.5 11h6"></path><path d="M7.5 13h6"></path></svg>`;
+                }
+                if (iconName === "trophy") {
+                  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"></path><path d="M12 17v4"></path><path d="M6 4h12v3a6 10 0 0 1-12 0V4z"></path><path d="M6 5H4a2 2 0 0 0 2 4"></path><path d="M18 5h2a2 2 0 0 1-2 4"></path></svg>`;
+                }
+                if (iconName === "calendar") {
+                  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"></rect><path d="M8 2v4"></path><path d="M16 2v4"></path><path d="M3 10h18"></path></svg>`;
+                }
+                return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="13" rx="2"></rect><path d="M12 8v13"></path><path d="M3 12h18"></path><path d="M12 8s-2.5-3-4.5-3S5 6.5 7 8h5z"></path><path d="M12 8s2.5-3 4.5-3S19 6.5 17 8h-5z"></path></svg>`;
+              }
+
               function entryHasVisibleContent(entry) {
                 if (!entry || typeof entry !== "object") return false;
                 const title = String(entry.title || "").trim();
@@ -2140,6 +2166,10 @@
                               fileName: String(item.fileName || "").trim(),
                               resourceType: String(item.resourceType || "").trim(),
                               resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                              resourcePricing: String(item.resourcePricing || "free")
+                                .trim()
+                                .toLowerCase(),
+                              resourcePricingLabel: String(item.resourcePricingLabel || "").trim(),
                             }))
                             .map((item) => ({
                               ...item,
@@ -2229,16 +2259,31 @@
                                       String(item.resourceType || "").trim().toLowerCase() === "youtube";
                                     const actionVerb = isOpenAction ? "Deschideți" : "Descărcați";
                                     const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}${actionVerb} ${typeLabel}`.trim();
+                                    const pricing = inferResourcePricing(item);
+                                    const pricingLabel =
+                                      String(item.resourceType || "").trim().toLowerCase() === "webpage"
+                                        ? (String(item.resourcePricingLabel || "").trim() || pricing.label)
+                                        : "Gratuit";
+                                    const pricingIconName =
+                                      String(item.resourceType || "").trim().toLowerCase() === "webpage"
+                                        ? pricing.icon
+                                        : "gift";
                                     return `
                                       <article class="country-modal-resource-version">
-                                        <a
-                                          class="country-modal-entry-btn country-modal-entry-link-btn"
-                                          href="${escapeHtml(item.resourceUrl)}"
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          ${escapeHtml(actionLabel)}
-                                        </a>
+                                        <div class="country-modal-resource-version-main">
+                                          <a
+                                            class="country-modal-entry-btn country-modal-entry-link-btn"
+                                            href="${escapeHtml(item.resourceUrl)}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                          >
+                                            ${escapeHtml(actionLabel)}
+                                          </a>
+                                          <span class="country-modal-resource-pricing-pill">
+                                            <span class="country-modal-resource-pricing-pill-icon" aria-hidden="true">${renderResourcePricingIconSvg(pricingIconName)}</span>
+                                            <span>${escapeHtml(pricingLabel)}</span>
+                                          </span>
+                                        </div>
                                         <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
                                       </article>
                                     `;
@@ -2709,6 +2754,10 @@
                       languageFlag: String(item.languageFlag || "").trim(),
                       resourceType: String(item.resourceType || "").trim().toLowerCase(),
                       resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                      resourcePricing: String(item.resourcePricing || "free")
+                        .trim()
+                        .toLowerCase(),
+                      resourcePricingLabel: String(item.resourcePricingLabel || "").trim(),
                       accessType: String(item.accessType || "url").trim().toLowerCase() === "file" ? "file" : "url",
                       resourceUrl: String(item.resourceUrl || "").trim(),
                       fileName: String(item.fileName || "").trim(),
@@ -2880,6 +2929,10 @@
                     languageFlag: String(item.languageFlag || "").trim(),
                     resourceType: String(item.resourceType || "").trim().toLowerCase(),
                     resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                    resourcePricing: String(item.resourcePricing || "free")
+                      .trim()
+                      .toLowerCase(),
+                    resourcePricingLabel: String(item.resourcePricingLabel || "").trim(),
                     accessType:
                       String(item.accessType || "url").trim().toLowerCase() === "file"
                         ? "file"
@@ -3047,6 +3100,10 @@
                     languageFlag: String(item.languageFlag || "").trim(),
                     resourceType: String(item.resourceType || "").trim().toLowerCase(),
                     resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                    resourcePricing: String(item.resourcePricing || "free")
+                      .trim()
+                      .toLowerCase(),
+                    resourcePricingLabel: String(item.resourcePricingLabel || "").trim(),
                     accessType:
                       String(item.accessType || "url").trim().toLowerCase() === "file"
                         ? "file"
@@ -3179,6 +3236,10 @@
                           .trim()
                           .toLowerCase(),
                         resourceTypeLabel: String(item.resourceTypeLabel || "").trim(),
+                        resourcePricing: String(item.resourcePricing || "free")
+                          .trim()
+                          .toLowerCase(),
+                        resourcePricingLabel: String(item.resourcePricingLabel || "").trim(),
                         accessType:
                           String(item.accessType || "url").trim().toLowerCase() === "file"
                             ? "file"
