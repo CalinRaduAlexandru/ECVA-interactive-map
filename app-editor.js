@@ -2771,6 +2771,19 @@
       }
       return value;
     };
+    const inferTypeLabelFromAsset = (resourceType, accessType, url, fileName) => {
+      const type = String(resourceType || "").trim().toLowerCase();
+      if (type === "image") return "Image";
+      if (type === "youtube") return "Youtube";
+      if (type === "webpage") return "Webpage";
+      if (type === "document") return "Document";
+      const mode = String(accessType || "").trim().toLowerCase();
+      if (mode === "url") return "Webpage";
+      const target = `${String(fileName || "")} ${String(url || "")}`.toLowerCase();
+      if (/\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i.test(target)) return "Image";
+      if (/\.(pdf|docx?|pptx?)(\?|#|$)/i.test(target)) return "Document";
+      return "File";
+    };
 
     const resourceLanguages = Array.isArray(safeItem.resourceLanguages)
       ? safeItem.resourceLanguages
@@ -2825,11 +2838,18 @@
             (lang.languageCode ? lang.languageCode.toUpperCase() : "Language"),
           languageFlag:
             lang.languageFlag || getFlagFromLanguageCode(lang.languageCode),
+          resourceTypeLabel: inferTypeLabelFromAsset(
+            lang.resourceType,
+            lang.accessType,
+            lang.resourceUrl,
+            lang.fileName,
+          ),
         }))
       : fallbackLinks.map((url, index) => {
           const matchingAttachment = fallbackAttachments.find(
             (asset) => asset.url === url,
           );
+          const mode = matchingAttachment ? "file" : "url";
           return {
             languageLabel:
               availabilityLabels[index] ||
@@ -2837,14 +2857,28 @@
               "Language",
             languageFlag: "",
             languageCode: "",
-            resourceType: matchingAttachment ? "document" : "webpage",
-            resourceTypeLabel: matchingAttachment ? "Document" : "Webpage",
-            resourceUrl: normalizeResourceDeliveryUrl(
+            resourceType:
+              mode === "file"
+                ? /\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i.test(
+                    String(
+                      (matchingAttachment && matchingAttachment.name) || url || "",
+                    ),
+                  )
+                  ? "image"
+                  : "document"
+                : "webpage",
+            resourceTypeLabel: inferTypeLabelFromAsset(
+              "",
+              mode,
               url,
-              matchingAttachment ? "file" : "url",
               matchingAttachment ? matchingAttachment.name : "",
             ),
-            accessType: matchingAttachment ? "file" : "url",
+            resourceUrl: normalizeResourceDeliveryUrl(
+              url,
+              mode,
+              matchingAttachment ? matchingAttachment.name : "",
+            ),
+            accessType: mode,
             fileName: matchingAttachment ? matchingAttachment.name : "",
           };
         });

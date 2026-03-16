@@ -2028,6 +2028,38 @@
                 }
                 return value;
               }
+              function inferResourceTypeLabel(item) {
+                const resourceType = String(
+                  (item && item.resourceType) || "",
+                )
+                  .trim()
+                  .toLowerCase();
+                if (resourceType === "image") return "Image";
+                if (resourceType === "youtube") return "Youtube";
+                if (resourceType === "webpage") return "Webpage";
+                if (resourceType === "document") return "Document";
+                const explicit = String(
+                  (item && item.resourceTypeLabel) || "",
+                ).trim();
+                if (explicit && !/^document$/i.test(explicit)) return explicit;
+                const accessType = String((item && item.accessType) || "")
+                  .trim()
+                  .toLowerCase();
+                if (accessType === "url") return "Webpage";
+                const probe = `${String((item && item.fileName) || "")} ${String(
+                  (item && item.resourceUrl) || "",
+                )}`.toLowerCase();
+                if (/\.(png|jpe?g|gif|webp|svg)(\?|#|$)/i.test(probe)) {
+                  return "Image";
+                }
+                if (/\.(pdf|docx?|pptx?)(\?|#|$)/i.test(probe)) {
+                  return "Document";
+                }
+                if (/youtube\.com|youtu\.be/.test(probe)) {
+                  return "Youtube";
+                }
+                return explicit || (accessType === "file" ? "File" : "Webpage");
+              }
 
               function entryHasVisibleContent(entry) {
                 if (!entry || typeof entry !== "object") return false;
@@ -2194,11 +2226,7 @@
                                     const displayFlag =
                                       String(item.languageFlag || "").trim() ||
                                       getFlagFromLanguageCode(item.languageCode);
-                                    const typeLabel =
-                                      String(item.resourceTypeLabel || "").trim() ||
-                                      (item.accessType === "file"
-                                        ? "File"
-                                        : "Webpage");
+                                    const typeLabel = inferResourceTypeLabel(item);
                                     const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}Open ${typeLabel}`.trim();
                                     return `
                                       <article class="country-modal-resource-version">
@@ -2258,10 +2286,7 @@
                         ? (() => {
                             const first = resourceLanguages[0] || null;
                             if (!first) return "";
-                            return String(first.resourceTypeLabel || "").trim() ||
-                              (String(first.accessType || "").trim() === "file"
-                                ? "File"
-                                : "Webpage");
+                            return inferResourceTypeLabel(first);
                           })()
                         : "";
                       const ownershipType = String(ownership.type || "").trim();
