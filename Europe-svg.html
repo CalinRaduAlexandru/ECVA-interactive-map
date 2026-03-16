@@ -2279,10 +2279,20 @@
                         contactName || contactRole || contactEmail
                           ? `
                             <div class="country-modal-entry-contact">
-                              <h6>For more informations, contact:</h6>
-                              ${contactName ? `<p><strong>Name:</strong> ${escapeHtml(contactName)}</p>` : ""}
-                              ${contactRole ? `<p><strong>Role:</strong> ${escapeHtml(contactRole)}</p>` : ""}
-                              ${contactEmail ? `<p><strong>Email:</strong> ${escapeHtml(contactEmail)}</p>` : ""}
+                              <div class="country-modal-entry-contact-col country-modal-entry-contact-col-icon" aria-hidden="true">
+                                <span class="country-modal-entry-contact-info-icon">i</span>
+                              </div>
+                              <div class="country-modal-entry-contact-divider" aria-hidden="true"></div>
+                              <div class="country-modal-entry-contact-col country-modal-entry-contact-col-main">
+                                <h6>For more informations, contact:</h6>
+                                ${contactName ? `<p><strong>Name:</strong> ${escapeHtml(contactName)}</p>` : ""}
+                                ${contactRole ? `<p><strong>Role:</strong> ${escapeHtml(contactRole)}</p>` : ""}
+                                ${
+                                  contactEmail
+                                    ? `<p class="country-modal-entry-contact-email-row"><strong>Email:</strong> <span>${escapeHtml(contactEmail)}</span><span class="country-modal-entry-contact-copy-wrap"><button class="country-modal-entry-contact-copy-btn" type="button" data-copy-email="${escapeHtml(contactEmail)}" aria-label="Copy email" title="Copy email"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 1H6a3 3 0 0 0-3 3v10h2V4a1 1 0 0 1 1-1h10V1Zm3 4H10a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h9a3 3 0 0 0 3-3V8a3 3 0 0 0-3-3Zm1 15a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v12Z"/></svg></button><span class="country-modal-entry-contact-copy-status" role="status" aria-live="polite"></span></span></p>`
+                                    : ""
+                                }
+                              </div>
                             </div>
                           `
                           : "";
