@@ -2457,9 +2457,11 @@
         border: 1px solid rgba(130, 154, 166, 0.42);
         border-radius: 10px;
         background: rgba(244, 249, 252, 0.88);
-        padding: 10px;
-        display: grid;
-        gap: 8px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
       }
 
       .country-modal-resource-version-head {
@@ -2502,6 +2504,10 @@
           rgba(228, 240, 246, 0.98) 100%
         );
         color: #213945;
+      }
+
+      .country-modal-resource-version .country-modal-entry-link-btn {
+        margin: 0;
       }
 
       .country-modal-entry-block h6 {

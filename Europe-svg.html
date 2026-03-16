@@ -2220,7 +2220,9 @@
                                   .map((item) => {
                                     const displayFlag =
                                       String(item.languageFlag || "").trim() ||
-                                      getFlagFromLanguageCode(item.languageCode);
+                                      getFlagFromLanguageCode(item.languageCode) ||
+                                      getFlagFromLanguageLabel(item.languageLabel) ||
+                                      String(((ensureCountryData(countryId) || {}).flag) || "").trim();
                                     const typeLabel = inferResourceTypeLabel(item);
                                     const isOpenAction =
                                       String(item.accessType || "").trim().toLowerCase() === "url" ||
@@ -2230,10 +2232,6 @@
                                     const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}${actionVerb} ${typeLabel}`.trim();
                                     return `
                                       <article class="country-modal-resource-version">
-                                        <div class="country-modal-resource-version-head">
-                                          <span class="country-modal-resource-version-lang"></span>
-                                          <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
-                                        </div>
                                         <a
                                           class="country-modal-entry-btn country-modal-entry-link-btn"
                                           href="${escapeHtml(item.resourceUrl)}"
@@ -2242,6 +2240,7 @@
                                         >
                                           ${escapeHtml(actionLabel)}
                                         </a>
+                                        <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
                                       </article>
                                     `;
                                   })
@@ -2256,7 +2255,7 @@
                       const contactRole = String(creatorContact.role || "").trim();
                       const contactEmail = String(creatorContact.email || "").trim();
                       const ownershipInlineHtml =
-                        pillar.id === "resources" && (ownershipType || ownershipName)
+                        pillar.id === "resources"
                           ? `
                             <div class="country-modal-entry-ownership-row">
                               <span class="country-modal-entry-ownership-label">Ownership:</span>
@@ -2269,7 +2268,7 @@
                                 ${
                                   ownershipName
                                     ? `<span class="country-modal-entry-ownership-name">${escapeHtml(ownershipName)}</span>`
-                                    : ""
+                                    : `<span class="country-modal-entry-ownership-name">-</span>`
                                 }
                               </div>
                             </div>
