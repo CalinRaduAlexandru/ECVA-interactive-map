@@ -2156,7 +2156,7 @@
                         const countryFlag = String(
                           ((ensureCountryData(countryId) || {}).flag) || "",
                         ).trim();
-                        if (countryFlag && (resourceLanguages.length || methods.length)) {
+                        if (countryFlag && !resourceLanguages.length && methods.length) {
                           topFlags.push(countryFlag);
                         }
                       }
@@ -2221,8 +2221,7 @@
                                     const displayFlag =
                                       String(item.languageFlag || "").trim() ||
                                       getFlagFromLanguageCode(item.languageCode) ||
-                                      getFlagFromLanguageLabel(item.languageLabel) ||
-                                      String(((ensureCountryData(countryId) || {}).flag) || "").trim();
+                                      getFlagFromLanguageLabel(item.languageLabel);
                                     const typeLabel = inferResourceTypeLabel(item);
                                     const isOpenAction =
                                       String(item.accessType || "").trim().toLowerCase() === "url" ||

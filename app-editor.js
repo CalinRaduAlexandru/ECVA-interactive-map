@@ -1978,6 +1978,7 @@
           pillarLabel: String(item.pillarLabel || "").trim(),
           title:
             String(item.title || "").trim() || legacyRepresentativeName,
+          subtitle: String(item.subtitle || "").trim(),
           description:
             String(item.description || "").trim() ||
             [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
@@ -1996,6 +1997,36 @@
                 }))
                 .filter((next) => next.name || next.url)
             : [],
+          resourceLanguages: Array.isArray(item.resourceLanguages)
+            ? item.resourceLanguages
+                .filter((next) => next && typeof next === "object")
+                .map((next) => ({
+                  languageCode: String(next.languageCode || "")
+                    .trim()
+                    .toLowerCase(),
+                  languageLabel: String(next.languageLabel || "").trim(),
+                  languageFlag: String(next.languageFlag || "").trim(),
+                  resourceType: String(next.resourceType || "")
+                    .trim()
+                    .toLowerCase(),
+                  resourceTypeLabel: String(next.resourceTypeLabel || "").trim(),
+                  accessType:
+                    String(next.accessType || "url").trim().toLowerCase() ===
+                    "file"
+                      ? "file"
+                      : "url",
+                  resourceUrl: String(next.resourceUrl || "").trim(),
+                  fileName: String(next.fileName || "").trim(),
+                }))
+                .filter((next) => next.resourceUrl)
+            : [],
+          ownership:
+            item.ownership && typeof item.ownership === "object"
+              ? {
+                  type: String(item.ownership.type || "").trim(),
+                  name: String(item.ownership.name || "").trim(),
+                }
+              : { type: "", name: "" },
           submittedBy:
             item.submittedBy && typeof item.submittedBy === "object"
               ? {

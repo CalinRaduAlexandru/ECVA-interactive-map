@@ -1016,8 +1016,93 @@
         background-color: #f9fcff;
       }
 
-      .contribute-language-file {
+      .contribute-language-file-shell {
         min-height: 42px;
+        border-radius: 10px;
+        border: 1px solid rgba(133, 156, 168, 0.62);
+        background: rgba(255, 255, 255, 0.98);
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      .contribute-language-file-shell:focus-within {
+        border-color: #4278b8;
+        box-shadow: 0 0 0 3px rgba(66, 120, 184, 0.22);
+      }
+
+      .contribute-language-file-shell.is-empty {
+        display: flex;
+        align-items: center;
+      }
+
+      .contribute-language-file-shell.is-loaded {
+        display: block;
+      }
+
+      .contribute-language-file-input {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .contribute-language-file-trigger {
+        width: 100%;
+        min-height: 42px;
+        border: 0;
+        border-radius: 10px;
+        background: transparent;
+        color: #2a4451;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: left;
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+
+      .contribute-language-file-tab {
+        width: 100%;
+        min-height: 42px;
+        border: 0;
+        border-radius: 10px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.98) 0%,
+          rgba(236, 245, 250, 0.96) 100%
+        );
+        color: #233f4d;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 9px 12px;
+        box-sizing: border-box;
+        cursor: pointer;
+      }
+
+      .contribute-language-file-tab-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
+      .contribute-language-file-tab-icon {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        border: 1px solid rgba(130, 152, 165, 0.7);
+        background: rgba(248, 252, 255, 0.98);
+        color: #2a4553;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        line-height: 1;
+        flex: 0 0 auto;
       }
 
       .contribute-language-url {
@@ -1044,7 +1129,8 @@
 
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
-      .contribute-form select.is-invalid {
+      .contribute-form select.is-invalid,
+      .contribute-language-file-shell.is-invalid {
         border-color: #b10f36;
         box-shadow: 0 0 0 2.5px rgba(177, 15, 54, 0.78);
         background: #ffd4df;
@@ -4799,7 +4885,7 @@
                       name="ownershipType"
                       required
                     >
-                      <option value="" selected disabled>Select legal entity type</option>
+                      <option value="" selected disabled>Select entity type</option>
                       <option value="Non-profit organisation">Non-profit organisation</option>
                       <option value="Foundation">Foundation</option>
                       <option value="Public institution">Public institution</option>
@@ -6440,6 +6526,16 @@
         );
       }
 
+      function escapeHtml(value) {
+        return String(value || "").replace(/[&<>"']/g, (char) => {
+          if (char === "&") return "&amp;";
+          if (char === "<") return "&lt;";
+          if (char === ">") return "&gt;";
+          if (char === '"') return "&quot;";
+          return "&#39;";
+        });
+      }
+
       function getResourceLanguageOption(languageCode) {
         const code = String(languageCode || "").trim().toLowerCase();
         const found = resourceLanguageOptions.find((item) => item.code === code);
@@ -6769,6 +6865,8 @@
           valueLabel.setAttribute("data-resource-focus-anchor", item.id);
           if (inputMode === "file") {
             valueLabel.textContent = "Resource file";
+            const fileShell = document.createElement("div");
+            fileShell.className = "contribute-language-file-shell";
             const fileInput = document.createElement("input");
             const fileInputId = `resource-file-${item.id}`;
             valueLabel.setAttribute("for", fileInputId);
@@ -6776,13 +6874,17 @@
             fileInput.name = `resourceFile-${item.id}`;
             fileInput.type = "file";
             fileInput.accept = RESOURCE_UPLOAD_ACCEPT;
-            fileInput.className = "contribute-language-file";
+            fileInput.className = "contribute-language-file-input";
             fileInput.setAttribute("data-focus-value", "true");
+            const openPicker = () => {
+              fileInput.click();
+            };
             fileInput.addEventListener("change", () => {
               const file = fileInput.files && fileInput.files[0];
               item.file = file || null;
               item.fileName = file && file.name ? file.name : "";
               item.fileDataUrl = "";
+              item.resourceUrl = "";
               if (file instanceof File) {
                 const reader = new FileReader();
                 reader.onload = () => {
@@ -6796,7 +6898,35 @@
               saveResourceDraft();
               validateResourceForm(resourceValidationTriggered);
             });
-            valueLabel.appendChild(fileInput);
+            fileShell.appendChild(fileInput);
+            const hasPickedFile =
+              item.file instanceof File ||
+              Boolean(String(item.fileName || "").trim()) ||
+              Boolean(String(item.resourceUrl || "").trim());
+            if (hasPickedFile) {
+              fileShell.classList.add("is-loaded");
+              const fileTab = document.createElement("button");
+              fileTab.type = "button";
+              fileTab.className = "contribute-language-file-tab";
+              fileTab.setAttribute("aria-label", "Change uploaded file");
+              fileTab.innerHTML = `
+                <span class="contribute-language-file-tab-name">${escapeHtml(
+                  String(item.fileName || "Uploaded file"),
+                )}</span>
+                <span class="contribute-language-file-tab-icon" aria-hidden="true">✎</span>
+              `;
+              fileTab.addEventListener("click", openPicker);
+              fileShell.appendChild(fileTab);
+            } else {
+              fileShell.classList.add("is-empty");
+              const fileTrigger = document.createElement("button");
+              fileTrigger.type = "button";
+              fileTrigger.className = "contribute-language-file-trigger";
+              fileTrigger.textContent = "Choose file";
+              fileTrigger.addEventListener("click", openPicker);
+              fileShell.appendChild(fileTrigger);
+            }
+            valueLabel.appendChild(fileShell);
             const fileStatus = document.createElement("span");
             fileStatus.className = "contribute-language-file-status";
             fileStatus.textContent = item.fileName
@@ -6943,8 +7073,8 @@
         );
         if (!title) errors.push("Complete the title.");
         if (!description) errors.push("Complete the description.");
-        if (!ownershipType) errors.push("Select legal entity type.");
-        if (!ownershipName) errors.push("Complete organisation name.");
+        if (!ownershipType) errors.push("Select entity type.");
+        if (!ownershipName) errors.push("Complete entity name.");
         const seenLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
           const card = resourceLanguageList
@@ -6956,7 +7086,7 @@
           const valueInput = card
             ? card.querySelector(
                 getResourceTypeConfig(item.resourceType).inputMode === "file"
-                  ? 'input[type="file"]'
+                  ? ".contribute-language-file-shell"
                   : 'input[type="url"]',
               )
             : null;
