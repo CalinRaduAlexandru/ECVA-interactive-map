@@ -7760,8 +7760,13 @@
               ),
             );
             const isSecond = resourceLanguageItems.length === 1;
+            const countryDefaultLanguage = getCountryDefaultLanguage(
+              contributeContext && contributeContext.countryId,
+            );
             const nextCode = isSecond
-              ? used.has("en")
+              ? countryDefaultLanguage === "en"
+                ? ""
+                : used.has("en")
                 ? (
                     resourceLanguageOptions.find(
                       (item) => !used.has(item.code),
