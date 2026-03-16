@@ -2707,16 +2707,22 @@
       btn.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        const countryMeta = Array.isArray(countryCatalog)
+          ? countryCatalog.find(
+              (country) =>
+                normalizeManageCountryCode(country && country.code) ===
+                normalizeManageCountryCode(countryId),
+            )
+          : null;
         window.postMessage(
           {
             type: "ecva-open-contribute-modal",
             payload: {
               mode: "article",
               countryId,
-              countryName:
-                selectedCountryData && selectedCountryData.name
-                  ? String(selectedCountryData.name)
-                  : "",
+              countryName: String(
+                (countryMeta && countryMeta.name) || countryId || "",
+              ).trim(),
               pillarId,
               pillarLabel,
               directPublish: true,
