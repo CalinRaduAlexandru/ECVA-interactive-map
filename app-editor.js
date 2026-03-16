@@ -988,17 +988,36 @@
     syncAdminOverlayScrollLock();
   }
 
-  function openManage() {
+  function openManage(options) {
+    const config = options && typeof options === "object" ? options : {};
+    const prefillScopedView = Boolean(config.prefillScopedView);
+    const requestFreshCountries = config.requestFreshCountries !== false;
     if (!manageRoot) return;
     jumpToCountryWindowTopAcrossContexts();
     closeHub();
+    if (countryTabsHost) countryTabsHost.innerHTML = "";
+    if (manageBody) manageBody.innerHTML = "";
+    if (prefillScopedView) {
+      ensureSelectedCountryIsAllowed();
+      renderCountryTabs();
+      if (selectedCountryId) {
+        postToMap("ecva-request-country-modal-html", {
+          countryId: selectedCountryId,
+        });
+        requestCountryInbox(selectedCountryId).catch(() => {});
+      } else if (manageBody) {
+        renderGeneralAccessPanel();
+      }
+    }
     manageRoot.classList.add("is-visible");
     manageRoot.setAttribute("aria-hidden", "false");
     syncAdminOverlayScrollLock();
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
     updateVersionHistoryButtonVisibility();
-    postToMap("ecva-request-active-countries");
+    if (requestFreshCountries) {
+      postToMap("ecva-request-active-countries");
+    }
   }
 
   async function launchManageFromAccessCode() {
@@ -1021,7 +1040,7 @@
       } else {
         selectedCountryId = "";
       }
-      openManage();
+      openManage({ prefillScopedView: true, requestFreshCountries: true });
     } catch (error) {
       showAccessCodeError("Could not validate code");
     } finally {
