@@ -3546,6 +3546,23 @@
             : null;
           if (!card || !details) return;
           const expanded = btn.getAttribute("aria-expanded") === "true";
+          const column = card.closest(".ecva-inbox-column");
+          if (!expanded && column) {
+            column
+              .querySelectorAll(".ecva-inbox-card.is-expanded")
+              .forEach((openCard) => {
+                if (openCard === card) return;
+                const openDetails = openCard.querySelector(
+                  ".ecva-inbox-details",
+                );
+                const openToggle = openCard.querySelector(
+                  ".ecva-inbox-toggle-btn[data-inbox-toggle]",
+                );
+                if (openDetails) openDetails.hidden = true;
+                openCard.classList.remove("is-expanded");
+                if (openToggle) openToggle.setAttribute("aria-expanded", "false");
+              });
+          }
           btn.setAttribute("aria-expanded", expanded ? "false" : "true");
           details.hidden = expanded;
           card.classList.toggle("is-expanded", !expanded);
