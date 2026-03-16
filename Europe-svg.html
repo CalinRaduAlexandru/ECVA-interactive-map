@@ -2218,25 +2218,21 @@
                               <div class="country-modal-resource-version-list">
                                 ${resourceLanguages
                                   .map((item) => {
-                                    const languageText =
-                                      item.languageLabel ||
-                                      (item.languageCode
-                                        ? item.languageCode.toUpperCase()
-                                        : "Language");
                                     const displayFlag =
                                       String(item.languageFlag || "").trim() ||
                                       getFlagFromLanguageCode(item.languageCode);
                                     const typeLabel = inferResourceTypeLabel(item);
-                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}Download ${typeLabel}`.trim();
+                                    const isOpenAction =
+                                      String(item.accessType || "").trim().toLowerCase() === "url" ||
+                                      String(item.resourceType || "").trim().toLowerCase() === "webpage" ||
+                                      String(item.resourceType || "").trim().toLowerCase() === "youtube";
+                                    const actionVerb = isOpenAction ? "Deschideți" : "Descărcați";
+                                    const actionLabel = `${displayFlag ? `${displayFlag} ` : ""}${actionVerb} ${typeLabel}`.trim();
                                     return `
                                       <article class="country-modal-resource-version">
                                         <div class="country-modal-resource-version-head">
-                                          <span class="country-modal-resource-version-lang">${escapeHtml(
-                                            displayFlag,
-                                          )} ${escapeHtml(languageText)}</span>
-                                          <span class="country-modal-resource-version-type">${escapeHtml(
-                                            typeLabel,
-                                          )}</span>
+                                          <span class="country-modal-resource-version-lang"></span>
+                                          <span class="country-modal-resource-version-flag">${escapeHtml(displayFlag || "🏳️")}</span>
                                         </div>
                                         <a
                                           class="country-modal-entry-btn country-modal-entry-link-btn"
