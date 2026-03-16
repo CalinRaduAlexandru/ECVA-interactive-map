@@ -2254,6 +2254,8 @@
                             </section>
                           `
                           : "";
+                      const ownershipType = String(ownership.type || "").trim();
+                      const ownershipName = String(ownership.name || "").trim();
                       const contactName = String(creatorContact.name || "").trim();
                       const contactRole = String(creatorContact.role || "").trim();
                       const contactEmail = String(creatorContact.email || "").trim();
@@ -2309,8 +2311,6 @@
                             return inferResourceTypeLabel(first);
                           })()
                         : "";
-                      const ownershipType = String(ownership.type || "").trim();
-                      const ownershipName = String(ownership.name || "").trim();
                       const resourceMetaPills = pillar.id === "resources"
                         ? [primaryResourceType, ownershipType, ownershipName]
                             .filter(Boolean)
