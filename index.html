@@ -6424,6 +6424,7 @@
           resourceType: RESOURCE_TYPE_OPTIONS[0].value,
           resourceUrl: "",
           file: null,
+          fileDataUrl: "",
           fileName: "",
           isPrimary: Boolean(isPrimary),
         };
@@ -6552,6 +6553,7 @@
                 ).value,
                 resourceUrl: String(item.resourceUrl || ""),
                 file: null,
+                fileDataUrl: "",
                 fileName: String(item.fileName || ""),
                 isPrimary: index === 0,
               };
@@ -6719,6 +6721,17 @@
               const file = fileInput.files && fileInput.files[0];
               item.file = file || null;
               item.fileName = file && file.name ? file.name : "";
+              item.fileDataUrl = "";
+              if (file instanceof File) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                  item.fileDataUrl = String(reader.result || "");
+                };
+                reader.onerror = () => {
+                  item.fileDataUrl = "";
+                };
+                reader.readAsDataURL(file);
+              }
               saveResourceDraft();
               validateResourceForm(resourceValidationTriggered);
             });
@@ -6726,7 +6739,7 @@
             const fileStatus = document.createElement("span");
             fileStatus.className = "contribute-language-file-status";
             fileStatus.textContent = item.fileName
-              ? `Selected: ${item.fileName}`
+              ? `Ready: ${item.fileName}`
               : "";
             valueLabel.appendChild(fileStatus);
           } else {
@@ -6904,7 +6917,10 @@
           }
           const typeConfig = getResourceTypeConfig(item.resourceType);
           if (typeConfig.inputMode === "file") {
-            const hasFile = item.file instanceof File || Boolean(item.resourceUrl);
+            const hasFile =
+              item.file instanceof File ||
+              Boolean(item.fileDataUrl) ||
+              Boolean(item.resourceUrl);
             const fileName = String((item.file && item.file.name) || "");
             const fileSize =
               item.file instanceof File ? Number(item.file.size || 0) : 0;
@@ -8245,6 +8261,34 @@
                 if (file) {
                   const fileUpload = await uploadContributeAttachments([file]);
                   uploaded = fileUpload[0] || null;
+                } else if (item.fileDataUrl) {
+                  const response = await fetch(ATTACHMENT_UPLOAD_API, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      filename: item.fileName || "resource.bin",
+                      dataUrl: String(item.fileDataUrl || ""),
+                    }),
+                  });
+                  const payload = await response.json().catch(() => null);
+                  if (!response.ok || !payload || payload.ok === false) {
+                    const detail =
+                      payload && payload.details ? ` (${payload.details})` : "";
+                    if (
+                      response.status === 413 ||
+                      (payload && payload.error === "attachment_too_large")
+                    ) {
+                      throw new Error("attachment_file_too_large");
+                    }
+                    throw new Error(`attachment_upload_failed${detail}`);
+                  }
+                  uploaded = {
+                    name:
+                      String(item.fileName || "").trim() ||
+                      String(payload.filename || "").trim() ||
+                      "Attachment",
+                    url: String(payload.path || "").trim(),
+                  };
                 }
                 resourceLanguages.push({
                   languageCode,
