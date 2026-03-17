@@ -14,13 +14,13 @@
   const closeManageBtn = document.getElementById("ecva-manage-close-btn");
 
   const editorModal = document.getElementById("ecva-editor-modal");
+  const editorDialog = editorModal
+    ? editorModal.querySelector(".ecva-editor-modal-dialog")
+    : null;
   const editorForm = document.getElementById("ecva-editor-form");
   const editorHeading = document.getElementById("ecva-editor-heading");
   const editorStepper = document.getElementById("ecva-editor-stepper");
   const editorStepperList = document.getElementById("ecva-editor-stepper-list");
-  const editorStepMeta = document.getElementById("ecva-editor-step-meta");
-  const editorStepBadge = document.getElementById("ecva-editor-step-badge");
-  const editorStepLead = document.getElementById("ecva-editor-step-lead");
   const entryFieldsWrap = document.getElementById("ecva-editor-entry-fields");
   const repFieldsWrap = document.getElementById("ecva-editor-rep-fields");
   const editorStepTextPanel = document.getElementById("ecva-editor-step-text");
@@ -56,6 +56,12 @@
   );
   const editorNativeDescriptionLabel = document.getElementById(
     "ecva-editor-native-description-label",
+  );
+  const editorTitleFieldLabel = document.getElementById(
+    "ecva-editor-title-field-label",
+  );
+  const editorDescriptionFieldLabel = document.getElementById(
+    "ecva-editor-description-field-label",
   );
   const editorSourceLangFlag = document.getElementById(
     "ecva-editor-source-lang-flag",
@@ -213,6 +219,81 @@
     { value: "freemium", label: "Freemium", icon: "trophy" },
     { value: "subscription", label: "Subscription", icon: "calendar" },
   ];
+  const EDITOR_UI_COPY_BASE = {
+    reviewEntry: "Review Entry",
+    editRepresentative: "Edit representative",
+    stepWord: "Step",
+    stepReviewText: "Review text",
+    stepCheckTranslation: "Check translation",
+    stepLanguagesLinks: "Languages & links",
+    stepContactDetails: "Contact details",
+    back: "Back",
+    cancel: "Cancel",
+    next: "Next",
+    save: "Save",
+    checking: "Checking...",
+    contentReview: "Content review",
+    translationReview: "Translation review",
+    checkTranslationButton: "Check translation",
+    noTitleYet: "No title yet.",
+    noDescriptionYet: "No description yet.",
+    notCheckedYet: "Not checked yet.",
+    translationCheckingNote: "Checking translation...",
+    translationVerifiedNote:
+      "Translation verified for current {language} text.",
+    translationNeedsCheckNote:
+      "Edit title and description in {language} and run Check translation before saving.",
+    checkTranslationBeforeContinuing:
+      "Check translation before continuing.",
+    completeAllStepsBeforeSaving:
+      "Complete all review steps before saving.",
+    runCheckTranslationBeforeSaving:
+      "Run Check translation before saving.",
+    translationCheckedToast: "Translation checked.",
+    translationCheckFailedToast: "Could not check translation right now.",
+    addTitleOrDescriptionBeforeCheck:
+      "Add title or description before translation check.",
+  };
+  const EDITOR_UI_COPY_PRESET = {
+    ro: {
+      ...EDITOR_UI_COPY_BASE,
+      reviewEntry: "Revizuire intrare",
+      editRepresentative: "Editează reprezentantul",
+      stepWord: "Pasul",
+      stepReviewText: "Revizuiește textul",
+      stepCheckTranslation: "Verifică traducerea",
+      stepLanguagesLinks: "Limbi și linkuri",
+      stepContactDetails: "Date de contact",
+      back: "Înapoi",
+      cancel: "Anulează",
+      next: "Următorul",
+      save: "Salvează",
+      checking: "Se verifică...",
+      contentReview: "Revizuire conținut",
+      translationReview: "Revizuire traducere",
+      checkTranslationButton: "Verifică traducerea",
+      noTitleYet: "Titlul nu este completat.",
+      noDescriptionYet: "Descrierea nu este completată.",
+      notCheckedYet: "Nu este verificat încă.",
+      translationCheckingNote: "Se verifică traducerea...",
+      translationVerifiedNote:
+        "Traducerea este verificată pentru textul curent în {language}.",
+      translationNeedsCheckNote:
+        "Editează titlul și descrierea în {language} și apasă Verifică traducerea înainte de salvare.",
+      checkTranslationBeforeContinuing:
+        "Verifică traducerea înainte de a continua.",
+      completeAllStepsBeforeSaving:
+        "Completează toți pașii de revizuire înainte de salvare.",
+      runCheckTranslationBeforeSaving:
+        "Rulează Verifică traducerea înainte de salvare.",
+      translationCheckedToast: "Traducerea a fost verificată.",
+      translationCheckFailedToast:
+        "Traducerea nu a putut fi verificată în acest moment.",
+      addTitleOrDescriptionBeforeCheck:
+        "Adaugă titlu sau descriere înainte de verificarea traducerii.",
+    },
+  };
+  const EDITOR_UI_COPY_KEYS = Object.keys(EDITOR_UI_COPY_BASE);
   const RESOURCE_UI_BASE_SOURCE =
     window.__ECVA_RESOURCE_UI_BASE &&
     typeof window.__ECVA_RESOURCE_UI_BASE === "object"
@@ -304,6 +385,75 @@
   function getLanguageDisplayLabel(rawLang) {
     const lang = normalizeLanguageCode(rawLang);
     return String(LANGUAGE_ENDONYMS[lang] || lang.toUpperCase());
+  }
+
+  function resolveEditorUiLanguageCode() {
+    const stateLang = normalizeLanguageCode(
+      (submissionTranslationState && submissionTranslationState.sourceLanguageCode) ||
+        "",
+    );
+    if (stateLang) return stateLang;
+    const targetCountry = normalizeManageCountryCode(
+      editorTarget && editorTarget.countryId,
+    );
+    if (targetCountry) return getCountryPrimaryLanguage(targetCountry);
+    return normalizeLanguageCode(getCurrentLang());
+  }
+
+  function getEditorUiCopy(rawLang) {
+    const lang = normalizeLanguageCode(rawLang || editorUiCopyLang || "en");
+    return editorUiCopyCache.get(lang) || editorUiCopyCache.get("en") || EDITOR_UI_COPY_BASE;
+  }
+
+  function localizeEditorUiText(rawValue, fallback) {
+    const value = String(rawValue || "").trim();
+    return value || String(fallback || "").trim();
+  }
+
+  function ensureEditorUiCopy(rawLang) {
+    const lang = normalizeLanguageCode(rawLang || "en");
+    if (!lang || lang === "en" || editorUiCopyCache.has(lang)) return;
+    if (editorUiCopyPending.has(lang)) return;
+    const request = fetch(TRANSLATE_BATCH_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceLang: "en",
+        targetLang: lang,
+        texts: EDITOR_UI_COPY_KEYS.map((key) => EDITOR_UI_COPY_BASE[key]),
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const payload = await response.json().catch(() => null);
+        const translated = Array.isArray(payload && payload.translated)
+          ? payload.translated
+          : null;
+        if (!translated || translated.length < EDITOR_UI_COPY_KEYS.length) return null;
+        const localized = { ...EDITOR_UI_COPY_BASE };
+        EDITOR_UI_COPY_KEYS.forEach((key, index) => {
+          localized[key] = localizeEditorUiText(
+            translated[index],
+            EDITOR_UI_COPY_BASE[key],
+          );
+        });
+        editorUiCopyCache.set(lang, localized);
+        return localized;
+      })
+      .catch(() => null)
+      .finally(() => {
+        editorUiCopyPending.delete(lang);
+      });
+    editorUiCopyPending.set(lang, request);
+    request.then(() => {
+      if (resolveEditorUiLanguageCode() !== lang) return;
+      editorUiCopyLang = lang;
+      refreshEditorUiLanguage();
+      configureEditorReviewWizard();
+      updateSubmissionTranslationUi();
+      updateEditorSaveAvailability();
+      updateEditorHeading();
+    });
   }
 
   function getAvailableLanguageCodes() {
@@ -592,6 +742,13 @@
   let editorReviewWizardEnabled = false;
   let editorReviewStepIndex = 0;
   let editorReviewSteps = [];
+  let editorUiCopyLang = "en";
+  let editorAutoTranslationPrimed = false;
+  const editorUiCopyCache = new Map([
+    ["en", { ...EDITOR_UI_COPY_BASE }],
+    ["ro", { ...EDITOR_UI_COPY_PRESET.ro }],
+  ]);
+  const editorUiCopyPending = new Map();
   const nativeFieldLabelPending = new Map();
   const nativeFieldLabelCache = {
     en: { title: "Title", description: "Description" },
@@ -2183,8 +2340,110 @@
     }
   }
 
+  function getEditorTargetPillarId() {
+    const target = editorTarget && typeof editorTarget === "object" ? editorTarget : null;
+    if (!target) return "";
+    const explicit = String(target.pillarId || "")
+      .trim()
+      .toLowerCase();
+    if (explicit) return explicit;
+    if (target.type === "submission-article") return "resources";
+    return "";
+  }
+
+  function applyEditorDialogTheme() {
+    if (!editorDialog) return;
+    const themeClasses = [
+      "is-pillar-resources",
+      "is-pillar-events",
+      "is-pillar-organisations",
+      "is-pillar-research",
+      "is-pillar-government",
+      "is-pillar-default",
+    ];
+    themeClasses.forEach((theme) => editorDialog.classList.remove(theme));
+    const pillarId = getEditorTargetPillarId();
+    if (!pillarId) {
+      editorDialog.classList.add("is-pillar-default");
+      return;
+    }
+    if (pillarId === "resources") {
+      editorDialog.classList.add("is-pillar-resources");
+      return;
+    }
+    if (pillarId === "events") {
+      editorDialog.classList.add("is-pillar-events");
+      return;
+    }
+    if (pillarId === "organisations") {
+      editorDialog.classList.add("is-pillar-organisations");
+      return;
+    }
+    if (pillarId === "research") {
+      editorDialog.classList.add("is-pillar-research");
+      return;
+    }
+    if (pillarId === "government") {
+      editorDialog.classList.add("is-pillar-government");
+      return;
+    }
+    editorDialog.classList.add("is-pillar-default");
+  }
+
+  function updateEditorHeading() {
+    if (!editorHeading) return;
+    const copy = getEditorUiCopy(editorUiCopyLang);
+    if (editorMode === "representative") {
+      editorHeading.textContent =
+        copy.editRepresentative || EDITOR_UI_COPY_BASE.editRepresentative;
+      return;
+    }
+    if (!editorReviewWizardEnabled || !editorReviewSteps.length) {
+      editorHeading.textContent = copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry;
+      return;
+    }
+    const currentStep =
+      editorReviewSteps[editorReviewStepIndex] ||
+      editorReviewSteps[editorReviewSteps.length - 1] ||
+      null;
+    if (!currentStep) {
+      editorHeading.textContent = copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry;
+      return;
+    }
+    const stepWord = copy.stepWord || EDITOR_UI_COPY_BASE.stepWord;
+    const stepLabel = String(currentStep.label || "").trim();
+    const stepTitle = `${stepWord} ${editorReviewStepIndex + 1}. ${stepLabel}`;
+    editorHeading.textContent = `${copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry} - ${stepTitle}`;
+  }
+
+  function refreshEditorUiLanguage() {
+    const lang = resolveEditorUiLanguageCode();
+    editorUiCopyLang = lang;
+    ensureEditorUiCopy(lang);
+    const copy = getEditorUiCopy(lang);
+    if (editorBackBtn) {
+      editorBackBtn.textContent = copy.back || EDITOR_UI_COPY_BASE.back;
+    }
+    if (editorCancelBtn) {
+      editorCancelBtn.textContent = copy.cancel || EDITOR_UI_COPY_BASE.cancel;
+    }
+    if (editorCheckTranslationBtn) {
+      const state = submissionTranslationState;
+      if (state && state.checking) {
+        editorCheckTranslationBtn.textContent =
+          copy.checking || EDITOR_UI_COPY_BASE.checking;
+      } else {
+        editorCheckTranslationBtn.textContent =
+          copy.checkTranslationButton ||
+          EDITOR_UI_COPY_BASE.checkTranslationButton;
+      }
+    }
+  }
+
   function setEditorMode(mode) {
     editorMode = mode === "representative" ? "representative" : "entry";
+    refreshEditorUiLanguage();
+    applyEditorDialogTheme();
     if (entryFieldsWrap) {
       entryFieldsWrap.classList.toggle("is-visible", editorMode === "entry");
     }
@@ -2193,10 +2452,6 @@
         "is-visible",
         editorMode === "representative",
       );
-    }
-    if (editorHeading) {
-      editorHeading.textContent =
-        editorMode === "representative" ? "Edit representative" : "Review Entry";
     }
     if (editorRemoveBtn) {
       const canRemove =
@@ -2214,6 +2469,7 @@
       resetEditorRemoveState();
     }
     configureEditorReviewWizard();
+    updateEditorHeading();
   }
 
   function setSubmissionEntryFieldsVisible(isVisible) {
@@ -2222,53 +2478,38 @@
   }
 
   function getEditorReviewStepDefinitions() {
+    const copy = getEditorUiCopy(editorUiCopyLang);
     return [
       {
         id: "text",
-        label: "Review text",
+        label: copy.stepReviewText || EDITOR_UI_COPY_BASE.stepReviewText,
         panel: editorStepTextPanel,
         validate: (paintInvalid) => validateEditorTextStep(paintInvalid),
       },
       {
         id: "translation",
-        label: "Check translation",
+        label:
+          copy.stepCheckTranslation || EDITOR_UI_COPY_BASE.stepCheckTranslation,
         panel: editorStepTranslationPanel,
         validate: (paintInvalid) =>
           validateEditorTranslationStep(paintInvalid),
       },
       {
         id: "languages",
-        label: "Languages & links",
+        label:
+          copy.stepLanguagesLinks || EDITOR_UI_COPY_BASE.stepLanguagesLinks,
         panel: editorStepLanguagesPanel,
         validate: (paintInvalid) =>
           validateEditorLanguageAndLinkFields(paintInvalid),
       },
       {
         id: "contact",
-        label: "Contact details",
+        label:
+          copy.stepContactDetails || EDITOR_UI_COPY_BASE.stepContactDetails,
         panel: editorStepContactPanel,
         validate: (paintInvalid) => validateEditorContactFields(paintInvalid),
       },
     ];
-  }
-
-  function getEditorReviewStepLead(stepId) {
-    const id = String(stepId || "")
-      .trim()
-      .toLowerCase();
-    if (id === "text") {
-      return "Verify native title and description.";
-    }
-    if (id === "translation") {
-      return "Run Check translation and confirm the English mirror.";
-    }
-    if (id === "languages") {
-      return "Verify each language version, type, and resource link.";
-    }
-    if (id === "contact") {
-      return "Confirm public contact details shown under the article.";
-    }
-    return "";
   }
 
   function isEditorSubmissionArticleTarget() {
@@ -2315,14 +2556,39 @@
     return !validateEditorReviewStepsUntil(targetIndex - 1, false);
   }
 
+  function maybePrimeTranslationStep(previousIndex, nextIndex) {
+    if (!editorReviewWizardEnabled) return;
+    const current =
+      editorReviewSteps[Math.max(0, Math.min(Number(nextIndex), editorReviewSteps.length - 1))] ||
+      null;
+    const currentId = String(current && current.id ? current.id : "")
+      .trim()
+      .toLowerCase();
+    if (currentId !== "translation") return;
+    if (Number(previousIndex) === Number(nextIndex)) return;
+    const state = submissionTranslationState;
+    if (!state || !state.required) return;
+    if (state.checking || state.checked) return;
+    if (editorAutoTranslationPrimed) return;
+    const hasNativeText = Boolean(
+      String((editorTitle && editorTitle.value) || "").trim() ||
+        String((editorDescription && editorDescription.value) || "").trim(),
+    );
+    if (!hasNativeText) return;
+    editorAutoTranslationPrimed = true;
+    runSubmissionTranslationCheck();
+  }
+
   function setEditorReviewStep(nextIndex, options = {}) {
     if (!editorReviewWizardEnabled) return;
     const maxIndex = editorReviewSteps.length - 1;
     if (maxIndex < 0) return;
     const targetIndex = Math.max(0, Math.min(Number(nextIndex), maxIndex));
     if (!options.force && !canActivateEditorReviewStep(targetIndex)) return;
+    const previousIndex = editorReviewStepIndex;
     editorReviewStepIndex = targetIndex;
     updateEditorReviewUi();
+    maybePrimeTranslationStep(previousIndex, targetIndex);
   }
 
   function renderEditorReviewStepper() {
@@ -2367,12 +2633,7 @@
     if (editorStepper) {
       editorStepper.hidden = !isWizard;
     }
-    if (editorStepMeta) {
-      editorStepMeta.hidden = !isWizard;
-    }
     if (!isWizard) {
-      if (editorStepBadge) editorStepBadge.textContent = "";
-      if (editorStepLead) editorStepLead.textContent = "";
       [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
         if (!panel) return;
         panel.classList.add("is-visible");
@@ -2380,11 +2641,27 @@
       if (editorBackBtn) editorBackBtn.style.display = "none";
       renderEditorReviewStepper();
       updateEditorSaveAvailability();
+      updateEditorHeading();
       return;
     }
+    const currentStep =
+      editorReviewSteps[editorReviewStepIndex] ||
+      editorReviewSteps[editorReviewSteps.length - 1] ||
+      null;
+    const currentStepId = String(currentStep && currentStep.id ? currentStep.id : "")
+      .trim()
+      .toLowerCase();
     editorReviewSteps.forEach((step, index) => {
       if (!step || !step.panel) return;
-      step.panel.classList.toggle("is-visible", index === editorReviewStepIndex);
+      const stepId = String(step.id || "")
+        .trim()
+        .toLowerCase();
+      const alsoShowTextOnTranslation =
+        currentStepId === "translation" && stepId === "text";
+      step.panel.classList.toggle(
+        "is-visible",
+        index === editorReviewStepIndex || alsoShowTextOnTranslation,
+      );
     });
     [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
       if (!panel) return;
@@ -2396,18 +2673,9 @@
     if (editorBackBtn) {
       editorBackBtn.style.display = editorReviewStepIndex > 0 ? "inline-flex" : "none";
     }
-    const totalSteps = editorReviewSteps.length;
-    const currentStep = editorReviewSteps[editorReviewStepIndex] || null;
-    if (editorStepBadge) {
-      editorStepBadge.textContent = `Step ${editorReviewStepIndex + 1} of ${totalSteps}`;
-    }
-    if (editorStepLead) {
-      editorStepLead.textContent = currentStep
-        ? getEditorReviewStepLead(currentStep.id)
-        : "";
-    }
     renderEditorReviewStepper();
     updateEditorSaveAvailability();
+    updateEditorHeading();
   }
 
   function configureEditorReviewWizard() {
@@ -2438,6 +2706,7 @@
       renderEditorReviewStepper();
     }
     updateEditorSaveAvailability();
+    updateEditorHeading();
   }
 
   function toHeadingLanguageLabel(rawValue) {
@@ -2920,6 +3189,7 @@
   }
 
   function validateEditorTranslationStep(_paintInvalid) {
+    const copy = getEditorUiCopy(editorUiCopyLang);
     const target = editorTarget;
     const translationRequired = requiresSubmissionTranslation(
       target && target.countryId,
@@ -2928,10 +3198,16 @@
     if (!translationRequired) return "";
     const state = submissionTranslationState;
     if (!state || state.checking) {
-      return "Check translation before continuing.";
+      return (
+        copy.checkTranslationBeforeContinuing ||
+        EDITOR_UI_COPY_BASE.checkTranslationBeforeContinuing
+      );
     }
     if (!state.checked) {
-      return "Check translation before continuing.";
+      return (
+        copy.checkTranslationBeforeContinuing ||
+        EDITOR_UI_COPY_BASE.checkTranslationBeforeContinuing
+      );
     }
     return "";
   }
@@ -3121,12 +3397,20 @@
   }
 
   function setNativeFieldLabels(titleText, descriptionText) {
+    const titleLabel = String(titleText || "Title").trim() || "Title";
+    const descriptionLabel =
+      String(descriptionText || "Description").trim() || "Description";
+    if (editorTitleFieldLabel) {
+      editorTitleFieldLabel.textContent = titleLabel;
+    }
+    if (editorDescriptionFieldLabel) {
+      editorDescriptionFieldLabel.textContent = descriptionLabel;
+    }
     if (editorNativeTitleLabel) {
-      editorNativeTitleLabel.textContent = String(titleText || "Title").trim() || "Title";
+      editorNativeTitleLabel.textContent = titleLabel;
     }
     if (editorNativeDescriptionLabel) {
-      editorNativeDescriptionLabel.textContent =
-        String(descriptionText || "Description").trim() || "Description";
+      editorNativeDescriptionLabel.textContent = descriptionLabel;
     }
   }
 
@@ -3230,6 +3514,7 @@
 
   function updateEditorSaveAvailability() {
     if (!editorSaveBtn) return;
+    const copy = getEditorUiCopy(editorUiCopyLang);
     const state = submissionTranslationState;
     const checking = Boolean(state && state.checking);
     if (isEditorSubmissionArticleTarget() && editorReviewWizardEnabled) {
@@ -3245,35 +3530,42 @@
         currentStep &&
         String(currentStep.id || "").trim().toLowerCase() === "translation"
       ) {
-        editorSaveBtn.textContent = "Checking...";
+        editorSaveBtn.textContent = copy.checking || EDITOR_UI_COPY_BASE.checking;
         editorSaveBtn.disabled = true;
         return;
       }
-      editorSaveBtn.textContent = isFinalStep ? "Save" : "Next";
+      editorSaveBtn.textContent = isFinalStep
+        ? copy.save || EDITOR_UI_COPY_BASE.save
+        : copy.next || EDITOR_UI_COPY_BASE.next;
       editorSaveBtn.disabled = Boolean(currentError) || checking;
       return;
     }
     const needsCheck = Boolean(state && state.required);
     const ready = !needsCheck || (state.checked && !state.checking);
     editorSaveBtn.disabled = !ready;
-    editorSaveBtn.textContent = "Save";
+    editorSaveBtn.textContent = copy.save || EDITOR_UI_COPY_BASE.save;
   }
 
   function updateSubmissionTranslationPreview() {
+    const copy = getEditorUiCopy(editorUiCopyLang);
     const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
     const nativeDescription = String(
       (editorDescription && editorDescription.value) || "",
     ).trim();
     if (editorNativeTitlePreview) {
-      editorNativeTitlePreview.textContent = nativeTitle || "No title yet.";
+      editorNativeTitlePreview.textContent =
+        nativeTitle || copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet;
     }
     if (editorNativeDescriptionPreview) {
       editorNativeDescriptionPreview.textContent =
-        nativeDescription || "No description yet.";
+        nativeDescription ||
+        copy.noDescriptionYet ||
+        EDITOR_UI_COPY_BASE.noDescriptionYet;
     }
   }
 
   function updateSubmissionTranslationUi() {
+    const copy = getEditorUiCopy(editorUiCopyLang);
     const state = submissionTranslationState;
     const visible = Boolean(state && state.visible);
     syncSubmissionSourceLanguageHeading();
@@ -3292,8 +3584,8 @@
     const checked = Boolean(state.checked);
     if (editorReviewBand) {
       editorReviewBand.textContent = checked
-        ? "Translation review"
-        : "Content review";
+        ? copy.translationReview || EDITOR_UI_COPY_BASE.translationReview
+        : copy.contentReview || EDITOR_UI_COPY_BASE.contentReview;
       editorReviewBand.classList.toggle("is-passed", checked);
     }
     if (editorTranslationNote) {
@@ -3301,22 +3593,32 @@
         String((state && state.sourceLanguageLabel) || "source language"),
       );
       if (state.checking) {
-        editorTranslationNote.textContent = "Checking translation...";
+        editorTranslationNote.textContent =
+          copy.translationCheckingNote ||
+          EDITOR_UI_COPY_BASE.translationCheckingNote;
       } else if (checked) {
-        editorTranslationNote.textContent =
-          `Translation verified for current ${sourceLabel} text.`;
+        editorTranslationNote.textContent = String(
+          copy.translationVerifiedNote ||
+            EDITOR_UI_COPY_BASE.translationVerifiedNote,
+        ).replace("{language}", sourceLabel);
       } else {
-        editorTranslationNote.textContent =
-          `Edit title and description in ${sourceLabel} and run Check translation before saving.`;
+        editorTranslationNote.textContent = String(
+          copy.translationNeedsCheckNote ||
+            EDITOR_UI_COPY_BASE.translationNeedsCheckNote,
+        ).replace("{language}", sourceLabel);
       }
     }
     if (editorEnglishTitlePreview) {
       editorEnglishTitlePreview.textContent =
-        String(state.englishTitle || "").trim() || "Not checked yet.";
+        String(state.englishTitle || "").trim() ||
+        copy.notCheckedYet ||
+        EDITOR_UI_COPY_BASE.notCheckedYet;
     }
     if (editorEnglishDescriptionPreview) {
       editorEnglishDescriptionPreview.textContent =
-        String(state.englishDescription || "").trim() || "Not checked yet.";
+        String(state.englishDescription || "").trim() ||
+        copy.notCheckedYet ||
+        EDITOR_UI_COPY_BASE.notCheckedYet;
     }
     if (editorCheckTranslationBtn) {
       const canCheck =
@@ -3325,8 +3627,8 @@
           String((editorDescription && editorDescription.value) || "").trim());
       editorCheckTranslationBtn.disabled = !canCheck;
       editorCheckTranslationBtn.textContent = state.checking
-        ? "Checking..."
-        : "Check translation";
+        ? copy.checking || EDITOR_UI_COPY_BASE.checking
+        : copy.checkTranslationButton || EDITOR_UI_COPY_BASE.checkTranslationButton;
     }
     if (editorReviewWizardEnabled) {
       updateEditorReviewUi();
@@ -3375,7 +3677,12 @@
       (editorDescription && editorDescription.value) || "",
     ).trim();
     if (!nativeTitle && !nativeDescription) {
-      showToast("Add title or description before translation check.", true);
+      const copy = getEditorUiCopy(editorUiCopyLang);
+      showToast(
+        copy.addTitleOrDescriptionBeforeCheck ||
+          EDITOR_UI_COPY_BASE.addTitleOrDescriptionBeforeCheck,
+        true,
+      );
       return;
     }
     state.checking = true;
@@ -3404,9 +3711,17 @@
       state.translationSourceDescription = nativeDescription;
       state.checked = true;
       state.checkedAt = new Date().toISOString();
-      showToast("Translation checked.");
+      const copy = getEditorUiCopy(editorUiCopyLang);
+      showToast(
+        copy.translationCheckedToast || EDITOR_UI_COPY_BASE.translationCheckedToast,
+      );
     } catch (_error) {
-      showToast("Could not check translation right now.", true);
+      const copy = getEditorUiCopy(editorUiCopyLang);
+      showToast(
+        copy.translationCheckFailedToast ||
+          EDITOR_UI_COPY_BASE.translationCheckFailedToast,
+        true,
+      );
     } finally {
       state.checking = false;
       updateSubmissionTranslationUi();
@@ -3451,6 +3766,9 @@
       ).trim(),
       checkedAt: String((item && item.translationCheckedAt) || "").trim(),
     };
+    editorAutoTranslationPrimed = false;
+    editorUiCopyLang = resolveEditorUiLanguageCode();
+    ensureEditorUiCopy(editorUiCopyLang);
     updateSubmissionTranslationUi();
   }
 
@@ -3459,6 +3777,7 @@
     editorReviewWizardEnabled = false;
     editorReviewStepIndex = 0;
     editorReviewSteps = [];
+    editorAutoTranslationPrimed = false;
     if (editorTitle) editorTitle.value = "";
     if (editorDescription) editorDescription.value = "";
     if (editorContactName) editorContactName.value = "";
@@ -5245,6 +5564,10 @@
       type: "submission-article",
       countryId: code,
       submissionId: String(item.id),
+      pillarId:
+        String(item && item.pillarId ? item.pillarId : "")
+          .trim()
+          .toLowerCase() || "resources",
     };
     setEditorMode("entry");
     openEditorModal();
@@ -6123,13 +6446,24 @@
           const firstInvalidStep = getFirstInvalidEditorReviewStepIndex(true);
           if (firstInvalidStep >= 0) {
             const message = getEditorReviewStepError(firstInvalidStep, true);
+            const copy = getEditorUiCopy(editorUiCopyLang);
             setEditorReviewStep(firstInvalidStep, { force: true });
-            showToast(message || "Complete all review steps before saving.", true);
+            showToast(
+              message ||
+                copy.completeAllStepsBeforeSaving ||
+                EDITOR_UI_COPY_BASE.completeAllStepsBeforeSaving,
+              true,
+            );
             return;
           }
         }
         if (translationRequired && (!state || !state.checked || state.checking)) {
-          showToast("Run Check translation before saving.", true);
+          const copy = getEditorUiCopy(editorUiCopyLang);
+          showToast(
+            copy.runCheckTranslationBeforeSaving ||
+              EDITOR_UI_COPY_BASE.runCheckTranslationBeforeSaving,
+            true,
+          );
           return;
         }
         const nativeTitle = editorTitle ? editorTitle.value : "";
