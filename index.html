@@ -1088,7 +1088,7 @@
 
       .contribute-language-fields {
         display: grid;
-        grid-template-columns: minmax(180px, 1fr) minmax(110px, 0.36fr) minmax(
+        grid-template-columns: minmax(180px, 1fr) minmax(125px, 0.4fr) minmax(
             220px,
             1.2fr
           );
@@ -1097,6 +1097,7 @@
       }
 
       .contribute-language-fields .contribute-language-type-field {
+        min-width: 125px;
         max-width: 230px;
       }
 
@@ -1414,6 +1415,7 @@
         justify-content: flex-end;
         gap: 10px;
         margin-top: 2px;
+        flex-wrap: wrap;
       }
 
       .contribute-form-actions .contribute-form-btn[hidden],
@@ -1422,9 +1424,21 @@
       }
 
       .contribute-form-actions .contribute-form-status {
-        margin-right: auto;
+        flex: 1 0 100%;
+        margin-right: 0;
         min-height: 18px;
         font-size: 13px;
+      }
+
+      #contribute-cancel-btn {
+        margin-right: auto;
+        background: linear-gradient(180deg, #2d3236, #15191d);
+        border-color: rgba(18, 22, 26, 0.86);
+        color: #f4f8fb;
+      }
+
+      #contribute-cancel-btn:hover {
+        filter: brightness(1.04);
       }
 
       .contribute-form-actions .contribute-form-status.is-success {
@@ -6139,6 +6153,7 @@
                         type="text"
                         name="ownershipName"
                         placeholder="Write the name..."
+                        autocomplete="off"
                         required
                       />
                     </label>
@@ -8031,6 +8046,7 @@
         post: "Post",
         remove: "Remove",
         stepReviewText: "Review text",
+        stepDescribeResource: "Describe resource",
         stepCheckTranslation: "Check translation",
         stepLanguagesLinks: "Languages & links",
         stepContactDetails: "Contact details",
@@ -8146,6 +8162,7 @@
         post: "Postează",
         remove: "Șterge",
         stepReviewText: "Revizuiește textul",
+        stepDescribeResource: "Descrie resursa",
         stepCheckTranslation: "Verifică traducerea",
         stepLanguagesLinks: "Limbi și linkuri",
         stepContactDetails: "Date de contact",
@@ -8170,7 +8187,8 @@
         contactHeader: "Pentru mai multe informații, contact:",
         contactHelper:
           "Aceste detalii sunt publice și apar la finalul articolului.",
-        emailFootnote: "Folosit dacă sunt necesare clarificări.",
+        emailFootnote:
+          "Va putea fi folosit de utilizatori în cazul în care vor fi necesare clarificări.",
         name: "Nume",
         role: "Rol",
         email: "Email",
@@ -8320,6 +8338,7 @@
         post: "modal",
         remove: "modal",
         stepReviewText: "wizard",
+        stepDescribeResource: "wizard",
         stepCheckTranslation: "wizard",
         stepLanguagesLinks: "wizard",
         stepContactDetails: "wizard",
@@ -9355,6 +9374,7 @@
         const description = String(
           (resourceDescriptionInput && resourceDescriptionInput.value) || "",
         ).trim();
+        let wrongLanguage = false;
         updateResourceCounter(resourceTitleInput, resourceTitleCount, RESOURCE_LIMITS.title);
         updateResourceCounter(
           resourceDescriptionInput,
@@ -9375,10 +9395,15 @@
             description,
           );
           if (!nativeLanguageCheck.ok) {
+            wrongLanguage = true;
             errors.push(
               nativeLanguageCheck.message || getResourceUiText("nativeLanguageWarning"),
             );
           }
+        }
+        if (wrongLanguage && shouldPaintInvalid) {
+          setFieldError(resourceTitleInput, true);
+          setFieldError(resourceDescriptionInput, true);
         }
         return errors;
       }
@@ -9549,6 +9574,14 @@
           String((contributeContext && contributeContext.mode) || "")
             .trim()
             .toLowerCase() === "article"
+        );
+      }
+
+      function isContributeSuggestionMode() {
+        return Boolean(
+          isContributeArticleMode() &&
+            !Boolean(contributeContext && contributeContext.editEntryTarget) &&
+            !Boolean(contributeContext && contributeContext.directPublish),
         );
       }
 
@@ -9949,7 +9982,9 @@
         return [
           {
             id: "text",
-            label: getResourceUiText("stepReviewText"),
+            label: isContributeSuggestionMode()
+              ? getResourceUiText("stepDescribeResource")
+              : getResourceUiText("stepReviewText"),
             panel: contributeStepTextPanel,
             validate: (paintInvalid) => validateContributeTextStep(paintInvalid),
           },
@@ -10126,10 +10161,6 @@
           }
         });
         renderContributeWizardStepper();
-        const currentError = getContributeWizardStepError(
-          contributeWizardStepIndex,
-          false,
-        );
         const maxIndex = Math.max(0, contributeWizardSteps.length - 1);
         const isFinalStep = contributeWizardStepIndex >= maxIndex;
         const translationChecking = Boolean(
@@ -10142,12 +10173,11 @@
         if (contributeNextBtn) {
           contributeNextBtn.hidden = isFinalStep;
           contributeNextBtn.textContent = getResourceUiText("next");
-          contributeNextBtn.disabled = Boolean(currentError || translationChecking);
+          contributeNextBtn.disabled = Boolean(translationChecking);
         }
         if (resourceSubmitBtn) {
           resourceSubmitBtn.hidden = !isFinalStep;
-          const firstInvalid = getFirstInvalidContributeWizardStepIndex(false);
-          resourceSubmitBtn.disabled = firstInvalid >= 0 || translationChecking;
+          resourceSubmitBtn.disabled = Boolean(translationChecking);
         }
       }
 
