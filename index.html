@@ -4457,6 +4457,12 @@
         gap: 6px 10px;
       }
 
+      .ecva-inbox-meta.ecva-inbox-meta--footnote {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 5px 10px;
+        margin-top: 2px;
+      }
+
       .ecva-inbox-meta div {
         min-width: 0;
       }
@@ -4476,6 +4482,17 @@
         font-weight: 700;
         color: #2b4552;
         overflow-wrap: anywhere;
+      }
+
+      .ecva-inbox-meta.ecva-inbox-meta--footnote dt {
+        font-size: 9px;
+        color: #728a97;
+      }
+
+      .ecva-inbox-meta.ecva-inbox-meta--footnote dd {
+        font-size: 11px;
+        font-weight: 700;
+        color: #3f5b68;
       }
 
       .ecva-inbox-contact {
@@ -4526,42 +4543,49 @@
       }
 
       .ecva-inbox-actions {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
         gap: 6px;
       }
 
-      .ecva-inbox-actions.ecva-inbox-actions--2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
       .ecva-inbox-footer {
+        --ecva-inbox-footer-btn-height: 42px;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        align-items: end;
-        gap: 10px;
+        gap: 8px;
+        justify-items: center;
       }
 
       .ecva-inbox-footer.is-delete-only {
-        grid-template-columns: 1fr;
+        justify-items: center;
+      }
+
+      .ecva-inbox-footer.has-trash-delete {
+        --ecva-inbox-footer-btn-height: 56px;
       }
 
       .ecva-inbox-footer-tools {
-        display: inline-flex;
+        display: flex;
+        width: 100%;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
         gap: 8px;
       }
 
       .ecva-inbox-manage-btn--footer {
-        min-height: 40px;
-        padding: 0 12px;
+        min-height: var(--ecva-inbox-footer-btn-height);
+        height: var(--ecva-inbox-footer-btn-height);
+        padding: 0 16px;
         border-radius: 10px;
       }
 
       .ecva-inbox-action {
-        width: 100%;
-        min-height: 42px;
+        width: auto;
+        min-width: 132px;
+        min-height: var(--ecva-inbox-footer-btn-height);
+        height: var(--ecva-inbox-footer-btn-height);
         border-radius: 10px;
         border: 1px solid rgba(108, 132, 145, 0.54);
         background: #eaf2f6;
@@ -4595,9 +4619,10 @@
       }
 
       .ecva-inbox-delete-btn {
-        width: 56px;
-        min-width: 56px;
-        height: 56px;
+        width: var(--ecva-inbox-footer-btn-height);
+        min-width: var(--ecva-inbox-footer-btn-height);
+        height: var(--ecva-inbox-footer-btn-height);
+        min-height: var(--ecva-inbox-footer-btn-height);
         border-radius: 18px;
         border: 1px solid rgba(120, 35, 35, 0.82);
         background: linear-gradient(180deg, #a44a4a 0%, #8a3535 100%);
@@ -4607,8 +4632,8 @@
         justify-content: center;
         gap: 7px;
         cursor: pointer;
-        align-self: end;
-        justify-self: end;
+        align-self: center;
+        justify-self: center;
         transition:
           transform 0.2s ease,
           filter 0.2s ease,
@@ -4688,6 +4713,10 @@
         }
 
         .ecva-inbox-meta {
+          grid-template-columns: 1fr;
+        }
+
+        .ecva-inbox-meta.ecva-inbox-meta--footnote {
           grid-template-columns: 1fr;
         }
       }

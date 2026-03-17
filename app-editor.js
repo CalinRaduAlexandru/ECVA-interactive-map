@@ -6501,12 +6501,12 @@
                 )}</p>`
               : ""
           }
-          <dl class="ecva-inbox-meta">
+          <dl class="ecva-inbox-meta ecva-inbox-meta--footnote">
             <div><dt>Submitted by</dt><dd>${escapeHtml(submittedBy.name || "-")}</dd></div>
             <div><dt>Email</dt><dd>${escapeHtml(submittedBy.email || "-")}</dd></div>
             <div><dt>Received</dt><dd>${escapeHtml(formatSubmissionDate(item.createdAt))}</dd></div>
           </dl>
-          <div class="ecva-inbox-footer${actions.length ? "" : " is-delete-only"}">
+          <div class="ecva-inbox-footer${actions.length ? "" : " is-delete-only"}${useTrashDelete ? " has-trash-delete" : ""}">
             ${
               actions.length
                 ? `<div class="ecva-inbox-actions ecva-inbox-actions--${actions.length}">${actions.join("")}</div>`
