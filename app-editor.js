@@ -39,7 +39,6 @@
   const editorDescriptionCount = document.getElementById(
     "ecva-editor-description-count",
   );
-  const editorTitleHelper = document.getElementById("ecva-editor-title-helper");
   const editorDescriptionHelper = document.getElementById(
     "ecva-editor-description-helper",
   );
@@ -2504,10 +2503,6 @@
     if (editorDescription) {
       editorDescription.placeholder =
         copy.descriptionPlaceholder || EDITOR_UI_COPY_BASE.descriptionPlaceholder;
-    }
-    if (editorTitleHelper) {
-      editorTitleHelper.textContent =
-        copy.titleHelper || EDITOR_UI_COPY_BASE.titleHelper;
     }
     if (editorDescriptionHelper) {
       editorDescriptionHelper.textContent =

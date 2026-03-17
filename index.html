@@ -6003,9 +6003,6 @@
                       maxlength="72"
                       required
                     />
-                    <span class="contribute-field-helper"
-                      >Title will be displayed publicly.</span
-                    >
                     <span
                       class="contribute-field-count"
                       id="resource-title-count"
@@ -6022,7 +6019,9 @@
                       placeholder="Write a short and clear resource description."
                       required
                     ></textarea>
-                    <span class="contribute-field-helper"
+                    <span
+                      id="resource-description-helper"
+                      class="contribute-field-helper"
                       >Write a short and clear description of the resource.</span
                     >
                     <span
@@ -6237,7 +6236,9 @@
                       placeholder="name@example.org"
                       required
                     />
-                  <span class="contribute-field-helper"
+                    <span
+                      id="resource-contact-email-footnote"
+                      class="contribute-field-helper"
                       >Contact information will be used if clarifications are needed. These details are public and shown at the end of the article.</span
                     >
                   </label>
@@ -6603,11 +6604,6 @@
                   maxlength="72"
                   placeholder="e.g. Character Toolkit for Schools"
                 />
-                <span
-                  id="ecva-editor-title-helper"
-                  class="contribute-field-helper"
-                  >Title will be displayed publicly.</span
-                >
                 <span
                   class="contribute-field-count"
                   id="ecva-editor-title-count"
@@ -7956,6 +7952,9 @@
       const resourceDescriptionInput = document.getElementById(
         "resource-description-input",
       );
+      const resourceDescriptionHelper = document.getElementById(
+        "resource-description-helper",
+      );
       const resourceOwnershipTypeInput = document.getElementById(
         "resource-ownership-type",
       );
@@ -7973,6 +7972,9 @@
       );
       const resourceAddLanguageBtn = document.getElementById(
         "resource-add-language-btn",
+      );
+      const resourceContactEmailFootnote = document.getElementById(
+        "resource-contact-email-footnote",
       );
       const resourceSubmitBtn = document.getElementById("resource-submit-btn");
       const contributeRemoveBtn = document.getElementById(
@@ -11400,11 +11402,13 @@
             copy.contactEmailPlaceholder || RESOURCE_UI_BASE.contactEmailPlaceholder,
           );
         }
-        const helpers = contributeForm.querySelectorAll(".contribute-field-helper");
-        if (helpers[0]) helpers[0].textContent = copy.titleHelper;
-        if (helpers[1]) helpers[1].textContent = copy.descriptionHelper;
-        if (helpers[2]) {
-          helpers[2].textContent = copy.emailFootnote || "";
+        if (resourceDescriptionHelper) {
+          resourceDescriptionHelper.textContent =
+            copy.descriptionHelper || RESOURCE_UI_BASE.descriptionHelper;
+        }
+        if (resourceContactEmailFootnote) {
+          resourceContactEmailFootnote.textContent =
+            copy.emailFootnote || RESOURCE_UI_BASE.emailFootnote;
         }
         if (resourceAddLanguageBtn) resourceAddLanguageBtn.textContent = copy.addLanguage;
         if (contributeCancelBtn) contributeCancelBtn.textContent = copy.cancel;
