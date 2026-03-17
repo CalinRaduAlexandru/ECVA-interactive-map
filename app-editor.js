@@ -18,6 +18,9 @@
   const editorHeading = document.getElementById("ecva-editor-heading");
   const editorStepper = document.getElementById("ecva-editor-stepper");
   const editorStepperList = document.getElementById("ecva-editor-stepper-list");
+  const editorStepMeta = document.getElementById("ecva-editor-step-meta");
+  const editorStepBadge = document.getElementById("ecva-editor-step-badge");
+  const editorStepLead = document.getElementById("ecva-editor-step-lead");
   const entryFieldsWrap = document.getElementById("ecva-editor-entry-fields");
   const repFieldsWrap = document.getElementById("ecva-editor-rep-fields");
   const editorStepTextPanel = document.getElementById("ecva-editor-step-text");
@@ -2249,6 +2252,25 @@
     ];
   }
 
+  function getEditorReviewStepLead(stepId) {
+    const id = String(stepId || "")
+      .trim()
+      .toLowerCase();
+    if (id === "text") {
+      return "Verify native title and description.";
+    }
+    if (id === "translation") {
+      return "Run Check translation and confirm the English mirror.";
+    }
+    if (id === "languages") {
+      return "Verify each language version, type, and resource link.";
+    }
+    if (id === "contact") {
+      return "Confirm public contact details shown under the article.";
+    }
+    return "";
+  }
+
   function isEditorSubmissionArticleTarget() {
     return Boolean(
       editorMode === "entry" &&
@@ -2345,7 +2367,12 @@
     if (editorStepper) {
       editorStepper.hidden = !isWizard;
     }
+    if (editorStepMeta) {
+      editorStepMeta.hidden = !isWizard;
+    }
     if (!isWizard) {
+      if (editorStepBadge) editorStepBadge.textContent = "";
+      if (editorStepLead) editorStepLead.textContent = "";
       [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
         if (!panel) return;
         panel.classList.add("is-visible");
@@ -2368,6 +2395,16 @@
     });
     if (editorBackBtn) {
       editorBackBtn.style.display = editorReviewStepIndex > 0 ? "inline-flex" : "none";
+    }
+    const totalSteps = editorReviewSteps.length;
+    const currentStep = editorReviewSteps[editorReviewStepIndex] || null;
+    if (editorStepBadge) {
+      editorStepBadge.textContent = `Step ${editorReviewStepIndex + 1} of ${totalSteps}`;
+    }
+    if (editorStepLead) {
+      editorStepLead.textContent = currentStep
+        ? getEditorReviewStepLead(currentStep.id)
+        : "";
     }
     renderEditorReviewStepper();
     updateEditorSaveAvailability();
