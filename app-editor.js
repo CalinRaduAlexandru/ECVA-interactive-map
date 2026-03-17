@@ -19,7 +19,6 @@
   const entryFieldsWrap = document.getElementById("ecva-editor-entry-fields");
   const repFieldsWrap = document.getElementById("ecva-editor-rep-fields");
   const editorTitle = document.getElementById("ecva-editor-title");
-  const editorSubtitle = document.getElementById("ecva-editor-subtitle");
   const editorDescription = document.getElementById("ecva-editor-description");
   const editorTranslationBlock = document.getElementById(
     "ecva-editor-translation-block",
@@ -37,16 +36,24 @@
   const editorNativeDescriptionPreview = document.getElementById(
     "ecva-editor-native-description-preview",
   );
+  const editorSourceLangFlag = document.getElementById(
+    "ecva-editor-source-lang-flag",
+  );
+  const editorSourceLangLabel = document.getElementById(
+    "ecva-editor-source-lang-label",
+  );
   const editorEnglishTitlePreview = document.getElementById(
     "ecva-editor-english-title-preview",
   );
   const editorEnglishDescriptionPreview = document.getElementById(
     "ecva-editor-english-description-preview",
   );
-  const editorLanguageAvailability = document.getElementById(
-    "ecva-editor-language",
+  const editorResourceLanguageList = document.getElementById(
+    "ecva-editor-resource-language-list",
   );
-  const editorLinks = document.getElementById("ecva-editor-links");
+  const editorResourceAddLanguageBtn = document.getElementById(
+    "ecva-editor-resource-add-language-btn",
+  );
   const editorContactName = document.getElementById("ecva-editor-contact-name");
   const editorContactRole = document.getElementById("ecva-editor-contact-role");
   const editorContactEmail = document.getElementById(
@@ -77,6 +84,9 @@
   const EDITOR_API = "/api/editor-data";
   const EDITOR_VERSIONS_API = "/api/editor-data/versions";
   const UPLOAD_API = "/api/upload-image";
+  const ATTACHMENT_UPLOAD_API = "/api/upload-attachment";
+  const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
+  const ATTACHMENT_FILE_RE = /\.(pdf|doc|docx|ppt|pptx|png|jpe?g)$/i;
   const TRANSLATE_BATCH_API = "/api/translate-batch";
   const GLOBAL_ACCESS_CODES = new Set();
   const INVALID_CODE_MESSAGE = "Invalid code";
@@ -133,41 +143,54 @@
   };
   const LANGUAGE_ENDONYMS = {
     en: "English",
-    ro: "Romana",
+    ro: "Română",
     fr: "Français",
     de: "Deutsch",
-    es: "Espanol",
-    cs: "Cestina",
+    es: "Español",
+    cs: "Čeština",
     da: "Dansk",
     et: "Eesti",
     fi: "Suomi",
-    el: "Ellinika",
-    is: "Islenska",
+    el: "Ελληνικά",
+    is: "Íslenska",
     no: "Norsk",
     sv: "Svenska",
     nl: "Nederlands",
-    bg: "Bulgarski",
-    be: "Belaruskaya",
+    bg: "Български",
+    be: "Беларуская",
     sq: "Shqip",
-    hy: "Hayeren",
+    hy: "Հայերեն",
     bs: "Bosanski",
-    ka: "Kartuli",
+    ka: "ქართული",
     hr: "Hrvatski",
     hu: "Magyar",
     it: "Italiano",
-    lt: "Lietuviu",
-    lb: "Letzebuergesch",
-    lv: "Latviesu",
+    lt: "Lietuvių",
+    lb: "Lëtzebuergesch",
+    lv: "Latviešu",
     sr: "Srpski",
-    mk: "Makedonski",
+    mk: "Македонски",
     pl: "Polski",
-    pt: "Portugues",
-    sl: "Slovenscina",
-    sk: "Slovencina",
-    tr: "Turkce",
-    uk: "Ukrainska",
-    ca: "Catala",
+    pt: "Português",
+    sl: "Slovenščina",
+    sk: "Slovenčina",
+    tr: "Türkçe",
+    uk: "Українська",
+    ca: "Català",
   };
+  const EDITOR_RESOURCE_LIMITS = { maxLanguages: 3 };
+  const EDITOR_RESOURCE_TYPE_OPTIONS = [
+    { value: "webpage", label: "Webpage", inputMode: "url" },
+    { value: "youtube", label: "YouTube", inputMode: "url" },
+    { value: "document", label: "Document", inputMode: "file" },
+    { value: "image", label: "Image", inputMode: "file" },
+  ];
+  const EDITOR_RESOURCE_PRICING_OPTIONS = [
+    { value: "free", label: "Free" },
+    { value: "paid", label: "Paid" },
+    { value: "freemium", label: "Freemium" },
+    { value: "subscription", label: "Subscription" },
+  ];
   const RESOURCE_UI_BASE_SOURCE =
     window.__ECVA_RESOURCE_UI_BASE &&
     typeof window.__ECVA_RESOURCE_UI_BASE === "object"
@@ -542,6 +565,8 @@
   let removeConfirmTimer = null;
   let pendingEntryDataRequests = new Map();
   let submissionTranslationState = null;
+  let editorResourceLanguageItems = [];
+  let editorResourceLangUid = 0;
 
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
@@ -1724,7 +1749,7 @@
     labelManageLanguage = getDefaultLabelManageLanguage();
     populateLabelManageLanguageOptions();
     if (!labelManageLangSelect.value) {
-      updateLabelManageNotice("No native language available.", true);
+      updateLabelManageNotice("No country language available.", true);
       return;
     }
     const targetLang = normalizeLanguageCode(labelManageLangSelect.value);
@@ -2141,7 +2166,7 @@
     }
     if (editorHeading) {
       editorHeading.textContent =
-        editorMode === "representative" ? "Edit representative" : "Edit entry";
+        editorMode === "representative" ? "Edit representative" : "Review Entry";
     }
     if (editorRemoveBtn) {
       const canRemove =
@@ -2164,6 +2189,602 @@
   function setSubmissionEntryFieldsVisible(isVisible) {
     if (!entryFieldsWrap) return;
     entryFieldsWrap.classList.toggle("is-submission", Boolean(isVisible));
+  }
+
+  function toHeadingLanguageLabel(rawValue) {
+    const value = String(rawValue || "").trim();
+    if (!value) return "Language";
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
+  function getEditorResourceLanguageOptions() {
+    const uniqueCodes = Array.from(
+      new Set(Object.values(COUNTRY_PRIMARY_LANGUAGE).concat(["en"])),
+    )
+      .map((code) =>
+        String(code || "")
+          .trim()
+          .toLowerCase(),
+      )
+      .filter(Boolean);
+    return uniqueCodes
+      .sort((a, b) =>
+        getLanguageDisplayLabel(a).localeCompare(getLanguageDisplayLabel(b)),
+      )
+      .map((code) => ({
+        code,
+        label: getLanguageDisplayLabel(code) || code.toUpperCase(),
+        flag: getFlagFromLanguageCode(code) || "🏳️",
+      }));
+  }
+
+  const EDITOR_RESOURCE_LANGUAGE_OPTIONS = getEditorResourceLanguageOptions();
+
+  function getEditorResourceLanguageOption(languageCode) {
+    const code = String(languageCode || "")
+      .trim()
+      .toLowerCase();
+    const found = EDITOR_RESOURCE_LANGUAGE_OPTIONS.find(
+      (item) => item.code === code,
+    );
+    if (found) return found;
+    return {
+      code,
+      label: getLanguageDisplayLabel(code) || code.toUpperCase() || "Language",
+      flag: getFlagFromLanguageCode(code) || "🏳️",
+    };
+  }
+
+  function getEditorResourceTypeConfig(resourceTypeValue) {
+    const value = String(resourceTypeValue || "")
+      .trim()
+      .toLowerCase();
+    return (
+      EDITOR_RESOURCE_TYPE_OPTIONS.find((item) => item.value === value) ||
+      EDITOR_RESOURCE_TYPE_OPTIONS[0]
+    );
+  }
+
+  function getEditorResourcePricingConfig(resourcePricingValue) {
+    const value = String(resourcePricingValue || "free")
+      .trim()
+      .toLowerCase();
+    return (
+      EDITOR_RESOURCE_PRICING_OPTIONS.find((item) => item.value === value) ||
+      EDITOR_RESOURCE_PRICING_OPTIONS[0]
+    );
+  }
+
+  function normalizeLikelyUrl(value) {
+    const text = String(value || "").trim();
+    if (!text) return "";
+    return /^www\./i.test(text) ? `https://${text}` : text;
+  }
+
+  function isLikelyValidUrl(value) {
+    const normalized = normalizeLikelyUrl(value);
+    if (!normalized) return false;
+    try {
+      const parsed = new URL(normalized);
+      return parsed.protocol === "http:" || parsed.protocol === "https:";
+    } catch (_error) {
+      return false;
+    }
+  }
+
+  function setInputValidity(input, isValid) {
+    if (!input) return;
+    if (isValid) {
+      input.removeAttribute("aria-invalid");
+    } else {
+      input.setAttribute("aria-invalid", "true");
+    }
+  }
+
+  function createEditorResourceLanguageItem(languageCode, isPrimary) {
+    editorResourceLangUid += 1;
+    const normalizedCode = String(languageCode || "")
+      .trim()
+      .toLowerCase();
+    return {
+      id: `editor-lang-${editorResourceLangUid}`,
+      languageCode: normalizedCode,
+      resourceType: "webpage",
+      resourcePricing: "free",
+      resourceUrl: "",
+      fileName: "",
+      file: null,
+      isPrimary: Boolean(isPrimary),
+    };
+  }
+
+  function resetEditorResourceLanguageItems(countryId) {
+    const defaultLanguage =
+      getCountryPrimaryLanguage(countryId) ||
+      normalizeLanguageCode(getCurrentLang()) ||
+      "en";
+    editorResourceLanguageItems = [
+      createEditorResourceLanguageItem(defaultLanguage, true),
+    ];
+  }
+
+  function loadEditorResourceLanguageItems(countryId, item) {
+    const versions = getSubmissionResourceVersions(item);
+    if (!versions.length) {
+      resetEditorResourceLanguageItems(countryId);
+      renderEditorResourceLanguageItems();
+      return;
+    }
+    editorResourceLanguageItems = versions
+      .slice(0, EDITOR_RESOURCE_LIMITS.maxLanguages)
+      .map((version, index) => {
+        const languageCode = String(version.languageCode || "")
+          .trim()
+          .toLowerCase();
+        const inferredCode =
+          languageCode ||
+          normalizeLanguageCode(getCountryPrimaryLanguage(countryId) || "en");
+        const typeConfig = getEditorResourceTypeConfig(
+          version.resourceType ||
+            (String(version.accessType || "").trim().toLowerCase() === "file"
+              ? "document"
+              : "webpage"),
+        );
+        const itemData = createEditorResourceLanguageItem(
+          inferredCode,
+          index === 0,
+        );
+        itemData.resourceType = typeConfig.value;
+        itemData.resourcePricing = getEditorResourcePricingConfig(
+          version.resourcePricing ||
+            (typeConfig.value === "webpage" ? "free" : "free"),
+        ).value;
+        itemData.resourceUrl = String(version.resourceUrl || "").trim();
+        itemData.fileName = String(version.fileName || "").trim();
+        itemData.file = null;
+        return itemData;
+      });
+    if (!editorResourceLanguageItems.length) {
+      resetEditorResourceLanguageItems(countryId);
+    } else {
+      editorResourceLanguageItems[0].isPrimary = true;
+    }
+    renderEditorResourceLanguageItems();
+  }
+
+  function addEditorResourceLanguageItem(countryId) {
+    if (editorResourceLanguageItems.length >= EDITOR_RESOURCE_LIMITS.maxLanguages) {
+      return;
+    }
+    const used = new Set(
+      editorResourceLanguageItems.map((item) =>
+        String(item.languageCode || "")
+          .trim()
+          .toLowerCase(),
+      ),
+    );
+    const primaryCode = normalizeLanguageCode(
+      getCountryPrimaryLanguage(countryId || selectedCountryId || "") || "en",
+    );
+    let nextCode = "";
+    if (
+      editorResourceLanguageItems.length === 1 &&
+      primaryCode !== "en" &&
+      !used.has("en")
+    ) {
+      nextCode = "en";
+    } else {
+      const next = EDITOR_RESOURCE_LANGUAGE_OPTIONS.find(
+        (option) => !used.has(option.code),
+      );
+      nextCode = next ? next.code : "";
+    }
+    const item = createEditorResourceLanguageItem(nextCode, false);
+    editorResourceLanguageItems.push(item);
+    renderEditorResourceLanguageItems(item.id);
+  }
+
+  function markSubmissionContactFieldsValid() {
+    setInputValidity(editorContactName, true);
+    setInputValidity(editorContactRole, true);
+    setInputValidity(editorContactEmail, true);
+  }
+
+  function renderEditorResourceLanguageItems(focusItemId) {
+    if (!editorResourceLanguageList) return;
+    editorResourceLanguageList.innerHTML = "";
+    const usedLanguages = new Set();
+    editorResourceLanguageItems.forEach((item) => {
+      const duplicate = usedLanguages.has(item.languageCode);
+      if (item.languageCode) usedLanguages.add(item.languageCode);
+      const typeConfig = getEditorResourceTypeConfig(item.resourceType);
+      const card = document.createElement("section");
+      card.className = "ecva-editor-resource-item";
+      card.setAttribute("data-editor-resource-id", item.id);
+
+      const head = document.createElement("div");
+      head.className = "ecva-editor-resource-item-head";
+      if (!item.isPrimary) {
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "ecva-editor-resource-remove";
+        removeBtn.textContent = "Remove";
+        removeBtn.addEventListener("click", () => {
+          editorResourceLanguageItems = editorResourceLanguageItems.filter(
+            (next) => next.id !== item.id,
+          );
+          if (editorResourceLanguageItems[0]) {
+            editorResourceLanguageItems[0].isPrimary = true;
+          }
+          renderEditorResourceLanguageItems();
+        });
+        head.appendChild(removeBtn);
+      }
+      card.appendChild(head);
+
+      const fields = document.createElement("div");
+      fields.className = "ecva-editor-resource-fields";
+
+      const languageLabel = document.createElement("label");
+      languageLabel.textContent = "Language";
+      const languageSelect = document.createElement("select");
+      languageSelect.name = `editor-resource-language-${item.id}`;
+      languageSelect.setAttribute("data-focus-language", "true");
+      const languagePlaceholder = document.createElement("option");
+      languagePlaceholder.value = "";
+      languagePlaceholder.disabled = true;
+      languagePlaceholder.textContent = "Select language";
+      if (!item.languageCode) languagePlaceholder.selected = true;
+      languageSelect.appendChild(languagePlaceholder);
+      EDITOR_RESOURCE_LANGUAGE_OPTIONS.forEach((option) => {
+        const opt = document.createElement("option");
+        opt.value = option.code;
+        opt.textContent = `${option.flag} ${option.label}`;
+        if (option.code === item.languageCode) opt.selected = true;
+        languageSelect.appendChild(opt);
+      });
+      languageSelect.addEventListener("change", () => {
+        const nextCode = String(languageSelect.value || "")
+          .trim()
+          .toLowerCase();
+        const duplicated = editorResourceLanguageItems.some(
+          (next) => next.id !== item.id && next.languageCode === nextCode,
+        );
+        if (duplicated) {
+          showToast("This language was already added.", true);
+          languageSelect.value = item.languageCode;
+          setInputValidity(languageSelect, false);
+          return;
+        }
+        item.languageCode = nextCode;
+        renderEditorResourceLanguageItems(item.id);
+      });
+      languageLabel.appendChild(languageSelect);
+      fields.appendChild(languageLabel);
+
+      const typeLabel = document.createElement("label");
+      typeLabel.textContent = "Type";
+      const typeSelect = document.createElement("select");
+      typeSelect.name = `editor-resource-type-${item.id}`;
+      typeSelect.innerHTML = EDITOR_RESOURCE_TYPE_OPTIONS.map(
+        (option) =>
+          `<option value="${option.value}">${escapeHtml(option.label)}</option>`,
+      ).join("");
+      typeSelect.value = typeConfig.value;
+      typeSelect.addEventListener("change", () => {
+        const nextType = getEditorResourceTypeConfig(typeSelect.value).value;
+        const nextTypeConfig = getEditorResourceTypeConfig(nextType);
+        item.resourceType = nextType;
+        if (nextTypeConfig.inputMode === "url") {
+          item.file = null;
+          item.fileName = "";
+          item.resourceUrl = "";
+        } else {
+          item.resourcePricing = "free";
+          item.resourceUrl = "";
+        }
+        renderEditorResourceLanguageItems(item.id);
+      });
+      typeLabel.appendChild(typeSelect);
+      fields.appendChild(typeLabel);
+
+      const valueLabel = document.createElement("label");
+      valueLabel.setAttribute("data-resource-focus-anchor", item.id);
+      if (typeConfig.inputMode === "file") {
+        valueLabel.textContent = "Resource file";
+        const shell = document.createElement("div");
+        shell.className = "ecva-editor-resource-file-shell";
+        const fileInput = document.createElement("input");
+        fileInput.type = "file";
+        fileInput.className = "ecva-editor-resource-file-input";
+        fileInput.accept = ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
+        fileInput.setAttribute("data-focus-value", "true");
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files && fileInput.files[0];
+          item.file = file || null;
+          item.fileName = file && file.name ? file.name : "";
+          item.resourceUrl = "";
+          renderEditorResourceLanguageItems(item.id);
+        });
+        shell.appendChild(fileInput);
+        const fileBtn = document.createElement("button");
+        fileBtn.type = "button";
+        fileBtn.className = "ecva-editor-resource-file-btn";
+        fileBtn.textContent =
+          item.file instanceof File
+            ? String(item.file.name || "").trim() || "Uploaded file"
+            : String(item.fileName || "").trim() || "Choose file";
+        fileBtn.addEventListener("click", () => {
+          fileInput.click();
+        });
+        shell.appendChild(fileBtn);
+        valueLabel.appendChild(shell);
+      } else {
+        valueLabel.textContent = "Resource link for this language";
+        const input = document.createElement("input");
+        input.type = "url";
+        input.placeholder = "https://...";
+        input.value = String(item.resourceUrl || "");
+        input.setAttribute("data-focus-value", "true");
+        input.addEventListener("input", () => {
+          item.resourceUrl = String(input.value || "");
+          setInputValidity(input, true);
+        });
+        valueLabel.appendChild(input);
+      }
+      fields.appendChild(valueLabel);
+      card.appendChild(fields);
+
+      if (typeConfig.value === "webpage") {
+        const pricingWrap = document.createElement("div");
+        pricingWrap.className = "ecva-editor-resource-pricing";
+        const pricingTitle = document.createElement("h6");
+        pricingTitle.textContent = "Resource access mode";
+        pricingWrap.appendChild(pricingTitle);
+        const tabs = document.createElement("div");
+        tabs.className = "ecva-editor-resource-pricing-tabs";
+        EDITOR_RESOURCE_PRICING_OPTIONS.forEach((option) => {
+          const tab = document.createElement("button");
+          tab.type = "button";
+          tab.className = "ecva-editor-resource-pricing-tab";
+          if (item.resourcePricing === option.value) {
+            tab.classList.add("is-active");
+          }
+          tab.textContent = option.label;
+          tab.addEventListener("click", () => {
+            item.resourcePricing = option.value;
+            renderEditorResourceLanguageItems(item.id);
+          });
+          tabs.appendChild(tab);
+        });
+        pricingWrap.appendChild(tabs);
+        card.appendChild(pricingWrap);
+      } else {
+        item.resourcePricing = "free";
+      }
+
+      if (duplicate) {
+        const duplicateHint = document.createElement("p");
+        duplicateHint.className = "ecva-editor-resource-helper";
+        duplicateHint.style.color = "#8d3838";
+        duplicateHint.textContent = "This language was already added.";
+        card.appendChild(duplicateHint);
+      }
+
+      editorResourceLanguageList.appendChild(card);
+    });
+    if (editorResourceAddLanguageBtn) {
+      editorResourceAddLanguageBtn.hidden =
+        editorResourceLanguageItems.length >= EDITOR_RESOURCE_LIMITS.maxLanguages;
+    }
+    if (focusItemId && editorResourceLanguageList) {
+      const focusItem = editorResourceLanguageItems.find(
+        (item) => item.id === focusItemId,
+      );
+      const focusSelector =
+        focusItem && String(focusItem.languageCode || "").trim()
+          ? `[data-resource-focus-anchor="${focusItemId}"] [data-focus-value="true"]`
+          : `[data-editor-resource-id="${focusItemId}"] [data-focus-language="true"]`;
+      const focusNode = editorResourceLanguageList.querySelector(focusSelector);
+      if (focusNode) {
+        window.requestAnimationFrame(() => {
+          focusNode.focus();
+        });
+      }
+    }
+  }
+
+  function validateEditorResourceAndContactFields() {
+    const seenLanguages = new Set();
+    for (const item of editorResourceLanguageItems) {
+      const card = editorResourceLanguageList
+        ? editorResourceLanguageList.querySelector(
+            `[data-editor-resource-id="${item.id}"]`,
+          )
+        : null;
+      const languageSelect = card ? card.querySelector("select") : null;
+      const languageCode = String(item.languageCode || "")
+        .trim()
+        .toLowerCase();
+      if (!languageCode) {
+        setInputValidity(languageSelect, false);
+        return "Select a language for each resource version.";
+      }
+      if (seenLanguages.has(languageCode)) {
+        setInputValidity(languageSelect, false);
+        return "This language was already added.";
+      }
+      seenLanguages.add(languageCode);
+      setInputValidity(languageSelect, true);
+      const typeConfig = getEditorResourceTypeConfig(item.resourceType);
+      if (typeConfig.inputMode === "file") {
+        const fileNode = card
+          ? card.querySelector(".ecva-editor-resource-file-shell")
+          : null;
+        const hasStoredFile = Boolean(String(item.resourceUrl || "").trim());
+        const hasNewFile = item.file instanceof File;
+        if (!hasStoredFile && !hasNewFile) {
+          setInputValidity(fileNode, false);
+          return "Upload a file for each selected file-based resource type.";
+        }
+        if (hasNewFile) {
+          const size = Number(item.file.size || 0);
+          if (size > ATTACHMENT_MAX_BYTES) {
+            setInputValidity(fileNode, false);
+            return "File too large. Maximum allowed size is 15MB per file.";
+          }
+          if (!ATTACHMENT_FILE_RE.test(String(item.file.name || ""))) {
+            setInputValidity(fileNode, false);
+            return "File format is not supported.";
+          }
+        }
+        setInputValidity(fileNode, true);
+        continue;
+      }
+      const urlNode = card ? card.querySelector('input[type="url"]') : null;
+      const normalized = normalizeLikelyUrl(item.resourceUrl);
+      item.resourceUrl = normalized;
+      if (!isLikelyValidUrl(normalized)) {
+        setInputValidity(urlNode, false);
+        return "Use a valid link (https://...) for each resource language.";
+      }
+      setInputValidity(urlNode, true);
+    }
+    const contactName = String((editorContactName && editorContactName.value) || "").trim();
+    const contactRole = String((editorContactRole && editorContactRole.value) || "").trim();
+    const contactEmail = String((editorContactEmail && editorContactEmail.value) || "").trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
+    setInputValidity(editorContactName, Boolean(contactName));
+    setInputValidity(editorContactRole, Boolean(contactRole));
+    setInputValidity(editorContactEmail, emailOk);
+    if (!contactName) return "Complete contact name.";
+    if (!contactRole) return "Complete contact role.";
+    if (!emailOk) return "Complete contact email in valid format.";
+    return "";
+  }
+
+  async function uploadEditorAttachment(file) {
+    if (!(file instanceof File)) {
+      throw new Error("attachment_missing_file");
+    }
+    const dataUrl = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("attachment_read_failed"));
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.readAsDataURL(file);
+    });
+    const response = await fetch(ATTACHMENT_UPLOAD_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        filename: file.name || "attachment.bin",
+        dataUrl,
+      }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok || !payload || payload.ok === false) {
+      if (
+        response.status === 413 ||
+        (payload && payload.error === "attachment_too_large")
+      ) {
+        throw new Error("attachment_file_too_large");
+      }
+      throw new Error("attachment_upload_failed");
+    }
+    const path = String((payload && payload.path) || "").trim();
+    if (!path) throw new Error("attachment_upload_missing_path");
+    return {
+      name: String(file.name || "").trim() || "Attachment",
+      url: path,
+    };
+  }
+
+  async function buildEditorResourceSubmissionPayload() {
+    const resourceLanguages = [];
+    for (const item of editorResourceLanguageItems) {
+      const languageCode = String(item.languageCode || "")
+        .trim()
+        .toLowerCase();
+      const languageOption = getEditorResourceLanguageOption(languageCode);
+      const typeConfig = getEditorResourceTypeConfig(item.resourceType);
+      const pricingConfig =
+        typeConfig.value === "webpage"
+          ? getEditorResourcePricingConfig(item.resourcePricing)
+          : getEditorResourcePricingConfig("free");
+      if (typeConfig.inputMode === "file") {
+        let resourceUrl = String(item.resourceUrl || "").trim();
+        let fileName = String(item.fileName || "").trim();
+        if (item.file instanceof File) {
+          const upload = await uploadEditorAttachment(item.file);
+          resourceUrl = String(upload.url || "").trim();
+          fileName = String(upload.name || "").trim();
+        }
+        resourceLanguages.push({
+          languageCode,
+          languageLabel: languageOption.label,
+          languageFlag: languageOption.flag,
+          resourceType: typeConfig.value,
+          resourceTypeLabel: typeConfig.label,
+          resourcePricing: "free",
+          resourcePricingLabel: getEditorResourcePricingConfig("free").label,
+          accessType: "file",
+          resourceUrl,
+          fileName,
+        });
+        continue;
+      }
+      resourceLanguages.push({
+        languageCode,
+        languageLabel: languageOption.label,
+        languageFlag: languageOption.flag,
+        resourceType: typeConfig.value,
+        resourceTypeLabel: typeConfig.label,
+        resourcePricing: pricingConfig.value,
+        resourcePricingLabel: pricingConfig.label,
+        accessType: "url",
+        resourceUrl: normalizeLikelyUrl(item.resourceUrl),
+        fileName: "",
+      });
+    }
+    const languageAvailability = resourceLanguages
+      .map((item) => String(item.languageLabel || "").trim())
+      .filter(Boolean)
+      .join(", ");
+    const links = resourceLanguages
+      .map((item) => String(item.resourceUrl || "").trim())
+      .filter(Boolean);
+    const attachments = resourceLanguages
+      .filter(
+        (item) =>
+          String(item.accessType || "").trim().toLowerCase() === "file" &&
+          String(item.resourceUrl || "").trim(),
+      )
+      .map((item) => ({
+        name: String(item.fileName || "").trim() || "Attachment",
+        url: String(item.resourceUrl || "").trim(),
+      }));
+    return { resourceLanguages, languageAvailability, links, attachments };
+  }
+
+  function syncSubmissionSourceLanguageHeading() {
+    const state = submissionTranslationState;
+    if (!state) {
+      if (editorSourceLangLabel) editorSourceLangLabel.textContent = "Language";
+      if (editorSourceLangFlag) editorSourceLangFlag.textContent = "🏳️";
+      return;
+    }
+    const langCode = normalizeLanguageCode(
+      (state && state.sourceLanguageCode) || "en",
+    );
+    const langLabel = toHeadingLanguageLabel(
+      (state && state.sourceLanguageLabel) || getLanguageDisplayLabel(langCode),
+    );
+    const langFlag =
+      String((state && state.sourceLanguageFlag) || "").trim() ||
+      getFlagFromLanguageCode(langCode) ||
+      "🏳️";
+    if (editorSourceLangLabel) editorSourceLangLabel.textContent = langLabel;
+    if (editorSourceLangFlag) editorSourceLangFlag.textContent = langFlag;
   }
 
   function isSubmissionArticleTarget(target) {
@@ -2207,6 +2828,7 @@
   function updateSubmissionTranslationUi() {
     const state = submissionTranslationState;
     const visible = Boolean(state && state.visible);
+    syncSubmissionSourceLanguageHeading();
     if (editorTranslationBlock) {
       editorTranslationBlock.classList.toggle("is-visible", visible);
     }
@@ -2223,14 +2845,17 @@
       editorReviewBand.classList.toggle("is-passed", checked);
     }
     if (editorTranslationNote) {
+      const sourceLabel = toHeadingLanguageLabel(
+        String((state && state.sourceLanguageLabel) || "source language"),
+      );
       if (state.checking) {
         editorTranslationNote.textContent = "Checking translation...";
       } else if (checked) {
         editorTranslationNote.textContent =
-          "Translation verified for current native text.";
+          `Translation verified for current ${sourceLabel} text.`;
       } else {
         editorTranslationNote.textContent =
-          "Edit native title/description and run Check translation before saving.";
+          `Edit title and description in ${sourceLabel} and run Check translation before saving.`;
       }
     }
     if (editorEnglishTitlePreview) {
@@ -2262,6 +2887,8 @@
     if (editorNativeTitlePreview) editorNativeTitlePreview.textContent = "";
     if (editorNativeDescriptionPreview)
       editorNativeDescriptionPreview.textContent = "";
+    if (editorSourceLangLabel) editorSourceLangLabel.textContent = "Language";
+    if (editorSourceLangFlag) editorSourceLangFlag.textContent = "🏳️";
     updateSubmissionTranslationUi();
   }
 
@@ -2299,7 +2926,7 @@
     updateSubmissionTranslationUi();
     try {
       const payload = {
-        sourceLang: "auto",
+        sourceLang: String(state.sourceLanguageCode || "auto"),
         targetLang: "en",
         texts: [nativeTitle, nativeDescription],
       };
@@ -2332,6 +2959,9 @@
 
   function initializeSubmissionTranslationState(countryId, item) {
     const translationRequired = requiresSubmissionTranslation(countryId, "article");
+    const sourceLanguageCode = getCountryPrimaryLanguage(countryId);
+    const sourceLanguageLabel = getLanguageDisplayLabel(sourceLanguageCode);
+    const sourceLanguageFlag = getFlagFromLanguageCode(sourceLanguageCode);
     const nativeTitle = String(item && item.nativeTitle ? item.nativeTitle : item.title || "").trim();
     const nativeDescription = String(
       item && item.nativeDescription ? item.nativeDescription : item.description || "",
@@ -2349,6 +2979,9 @@
       checking: false,
       checked,
       countryId: normalizeManageCountryCode(countryId),
+      sourceLanguageCode,
+      sourceLanguageLabel,
+      sourceLanguageFlag,
       englishTitle: translationRequired ? englishTitle : englishTitle || nativeTitle,
       englishDescription: translationRequired
         ? englishDescription
@@ -2368,13 +3001,13 @@
   function clearEditorFields() {
     resetSubmissionTranslationState();
     if (editorTitle) editorTitle.value = "";
-    if (editorSubtitle) editorSubtitle.value = "";
     if (editorDescription) editorDescription.value = "";
-    if (editorLanguageAvailability) editorLanguageAvailability.value = "";
-    if (editorLinks) editorLinks.value = "";
     if (editorContactName) editorContactName.value = "";
     if (editorContactRole) editorContactRole.value = "";
     if (editorContactEmail) editorContactEmail.value = "";
+    markSubmissionContactFieldsValid();
+    resetEditorResourceLanguageItems(selectedCountryId || "");
+    renderEditorResourceLanguageItems();
     if (editorRepName) editorRepName.value = "";
     if (editorRepTitle) editorRepTitle.value = "";
     if (editorRepOrganisation) editorRepOrganisation.value = "";
@@ -3316,7 +3949,6 @@
 
     clearEditorFields();
     if (editorTitle) editorTitle.value = title.trim();
-    if (editorSubtitle) editorSubtitle.value = subtitle.trim();
     if (editorDescription) editorDescription.value = description.trim();
 
     editorTarget = { type: "entry", countryId, pillarId, entryIndex };
@@ -3329,9 +3961,6 @@
     const validPillarId = String(pillarId || "").trim();
     if (!validCountryId || !validPillarId) return;
     clearEditorFields();
-    if (editorSubtitle) {
-      editorSubtitle.value = String(pillarLabel || "").trim();
-    }
     editorTarget = {
       type: "entry",
       action: "add",
@@ -3436,8 +4065,8 @@
       const editBtn = document.createElement("button");
       editBtn.type = "button";
       editBtn.className = "ecva-entry-edit-btn";
-      editBtn.setAttribute("aria-label", "Edit entry");
-      editBtn.setAttribute("title", "Edit entry");
+      editBtn.setAttribute("aria-label", "Review Entry");
+      editBtn.setAttribute("title", "Review Entry");
       editBtn.innerHTML = `
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M4 6.8A2.8 2.8 0 0 1 6.8 4H12a1 1 0 1 1 0 2H6.8C6.36 6 6 6.36 6 6.8v10.4c0 .44.36.8.8.8h10.4c.44 0 .8-.36.8-.8V12a1 1 0 1 1 2 0v5.2a2.8 2.8 0 0 1-2.8 2.8H6.8A2.8 2.8 0 0 1 4 17.2V6.8Zm15.7-3.1a2.3 2.3 0 0 1 3.25 3.25l-9.22 9.22a1 1 0 0 1-.45.26l-3.48.93a1 1 0 0 1-1.22-1.22l.93-3.48a1 1 0 0 1 .26-.45l9.22-9.22Zm1.84 1.41a.3.3 0 0 0-.42 0l-8.99 8.99-.47 1.74 1.74-.47 8.99-8.99a.3.3 0 0 0 0-.42l-.85-.85Z"></path>
@@ -4133,23 +4762,12 @@
     if (editorTitle) {
       editorTitle.value = String(item.nativeTitle || item.title || "").trim();
     }
-    if (editorSubtitle)
-      editorSubtitle.value = String(item.subtitle || item.pillarLabel || "").trim();
     if (editorDescription) {
       editorDescription.value = String(
         item.nativeDescription || item.description || "",
       ).trim();
     }
-    if (editorLanguageAvailability) {
-      editorLanguageAvailability.value = String(
-        item.languageAvailability || "",
-      ).trim();
-    }
-    if (editorLinks) {
-      editorLinks.value = Array.isArray(item.links)
-        ? item.links.join("\n")
-        : "";
-    }
+    loadEditorResourceLanguageItems(code, item);
     const contact =
       item.representativeContact &&
       typeof item.representativeContact === "object"
@@ -4161,6 +4779,7 @@
       editorContactRole.value = String(contact.role || "").trim();
     if (editorContactEmail)
       editorContactEmail.value = String(contact.email || "").trim();
+    markSubmissionContactFieldsValid();
     setSubmissionEntryFieldsVisible(true);
     initializeSubmissionTranslationState(code, item);
     editorTarget = {
@@ -4310,11 +4929,6 @@
               : ""
           }
           ${
-            !isRepresentative && !translationReady
-              ? '<p class="ecva-inbox-contact"><strong>Translation review:</strong> Run <em>Manage entry → Check translation</em> before actioning this entry.</p>'
-              : ""
-          }
-          ${
             !isRepresentative
               ? renderSubmissionResourceVersions(item)
               : ""
@@ -4347,13 +4961,24 @@
                 : ""
             }
             ${
-              useTrashDelete
-                ? `<button type="button" class="ecva-inbox-delete-btn" data-action-delete aria-label="Delete entry permanently" title="Delete entry permanently">
+              canManage || useTrashDelete
+                ? `<div class="ecva-inbox-footer-tools">
+                    ${
+                      canManage
+                        ? '<button type="button" class="ecva-inbox-manage-btn ecva-inbox-manage-btn--footer" data-inbox-manage>Manage entry</button>'
+                        : ""
+                    }
+                    ${
+                      useTrashDelete
+                        ? `<button type="button" class="ecva-inbox-delete-btn" data-action-delete aria-label="Delete entry permanently" title="Delete entry permanently">
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       <path d="M8 3.8A1.8 1.8 0 0 1 9.8 2h4.4A1.8 1.8 0 0 1 16 3.8V5h3.2a1 1 0 1 1 0 2H18v11.1A2.9 2.9 0 0 1 15.1 21H8.9A2.9 2.9 0 0 1 6 18.1V7H4.8a1 1 0 0 1 0-2H8V3.8Zm2 1.2h4V4h-4v1Zm-2 2v11.1c0 .5.4.9.9.9h6.2c.5 0 .9-.4.9-.9V7H8Zm2.2 2.1a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Zm3.6 0a1 1 0 0 1 1 1v6.6a1 1 0 1 1-2 0V10a1 1 0 0 1 1-1Z"></path>
                     </svg>
                     <span class="ecva-inbox-delete-confirm-text">Confirm</span>
                   </button>`
+                        : ""
+                    }
+                  </div>`
                 : ""
             }
           </div>
@@ -4957,6 +5582,14 @@
     });
   }
 
+  if (editorResourceAddLanguageBtn) {
+    editorResourceAddLanguageBtn.addEventListener("click", () => {
+      const countryId =
+        (editorTarget && editorTarget.countryId) || selectedCountryId || "";
+      addEditorResourceLanguageItem(countryId);
+    });
+  }
+
   if (editorForm) {
     editorForm.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -4969,7 +5602,6 @@
             pillarId: target.pillarId,
             entry: {
               title: editorTitle ? editorTitle.value : "",
-              subtitle: editorSubtitle ? editorSubtitle.value : "",
               description: editorDescription ? editorDescription.value : "",
               summary: editorDescription ? editorDescription.value : "",
               languages: [],
@@ -4982,7 +5614,6 @@
             entryIndex: target.entryIndex,
             fields: {
               title: editorTitle ? editorTitle.value : "",
-              subtitle: editorSubtitle ? editorSubtitle.value : "",
               description: editorDescription ? editorDescription.value : "",
               summary: editorDescription ? editorDescription.value : "",
             },
@@ -5009,6 +5640,28 @@
         const nativeDescription = editorDescription
           ? editorDescription.value
           : "";
+        const formError = validateEditorResourceAndContactFields();
+        if (formError) {
+          showToast(formError, true);
+          return;
+        }
+        let resourcePayload = null;
+        if (editorSaveBtn) {
+          editorSaveBtn.disabled = true;
+          editorSaveBtn.textContent = "Saving...";
+        }
+        try {
+          resourcePayload = await buildEditorResourceSubmissionPayload();
+        } catch (error) {
+          const code = String((error && error.message) || "").trim();
+          if (code === "attachment_file_too_large") {
+            showToast("File too large. Maximum allowed size is 15MB per file.", true);
+          } else {
+            showToast("Could not upload resource file right now.", true);
+          }
+          updateSubmissionTranslationUi();
+          return;
+        }
         postToMap("ecva-editor-update-submission", {
           countryId: target.countryId,
           submissionId: target.submissionId,
@@ -5037,15 +5690,22 @@
             translationCheckedAt: translationRequired
               ? String((state && state.checkedAt) || new Date().toISOString())
               : new Date().toISOString(),
-            languageAvailability: editorLanguageAvailability
-              ? editorLanguageAvailability.value
-              : "",
-            links: String(
-              editorLinks && editorLinks.value ? editorLinks.value : "",
+            languageAvailability: String(
+              (resourcePayload && resourcePayload.languageAvailability) || "",
+            ).trim(),
+            links: Array.isArray(resourcePayload && resourcePayload.links)
+              ? resourcePayload.links
+              : [],
+            attachments: Array.isArray(
+              resourcePayload && resourcePayload.attachments,
             )
-              .split(/\r?\n/)
-              .map((next) => String(next || "").trim())
-              .filter(Boolean),
+              ? resourcePayload.attachments
+              : [],
+            resourceLanguages: Array.isArray(
+              resourcePayload && resourcePayload.resourceLanguages,
+            )
+              ? resourcePayload.resourceLanguages
+              : [],
             representativeContact: {
               name: editorContactName ? editorContactName.value : "",
               role: editorContactRole ? editorContactRole.value : "",
