@@ -2118,16 +2118,36 @@
                   const entries = Array.isArray(config.entries)
                     ? config.entries.filter((entry) => entryHasVisibleContent(entry))
                     : [];
-                  const entryHtml = entries
-                    .map((entry, idx) => {
-                      const title = String(entry.title || "").trim();
-                      const subtitle = String(entry.subtitle || "").trim();
-                      const badges = Array.isArray(entry.badges)
-                        ? entry.badges.filter((badge) => badge && typeof badge === "object")
-                        : [];
-                      const summary =
-                        String(entry.summary || "").trim() ||
-                        String(entry.description || "").trim();
+	                  const entryHtml = entries
+	                    .map((entry, idx) => {
+	                      const isEnglishUi =
+	                        String(mapLang || "").trim().toLowerCase() === "en";
+	                      const title = isEnglishUi
+	                        ? String(
+	                            entry.englishTitle || entry.title || entry.nativeTitle || "",
+	                          ).trim()
+	                        : String(
+	                            entry.nativeTitle || entry.title || entry.englishTitle || "",
+	                          ).trim();
+	                      const subtitle = String(entry.subtitle || "").trim();
+	                      const badges = Array.isArray(entry.badges)
+	                        ? entry.badges.filter((badge) => badge && typeof badge === "object")
+	                        : [];
+	                      const summary = isEnglishUi
+	                        ? String(
+	                            entry.englishDescription ||
+	                              entry.summary ||
+	                              entry.description ||
+	                              entry.nativeDescription ||
+	                              "",
+	                          ).trim()
+	                        : String(
+	                            entry.nativeDescription ||
+	                              entry.summary ||
+	                              entry.description ||
+	                              entry.englishDescription ||
+	                              "",
+	                          ).trim();
                       const highlights = Array.isArray(entry.highlights)
                         ? entry.highlights.filter(Boolean)
                         : [];
@@ -3354,16 +3374,45 @@
                 pillarConfigByCountry[countryId][pillarId] = { active: true, entries: [] };
               }
               const pillar = pillarConfigByCountry[countryId][pillarId];
-              if (!Array.isArray(pillar.entries)) {
-                pillar.entries = [];
-              }
-              const entry = {
-                title: String(rawEntry.title || "").trim() || "Untitled entry",
-                subtitle: String(rawEntry.subtitle || "").trim(),
-                summary: String(rawEntry.summary || rawEntry.description || "").trim(),
-                description: String(rawEntry.description || rawEntry.summary || "").trim(),
-                languages: Array.isArray(rawEntry.languages) ? rawEntry.languages : [],
-                resourceLanguages: Array.isArray(rawEntry.resourceLanguages)
+	              if (!Array.isArray(pillar.entries)) {
+	                pillar.entries = [];
+	              }
+	              const nativeTitle =
+	                String(rawEntry.nativeTitle || rawEntry.title || "").trim() ||
+	                "Untitled entry";
+	              const nativeDescription = String(
+	                rawEntry.nativeDescription ||
+	                  rawEntry.description ||
+	                  rawEntry.summary ||
+	                  "",
+	              ).trim();
+	              const englishTitle = String(
+	                rawEntry.englishTitle || rawEntry.title || rawEntry.nativeTitle || "",
+	              ).trim();
+	              const englishDescription = String(
+	                rawEntry.englishDescription ||
+	                  rawEntry.description ||
+	                  rawEntry.nativeDescription ||
+	                  rawEntry.summary ||
+	                  "",
+	              ).trim();
+	              const entry = {
+	                title: nativeTitle,
+	                subtitle: String(rawEntry.subtitle || "").trim(),
+	                summary: nativeDescription,
+	                description: nativeDescription,
+	                nativeTitle,
+	                nativeDescription,
+	                englishTitle,
+	                englishDescription,
+	                translationChecked: Boolean(rawEntry.translationChecked),
+	                translationSourceTitle: String(rawEntry.translationSourceTitle || "").trim(),
+	                translationSourceDescription: String(
+	                  rawEntry.translationSourceDescription || "",
+	                ).trim(),
+	                translationCheckedAt: String(rawEntry.translationCheckedAt || "").trim(),
+	                languages: Array.isArray(rawEntry.languages) ? rawEntry.languages : [],
+	                resourceLanguages: Array.isArray(rawEntry.resourceLanguages)
                   ? rawEntry.resourceLanguages
                       .filter((item) => item && typeof item === "object")
                       .map((item) => ({

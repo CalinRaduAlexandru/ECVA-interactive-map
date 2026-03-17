@@ -3961,13 +3961,18 @@
 
       .ecva-country-flow-summary {
         display: flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: flex-end;
         gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: thin;
+        -webkit-overflow-scrolling: touch;
       }
 
       .ecva-country-flow-summary span {
         display: inline-flex;
+        flex: 0 0 auto;
         min-height: 28px;
         align-items: center;
         padding: 0 10px;
@@ -4439,7 +4444,17 @@
 
       @media (max-width: 1180px) {
         .ecva-country-flow-grid {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          display: flex;
+          overflow-x: auto;
+          padding-bottom: 2px;
+          scrollbar-width: thin;
+          -webkit-overflow-scrolling: touch;
+          scroll-snap-type: x proximity;
+        }
+
+        .ecva-country-flow-grid .ecva-inbox-column {
+          flex: 0 0 min(420px, calc(100vw - 56px));
+          scroll-snap-align: start;
         }
       }
 
@@ -4453,7 +4468,11 @@
         }
 
         .ecva-country-flow-grid {
-          grid-template-columns: 1fr;
+          display: flex;
+        }
+
+        .ecva-country-flow-grid .ecva-inbox-column {
+          flex-basis: min(340px, calc(100vw - 40px));
         }
 
         .ecva-inbox-meta {
@@ -6250,11 +6269,42 @@
             <section id="ecva-editor-step-text" class="ecva-editor-step-panel">
               <label>
                 <span id="ecva-editor-title-field-label">Title</span>
-                <input id="ecva-editor-title" type="text" />
+                <input
+                  id="ecva-editor-title"
+                  type="text"
+                  maxlength="72"
+                  placeholder="e.g. Character Toolkit for Schools"
+                />
+                <span
+                  id="ecva-editor-title-helper"
+                  class="contribute-field-helper"
+                  >Title will be displayed publicly.</span
+                >
+                <span
+                  class="contribute-field-count"
+                  id="ecva-editor-title-count"
+                  aria-live="polite"
+                  >0/72</span
+                >
               </label>
               <label>
                 <span id="ecva-editor-description-field-label">Description</span>
-                <textarea id="ecva-editor-description"></textarea>
+                <textarea
+                  id="ecva-editor-description"
+                  maxlength="200"
+                  placeholder="Write a short and clear resource description."
+                ></textarea>
+                <span
+                  id="ecva-editor-description-helper"
+                  class="contribute-field-helper"
+                  >Write a short and clear description of the resource.</span
+                >
+                <span
+                  class="contribute-field-count"
+                  id="ecva-editor-description-count"
+                  aria-live="polite"
+                  >0/200</span
+                >
               </label>
             </section>
             <section
@@ -6298,6 +6348,7 @@
                         id="ecva-editor-native-title-preview"
                         class="ecva-editor-translation-input"
                         type="text"
+                        maxlength="72"
                       />
                     </div>
                     <div class="ecva-editor-translation-field">
@@ -6307,6 +6358,7 @@
                       <textarea
                         id="ecva-editor-native-description-preview"
                         class="ecva-editor-translation-textarea"
+                        maxlength="200"
                       ></textarea>
                     </div>
                   </article>
@@ -6325,6 +6377,7 @@
                         id="ecva-editor-english-title-preview"
                         class="ecva-editor-translation-input"
                         type="text"
+                        maxlength="72"
                       />
                     </div>
                     <div class="ecva-editor-translation-field">
@@ -6334,6 +6387,7 @@
                       <textarea
                         id="ecva-editor-english-description-preview"
                         class="ecva-editor-translation-textarea"
+                        maxlength="200"
                       ></textarea>
                     </div>
                   </article>

@@ -35,6 +35,14 @@
   );
   const editorTitle = document.getElementById("ecva-editor-title");
   const editorDescription = document.getElementById("ecva-editor-description");
+  const editorTitleCount = document.getElementById("ecva-editor-title-count");
+  const editorDescriptionCount = document.getElementById(
+    "ecva-editor-description-count",
+  );
+  const editorTitleHelper = document.getElementById("ecva-editor-title-helper");
+  const editorDescriptionHelper = document.getElementById(
+    "ecva-editor-description-helper",
+  );
   const editorTranslationBlock = document.getElementById(
     "ecva-editor-translation-block",
   );
@@ -224,6 +232,10 @@
     ca: "Català",
   };
   const EDITOR_RESOURCE_LIMITS = { maxLanguages: 3 };
+  const EDITOR_TEXT_LIMITS = {
+    title: 72,
+    description: 200,
+  };
   const EDITOR_RESOURCE_TYPE_OPTIONS = [
     { value: "webpage", label: "Webpage", inputMode: "url" },
     { value: "youtube", label: "YouTube", inputMode: "url" },
@@ -276,6 +288,14 @@
     translationCheckFailedToast: "Could not check translation right now.",
     addTitleOrDescriptionBeforeCheck:
       "Add title or description before translation check.",
+    completeTitle: "Complete title.",
+    completeDescription: "Complete description.",
+    titleTooLong: "Title must be {max} characters or fewer.",
+    descriptionTooLong: "Description must be {max} characters or fewer.",
+    titlePlaceholder: "e.g. Character Toolkit for Schools",
+    descriptionPlaceholder: "Write a short and clear resource description.",
+    titleHelper: "Title will be displayed publicly.",
+    descriptionHelper: "Write a short and clear description of the resource.",
   };
   const EDITOR_UI_COPY_PRESET = {
     ro: {
@@ -320,6 +340,14 @@
         "Traducerea nu a putut fi verificată în acest moment.",
       addTitleOrDescriptionBeforeCheck:
         "Adaugă titlu sau descriere înainte de verificarea traducerii.",
+      completeTitle: "Completează titlul.",
+      completeDescription: "Completează descrierea.",
+      titleTooLong: "Titlul trebuie să aibă maximum {max} caractere.",
+      descriptionTooLong: "Descrierea trebuie să aibă maximum {max} caractere.",
+      titlePlaceholder: "ex. Toolkit de educație a caracterului pentru școli",
+      descriptionPlaceholder: "Scrie o descriere scurtă și clară a resursei.",
+      titleHelper: "Titlul va fi afișat public.",
+      descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
     },
   };
   const EDITOR_UI_COPY_KEYS = Object.keys(EDITOR_UI_COPY_BASE);
@@ -2457,6 +2485,23 @@
     editorUiCopyLang = lang;
     ensureEditorUiCopy(lang);
     const copy = getEditorUiCopy(lang);
+    if (editorTitle) {
+      editorTitle.placeholder =
+        copy.titlePlaceholder || EDITOR_UI_COPY_BASE.titlePlaceholder;
+    }
+    if (editorDescription) {
+      editorDescription.placeholder =
+        copy.descriptionPlaceholder || EDITOR_UI_COPY_BASE.descriptionPlaceholder;
+    }
+    if (editorTitleHelper) {
+      editorTitleHelper.textContent =
+        copy.titleHelper || EDITOR_UI_COPY_BASE.titleHelper;
+    }
+    if (editorDescriptionHelper) {
+      editorDescriptionHelper.textContent =
+        copy.descriptionHelper || EDITOR_UI_COPY_BASE.descriptionHelper;
+    }
+    updateEditorTextCounters();
     if (editorBackBtn) {
       editorBackBtn.textContent = copy.back || EDITOR_UI_COPY_BASE.back;
     }
@@ -2852,6 +2897,25 @@
     } else {
       input.setAttribute("aria-invalid", "true");
     }
+  }
+
+  function updateEditorTextCounter(input, output, limit) {
+    if (!input || !output || !Number.isFinite(limit)) return;
+    const value = String(input.value || "");
+    output.textContent = `${value.length}/${limit}`;
+  }
+
+  function updateEditorTextCounters() {
+    updateEditorTextCounter(
+      editorTitle,
+      editorTitleCount,
+      EDITOR_TEXT_LIMITS.title,
+    );
+    updateEditorTextCounter(
+      editorDescription,
+      editorDescriptionCount,
+      EDITOR_TEXT_LIMITS.description,
+    );
   }
 
   function createEditorResourceLanguageItem(languageCode, isPrimary) {
@@ -3359,17 +3423,42 @@
   }
 
   function validateEditorTextStep(paintInvalid) {
+    const copy = getEditorUiCopy(editorUiCopyLang);
     const shouldPaint = Boolean(paintInvalid);
-    const title = String((editorTitle && editorTitle.value) || "").trim();
-    const description = String((editorDescription && editorDescription.value) || "").trim();
+    const titleRaw = String((editorTitle && editorTitle.value) || "");
+    const descriptionRaw = String((editorDescription && editorDescription.value) || "");
+    const title = titleRaw.trim();
+    const description = descriptionRaw.trim();
+    const titleWithinLimit = titleRaw.length <= EDITOR_TEXT_LIMITS.title;
+    const descriptionWithinLimit =
+      descriptionRaw.length <= EDITOR_TEXT_LIMITS.description;
+    updateEditorTextCounters();
     if (editorTitle && (shouldPaint || title)) {
-      setInputValidity(editorTitle, Boolean(title));
+      setInputValidity(editorTitle, Boolean(title) && titleWithinLimit);
     }
     if (editorDescription && (shouldPaint || description)) {
-      setInputValidity(editorDescription, Boolean(description));
+      setInputValidity(
+        editorDescription,
+        Boolean(description) && descriptionWithinLimit,
+      );
     }
-    if (!title) return "Complete title.";
-    if (!description) return "Complete description.";
+    if (!title) {
+      return copy.completeTitle || EDITOR_UI_COPY_BASE.completeTitle;
+    }
+    if (!description) {
+      return copy.completeDescription || EDITOR_UI_COPY_BASE.completeDescription;
+    }
+    if (!titleWithinLimit) {
+      return String(copy.titleTooLong || EDITOR_UI_COPY_BASE.titleTooLong).replace(
+        "{max}",
+        String(EDITOR_TEXT_LIMITS.title),
+      );
+    }
+    if (!descriptionWithinLimit) {
+      return String(
+        copy.descriptionTooLong || EDITOR_UI_COPY_BASE.descriptionTooLong,
+      ).replace("{max}", String(EDITOR_TEXT_LIMITS.description));
+    }
     return "";
   }
 
@@ -3828,6 +3917,7 @@
     const copy = getEditorUiCopy(editorUiCopyLang);
     const nativeTitle = String((editorTitle && editorTitle.value) || "");
     const nativeDescription = String((editorDescription && editorDescription.value) || "");
+    updateEditorTextCounters();
     writeTextNodeValue(editorNativeTitlePreview, nativeTitle);
     writeTextNodeValue(editorNativeDescriptionPreview, nativeDescription);
     if (isEditableTextNode(editorNativeTitlePreview)) {
@@ -4089,6 +4179,7 @@
     editorSubmissionFinalStatus = "";
     if (editorTitle) editorTitle.value = "";
     if (editorDescription) editorDescription.value = "";
+    updateEditorTextCounters();
     if (editorOwnershipType) editorOwnershipType.value = "";
     if (editorOwnershipName) editorOwnershipName.value = "";
     if (editorContactName) editorContactName.value = "";
@@ -5039,6 +5130,7 @@
     clearEditorFields();
     if (editorTitle) editorTitle.value = title.trim();
     if (editorDescription) editorDescription.value = description.trim();
+    updateEditorTextCounters();
 
     editorTarget = { type: "entry", countryId, pillarId, entryIndex };
     setEditorMode("entry");
@@ -5586,12 +5678,26 @@
 
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
-    const title =
-      String(safeItem.englishTitle || safeItem.title || "").trim() ||
-      "Untitled entry";
-    const description = String(
-      safeItem.englishDescription || safeItem.description || "",
+    const nativeTitle = String(
+      safeItem.nativeTitle || safeItem.title || safeItem.englishTitle || "",
     ).trim();
+    const nativeDescription = String(
+      safeItem.nativeDescription ||
+        safeItem.description ||
+        safeItem.englishDescription ||
+        "",
+    ).trim();
+    const englishTitle = String(
+      safeItem.englishTitle || safeItem.title || safeItem.nativeTitle || "",
+    ).trim();
+    const englishDescription = String(
+      safeItem.englishDescription ||
+        safeItem.description ||
+        safeItem.nativeDescription ||
+        "",
+    ).trim();
+    const title = nativeTitle || "Untitled entry";
+    const description = nativeDescription;
     const ownership =
       safeItem.ownership && typeof safeItem.ownership === "object"
         ? safeItem.ownership
@@ -5773,6 +5879,16 @@
       title,
       summary: description,
       description,
+      nativeTitle: nativeTitle || title,
+      nativeDescription: nativeDescription || description,
+      englishTitle,
+      englishDescription,
+      translationChecked: Boolean(safeItem.translationChecked),
+      translationSourceTitle: String(safeItem.translationSourceTitle || "").trim(),
+      translationSourceDescription: String(
+        safeItem.translationSourceDescription || "",
+      ).trim(),
+      translationCheckedAt: String(safeItem.translationCheckedAt || "").trim(),
       languages: [...new Set(languageFlags)],
       resourceLanguages: normalizedResourceLanguages,
       ownership: {
@@ -5856,6 +5972,7 @@
         item.nativeDescription || item.description || "",
       ).trim();
     }
+    updateEditorTextCounters();
     loadEditorResourceLanguageItems(code, item);
     const ownership =
       item.ownership && typeof item.ownership === "object" ? item.ownership : {};
