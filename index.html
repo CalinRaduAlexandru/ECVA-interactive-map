@@ -4801,6 +4801,126 @@
         resize: vertical;
       }
 
+      .ecva-editor-translation-block {
+        display: none;
+        gap: 10px;
+        margin-top: 2px;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(120, 144, 158, 0.45);
+        background: rgba(235, 244, 248, 0.78);
+      }
+
+      .ecva-editor-translation-block.is-visible {
+        display: grid;
+      }
+
+      .ecva-editor-review-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .ecva-editor-review-band {
+        display: inline-flex;
+        align-items: center;
+        min-height: 30px;
+        padding: 0 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(98, 126, 141, 0.48);
+        background: rgba(248, 251, 253, 0.95);
+        color: #2b4958;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+      }
+
+      .ecva-editor-review-band.is-passed {
+        border-color: rgba(54, 132, 99, 0.55);
+        background: rgba(219, 242, 230, 0.95);
+        color: #1d6849;
+      }
+
+      .ecva-editor-check-translation-btn {
+        min-height: 36px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(102, 125, 138, 0.58);
+        background: linear-gradient(180deg, #eff5f8, #e3edf2);
+        color: #2a4552;
+        font-family: "Alexandria", sans-serif;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      .ecva-editor-check-translation-btn:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+      }
+
+      .ecva-editor-translation-note {
+        margin: 0;
+        color: #4b6471;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .ecva-editor-translation-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      @media (min-width: 760px) {
+        .ecva-editor-translation-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .ecva-editor-translation-col {
+        display: grid;
+        gap: 8px;
+      }
+
+      .ecva-editor-translation-col h6 {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #314c5a;
+      }
+
+      .ecva-editor-translation-field {
+        display: grid;
+        gap: 4px;
+      }
+
+      .ecva-editor-translation-field strong {
+        font-size: 11px;
+        color: #405c6a;
+      }
+
+      .ecva-editor-translation-preview {
+        margin: 0;
+        padding: 8px 10px;
+        min-height: 40px;
+        border-radius: 8px;
+        border: 1px solid rgba(124, 147, 159, 0.5);
+        background: rgba(249, 252, 253, 0.96);
+        color: #1f3946;
+        font-size: 12px;
+        line-height: 1.4;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
       .ecva-editor-actions {
         display: flex;
         align-items: center;
@@ -5718,6 +5838,60 @@
               Description
               <textarea id="ecva-editor-description"></textarea>
             </label>
+            <section
+              id="ecva-editor-translation-block"
+              class="ecva-editor-translation-block"
+            >
+              <div class="ecva-editor-review-head">
+                <span id="ecva-editor-review-band" class="ecva-editor-review-band"
+                  >Content review</span
+                >
+                <button
+                  id="ecva-editor-check-translation-btn"
+                  class="ecva-editor-check-translation-btn"
+                  type="button"
+                >
+                  Check translation
+                </button>
+              </div>
+              <p id="ecva-editor-translation-note" class="ecva-editor-translation-note"></p>
+              <div class="ecva-editor-translation-grid">
+                <article class="ecva-editor-translation-col">
+                  <h6>Native text</h6>
+                  <div class="ecva-editor-translation-field">
+                    <strong>Title</strong>
+                    <p
+                      id="ecva-editor-native-title-preview"
+                      class="ecva-editor-translation-preview"
+                    ></p>
+                  </div>
+                  <div class="ecva-editor-translation-field">
+                    <strong>Description</strong>
+                    <p
+                      id="ecva-editor-native-description-preview"
+                      class="ecva-editor-translation-preview"
+                    ></p>
+                  </div>
+                </article>
+                <article class="ecva-editor-translation-col">
+                  <h6>English</h6>
+                  <div class="ecva-editor-translation-field">
+                    <strong>Title</strong>
+                    <p
+                      id="ecva-editor-english-title-preview"
+                      class="ecva-editor-translation-preview"
+                    ></p>
+                  </div>
+                  <div class="ecva-editor-translation-field">
+                    <strong>Description</strong>
+                    <p
+                      id="ecva-editor-english-description-preview"
+                      class="ecva-editor-translation-preview"
+                    ></p>
+                  </div>
+                </article>
+              </div>
+            </section>
             <label class="ecva-editor-submission-field">
               Languages Availability
               <input id="ecva-editor-language" type="text" />
@@ -5810,6 +5984,7 @@
               Cancel
             </button>
             <button
+              id="ecva-editor-save-btn"
               class="ecva-admin-btn primary ecva-editor-save-btn"
               type="submit"
             >
@@ -6199,9 +6374,17 @@
             .trim()
             .toLowerCase(),
         );
+      const toBaseLangCode = (value) => {
+        const normalized = String(value || "")
+          .trim()
+          .toLowerCase();
+        if (!isValidLangCode(normalized)) return "en";
+        return normalized.slice(0, 2);
+      };
       const activeLang = isValidLangCode(languageQuery)
         ? String(languageQuery).trim().toLowerCase()
         : "en";
+      const activeLangBase = toBaseLangCode(activeLang);
       const baseLangQuery = String(queryParams.get("baseLang") || "")
         .trim()
         .toLowerCase();
@@ -6209,8 +6392,13 @@
         isValidLangCode(baseLangQuery) && baseLangQuery !== "en"
           ? baseLangQuery
           : "";
-      const fallbackLocalLang = activeLang !== "en" ? activeLang : baseLang;
-      document.documentElement.lang = activeLang;
+      const fallbackLocalLang =
+        activeLangBase !== "en"
+          ? activeLangBase
+          : isValidLangCode(baseLang) && toBaseLangCode(baseLang) !== "en"
+            ? toBaseLangCode(baseLang)
+            : "";
+      document.documentElement.lang = activeLangBase;
 
       const LANGUAGE_FLAGS = {
         en: "🇬🇧",
@@ -6249,7 +6437,7 @@
 
       const frame = document.querySelector(".desktop-map iframe");
       if (frame) {
-        frame.src = `Europe-svg.html?lang=${encodeURIComponent(activeLang)}`;
+        frame.src = `Europe-svg.html?lang=${encodeURIComponent(activeLangBase)}`;
         frame.addEventListener("load", () => {
           try {
             frame.contentWindow.postMessage(
@@ -6512,6 +6700,9 @@
       const mobileCountryGrid = document.getElementById("mobile-country-grid");
       const pendingCountryModalRequests = new Map();
       let pendingRequestCounter = 0;
+      const pendingLabelOverrideRequests = new Map();
+      let pendingLabelOverrideCounter = 0;
+      const labelOverridesByLang = {};
 
       function getStatusLabel(statusClass) {
         if (statusClass === "leading") return "Leading";
@@ -6556,6 +6747,57 @@
             {
               type: "ecva-request-country-modal-html",
               payload: { countryId: normalized, requestId },
+            },
+            "*",
+          );
+        });
+      }
+
+      function normalizeUiLangCode(rawLang) {
+        const value = String(rawLang || "")
+          .trim()
+          .toLowerCase();
+        if (!value) return "en";
+        return toBaseLangCode(value);
+      }
+
+      function getLabelOverridesForLang(rawLang) {
+        const lang = normalizeUiLangCode(rawLang);
+        const source =
+          labelOverridesByLang[lang] &&
+          typeof labelOverridesByLang[lang] === "object"
+            ? labelOverridesByLang[lang]
+            : {};
+        const out = {};
+        Object.entries(source).forEach(([key, value]) => {
+          const normalizedKey = String(key || "").trim();
+          if (!normalizedKey) return;
+          out[normalizedKey] = String(value || "").trim();
+        });
+        return out;
+      }
+
+      function requestLabelOverrides(rawLang) {
+        return new Promise((resolve) => {
+          const lang = normalizeUiLangCode(rawLang);
+          if (!frame || !frame.contentWindow) {
+            resolve(getLabelOverridesForLang(lang));
+            return;
+          }
+          const requestId = `labels-${Date.now()}-${(pendingLabelOverrideCounter += 1)}`;
+          const timeout = window.setTimeout(() => {
+            pendingLabelOverrideRequests.delete(requestId);
+            resolve(getLabelOverridesForLang(lang));
+          }, 1600);
+          pendingLabelOverrideRequests.set(requestId, {
+            resolve,
+            timeout,
+            lang,
+          });
+          frame.contentWindow.postMessage(
+            {
+              type: "ecva-request-label-overrides",
+              payload: { lang, requestId },
             },
             "*",
           );
@@ -6619,7 +6861,7 @@
             `;
           })
           .join("");
-        translateElementText(mobileExplorer, activeLang);
+        translateElementText(mobileExplorer, activeLangBase);
       }
 
       const modalRoot = document.getElementById("country-modal-root");
@@ -6799,11 +7041,23 @@
           ],
         },
       };
+      const contributeInfoByPillarRo = {
+        resources: {
+          title: "Resurse dedicate",
+          paragraphs: [
+            "Această secțiune include resurse educaționale folosite pentru a preda, susține sau evalua Educația Caracterului.",
+            "Poți trimite curriculum, ghiduri pentru profesori, planuri de lecție, programe de formare, cadre educaționale, instrumente de evaluare, platforme digitale sau programe structurate din școli, universități, ONG-uri, instituții de cercetare sau inițiative independente.",
+            "Pot fi incluse și resurse din domenii conexe dacă au o componentă relevantă de dezvoltare a caracterului.",
+          ],
+        },
+      };
       let modalCloseTimer = null;
       let contributeSuccessFlowTimer = null;
       let contributeRemoveConfirmTimer = null;
       let resourceLanguageItems = [];
       let resourceLangUid = 0;
+      let resourceLanguageUiRenderedLang = "en";
+      let contributeInfoUiRenderedLang = "en";
       let resourceValidationTriggered = false;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
@@ -6826,6 +7080,342 @@
           close: "Închide",
         },
       };
+      const RESOURCE_UI_BASE = {
+        suggestArticle: "Suggest an article",
+        postArticle: "Post article",
+        saveChanges: "Save changes",
+        sendForReview: "Send for review",
+        post: "Post",
+        remove: "Remove",
+        ownership: "Ownership",
+        entityType: "Entity type",
+        selectEntityType: "Select entity type",
+        entityName: "Name of the entity",
+        resourceBasicInfo: "Resource basic information",
+        title: "Title",
+        titleHelper: "Title will be displayed publicly.",
+        description: "Description",
+        descriptionHelper: "Write a short and clear description of the resource.",
+        availableLanguages: "Available languages",
+        addOneVersion: "Add one resource version per language",
+        addLanguage: "Add another language",
+        contactHeader: "For more informations, contact:",
+        contactHelper:
+          "These details are public and shown at the end of the article.",
+        emailFootnote: "Used if clarifications are needed.",
+        name: "Name",
+        role: "Role",
+        email: "Email",
+        cancel: "Cancel",
+        language: "Language",
+        selectLanguage: "Select language",
+        type: "Type",
+        resourceFile: "Resource file",
+        uploadedFile: "Uploaded file",
+        changeUploadedFile: "Change uploaded file",
+        chooseFile: "Choose file",
+        ready: "Ready",
+        resourceLink: "Resource link for this language",
+        urlPlaceholder: "https://...",
+        duplicateLanguage: "This language was already added.",
+        resourceAccessMode: "Resource access mode",
+        ownershipNamePlaceholder: "Write the name...",
+        titlePlaceholder: "e.g. Character Toolkit for Schools",
+        descriptionPlaceholder: "Write a short and clear resource description.",
+        contactNamePlaceholder: "Full name",
+        contactRolePlaceholder: "Role / title",
+        contactEmailPlaceholder: "name@example.org",
+        leadEditEntry: "Edit this {pillar} entry for {country}.",
+        leadDirectPublish: "Publish an article directly for {country}.",
+        leadSuggest: "Share a verified {pillar} suggestion for {country}.",
+        completeTitle: "Complete the title.",
+        completeDescription: "Complete the description.",
+        selectEntityTypeError: "Select entity type.",
+        completeEntityName: "Complete entity name.",
+        selectLanguageError: "Select a language.",
+        uploadFilePerLanguageError: "Upload a file for each added language.",
+        fileTooLargeError: "File too large. Maximum allowed size is 15MB per file.",
+        fileFormatUnsupportedError: "File format is not supported.",
+        invalidLinkForLanguage:
+          "Invalid link for {language}. Use a full URL (https://...) or www....",
+        completeName: "Complete the name.",
+        completeRole: "Complete the role.",
+        completeEmailValid: "Complete email in a valid format.",
+        missingCountryContext: "Missing country context.",
+        missingPillarContext: "Missing pillar context.",
+        completeTitleAndDescription: "Please complete title and description.",
+        nativeLanguageWarning:
+          "Warning: use the native language for title and description.",
+        uploadingResourceData: "Uploading resource data...",
+        couldNotLoadEditorData:
+          "Could not load editor data. Please close and try again.",
+        couldNotRemoveArticleRightNow: "Could not remove article right now.",
+        articleDeleted: "Article deleted.",
+        changesSaved: "Changes saved.",
+        articlePublished: "Article published.",
+        entrySentForTranslationReview: "Entry sent for translation review.",
+        suggestionSentForReview: "Suggestion sent for review.",
+        selectLanguagePerVersion:
+          "Select a language for each resource version.",
+        uploadFilePerSelectedType:
+          "Upload a file for each selected file-based resource type.",
+        editTargetMissing: "Edit target is missing.",
+        submitSuggestionFailed:
+          "Could not submit your suggestion. Please try again.",
+        typeWebpage: "Webpage",
+        typeYoutube: "YouTube",
+        typeDocument: "Document",
+        typeImage: "Image",
+        pricingFree: "Free",
+        pricingPaid: "Paid",
+        pricingFreemium: "Freemium",
+        pricingSubscription: "Subscription",
+      };
+      const RESOURCE_UI_RO = {
+        suggestArticle: "Sugerează un articol",
+        postArticle: "Postează articol",
+        saveChanges: "Salvează modificările",
+        sendForReview: "Trimite la review",
+        post: "Postează",
+        remove: "Șterge",
+        ownership: "Proprietate",
+        entityType: "Tip entitate",
+        selectEntityType: "Selectează tipul entității",
+        entityName: "Numele entității",
+        resourceBasicInfo: "Informații de bază despre resursă",
+        title: "Titlu",
+        titleHelper: "Titlul va fi afișat public.",
+        description: "Descriere",
+        descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
+        availableLanguages: "Limbi disponibile",
+        addOneVersion: "Adaugă o versiune a resursei pentru fiecare limbă",
+        addLanguage: "Adaugă altă limbă",
+        contactHeader: "Pentru mai multe informații, contact:",
+        contactHelper:
+          "Aceste detalii sunt publice și apar la finalul articolului.",
+        emailFootnote: "Folosit dacă sunt necesare clarificări.",
+        name: "Nume",
+        role: "Rol",
+        email: "Email",
+        cancel: "Anulează",
+        language: "Limbă",
+        selectLanguage: "Selectează limba",
+        type: "Tip",
+        resourceFile: "Fișier resursă",
+        uploadedFile: "Fișier încărcat",
+        changeUploadedFile: "Schimbă fișierul încărcat",
+        chooseFile: "Alege fișier",
+        ready: "Gata",
+        resourceLink: "Link resursă pentru această limbă",
+        urlPlaceholder: "https://...",
+        duplicateLanguage: "Această limbă a fost deja adăugată.",
+        resourceAccessMode: "Modul de acces la resursă",
+        ownershipNamePlaceholder: "Scrie numele...",
+        titlePlaceholder: "ex: Toolkit de caracter pentru școli",
+        descriptionPlaceholder: "Scrie o descriere scurtă și clară a resursei.",
+        contactNamePlaceholder: "Nume complet",
+        contactRolePlaceholder: "Rol / funcție",
+        contactEmailPlaceholder: "nume@exemplu.org",
+        leadEditEntry: "Editează această intrare {pillar} pentru {country}.",
+        leadDirectPublish: "Publică direct un articol pentru {country}.",
+        leadSuggest: "Trimite o sugestie verificată pentru {pillar} în {country}.",
+        completeTitle: "Completează titlul.",
+        completeDescription: "Completează descrierea.",
+        selectEntityTypeError: "Selectează tipul entității.",
+        completeEntityName: "Completează numele entității.",
+        selectLanguageError: "Selectează o limbă.",
+        uploadFilePerLanguageError:
+          "Încarcă un fișier pentru fiecare limbă adăugată.",
+        fileTooLargeError: "Fișierul este prea mare. Limita este 15MB per fișier.",
+        fileFormatUnsupportedError: "Formatul fișierului nu este acceptat.",
+        invalidLinkForLanguage:
+          "Link invalid pentru {language}. Folosește un URL complet (https://...) sau www....",
+        completeName: "Completează numele.",
+        completeRole: "Completează rolul.",
+        completeEmailValid: "Completează un email valid.",
+        missingCountryContext: "Lipsește contextul țării.",
+        missingPillarContext: "Lipsește contextul pillar-ului.",
+        completeTitleAndDescription: "Completează titlul și descrierea.",
+        nativeLanguageWarning:
+          "Scrie titlul și descrierea în limba nativă înainte de trimitere.",
+        uploadingResourceData: "Se încarcă datele resursei...",
+        couldNotLoadEditorData:
+          "Nu am putut încărca datele editorului. Închide și încearcă din nou.",
+        couldNotRemoveArticleRightNow: "Articolul nu poate fi șters acum.",
+        articleDeleted: "Articol șters.",
+        changesSaved: "Modificările au fost salvate.",
+        articlePublished: "Articol publicat.",
+        entrySentForTranslationReview: "Articol trimis la review de traducere.",
+        suggestionSentForReview: "Sugestia a fost trimisă la review.",
+        selectLanguagePerVersion:
+          "Selectează o limbă pentru fiecare versiune de resursă.",
+        uploadFilePerSelectedType:
+          "Încarcă un fișier pentru fiecare tip de resursă bazat pe fișier.",
+        editTargetMissing: "Lipsește ținta de editare.",
+        submitSuggestionFailed:
+          "Nu am putut trimite sugestia. Te rugăm să încerci din nou.",
+        typeWebpage: "Pagină web",
+        typeYoutube: "YouTube",
+        typeDocument: "Document",
+        typeImage: "Imagine",
+        pricingFree: "Gratuit",
+        pricingPaid: "Cu plată",
+        pricingFreemium: "Freemium",
+        pricingSubscription: "Abonament",
+      };
+      const OWNERSHIP_OPTION_LABELS = {
+        en: {
+          "Non-profit organisation": "Non-profit organisation",
+          Foundation: "Foundation",
+          "Public institution": "Public institution",
+          University: "University",
+          School: "School",
+          "Research institute": "Research institute",
+          "Private company": "Private company",
+          "Government body": "Government body",
+          "Independent expert": "Independent expert",
+          "Collaborative partnership": "Collaborative partnership",
+          "Other legal entity": "Other legal entity",
+        },
+        ro: {
+          "Non-profit organisation": "Organizație non-profit",
+          Foundation: "Fundație",
+          "Public institution": "Instituție publică",
+          University: "Universitate",
+          School: "Școală",
+          "Research institute": "Institut de cercetare",
+          "Private company": "Companie privată",
+          "Government body": "Instituție guvernamentală",
+          "Independent expert": "Expert independent",
+          "Collaborative partnership": "Parteneriat colaborativ",
+          "Other legal entity": "Altă entitate juridică",
+        },
+      };
+      const RESOURCE_TYPE_OPTION_LABELS = {
+        en: {
+          webpage: "Webpage",
+          youtube: "YouTube",
+          document: "Document",
+          image: "Image",
+        },
+        ro: {
+          webpage: "Pagină web",
+          youtube: "YouTube",
+          document: "Document",
+          image: "Imagine",
+        },
+      };
+      const RESOURCE_PRICING_OPTION_LABELS = {
+        en: {
+          free: "Free",
+          paid: "Paid",
+          freemium: "Freemium",
+          subscription: "Subscription",
+        },
+        ro: {
+          free: "Gratuit",
+          paid: "Cu plată",
+          freemium: "Freemium",
+          subscription: "Abonament",
+        },
+      };
+      const RESOURCE_UI_KEY_GROUPS = {
+        suggestArticle: "modal",
+        postArticle: "modal",
+        saveChanges: "modal",
+        sendForReview: "modal",
+        post: "modal",
+        remove: "modal",
+        leadEditEntry: "modal",
+        leadDirectPublish: "modal",
+        leadSuggest: "modal",
+        ownership: "form",
+        entityType: "form",
+        selectEntityType: "form",
+        entityName: "form",
+        resourceBasicInfo: "form",
+        title: "form",
+        titleHelper: "form",
+        description: "form",
+        descriptionHelper: "form",
+        availableLanguages: "form",
+        addOneVersion: "form",
+        addLanguage: "form",
+        contactHeader: "form",
+        contactHelper: "form",
+        emailFootnote: "form",
+        name: "form",
+        role: "form",
+        email: "form",
+        cancel: "form",
+        language: "language_card",
+        selectLanguage: "language_card",
+        type: "language_card",
+        resourceFile: "language_card",
+        uploadedFile: "language_card",
+        changeUploadedFile: "language_card",
+        chooseFile: "language_card",
+        ready: "language_card",
+        resourceLink: "language_card",
+        urlPlaceholder: "language_card",
+        duplicateLanguage: "validation",
+        resourceAccessMode: "language_card",
+        ownershipNamePlaceholder: "form",
+        titlePlaceholder: "form",
+        descriptionPlaceholder: "form",
+        contactNamePlaceholder: "form",
+        contactRolePlaceholder: "form",
+        contactEmailPlaceholder: "form",
+        completeTitle: "validation",
+        completeDescription: "validation",
+        selectEntityTypeError: "validation",
+        completeEntityName: "validation",
+        selectLanguageError: "validation",
+        uploadFilePerLanguageError: "validation",
+        fileTooLargeError: "validation",
+        fileFormatUnsupportedError: "validation",
+        invalidLinkForLanguage: "validation",
+        completeName: "validation",
+        completeRole: "validation",
+        completeEmailValid: "validation",
+        missingCountryContext: "status",
+        missingPillarContext: "status",
+        completeTitleAndDescription: "status",
+        nativeLanguageWarning: "status",
+        uploadingResourceData: "status",
+        couldNotLoadEditorData: "status",
+        couldNotRemoveArticleRightNow: "status",
+        articleDeleted: "status",
+        changesSaved: "status",
+        articlePublished: "status",
+        entrySentForTranslationReview: "status",
+        suggestionSentForReview: "status",
+        selectLanguagePerVersion: "status",
+        uploadFilePerSelectedType: "status",
+        editTargetMissing: "status",
+        submitSuggestionFailed: "status",
+        typeWebpage: "options",
+        typeYoutube: "options",
+        typeDocument: "options",
+        typeImage: "options",
+        pricingFree: "options",
+        pricingPaid: "options",
+        pricingFreemium: "options",
+        pricingSubscription: "options",
+      };
+      const RESOURCE_UI_LABEL_SCHEMA = Object.keys(RESOURCE_UI_BASE).map(
+        (key) => ({
+          key,
+          group: RESOURCE_UI_KEY_GROUPS[key] || "general",
+          english: String(RESOURCE_UI_BASE[key] || ""),
+        }),
+      );
+      window.__ECVA_RESOURCE_UI_BASE = { ...RESOURCE_UI_BASE };
+      window.__ECVA_RESOURCE_UI_LABEL_SCHEMA = RESOURCE_UI_LABEL_SCHEMA.map(
+        (item) => ({ ...item }),
+      );
+      let resourceUiCopy = { ...RESOURCE_UI_BASE };
+      let resourceUiLang = "en";
       const RESOURCE_LIMITS = {
         title: 72,
         description: 200,
@@ -6843,9 +7433,9 @@
         },
         {
           value: "youtube",
-          label: "Youtube",
+          label: "YouTube",
           inputMode: "url",
-          openLabel: "Youtube",
+          openLabel: "YouTube",
         },
         {
           value: "document",
@@ -6861,10 +7451,10 @@
         },
       ];
       const RESOURCE_PRICING_OPTIONS = [
-        { value: "free", label: "Gratuit", icon: "gift" },
-        { value: "paid", label: "Cu plată", icon: "coin" },
+        { value: "free", label: "Free", icon: "gift" },
+        { value: "paid", label: "Paid", icon: "coin" },
         { value: "freemium", label: "Freemium", icon: "trophy" },
-        { value: "subscription", label: "Abonament", icon: "calendar" },
+        { value: "subscription", label: "Subscription", icon: "calendar" },
       ];
       const languageCountryCodeByPrimary = Object.entries(
         COUNTRY_PRIMARY_LANGUAGE,
@@ -6994,7 +7584,7 @@
           .trim()
           .toLowerCase();
         if (lang) return lang;
-        if (isValidLangCode(activeLang)) return String(activeLang);
+        if (isValidLangCode(activeLangBase)) return String(activeLangBase);
         return "en";
       }
 
@@ -7233,6 +7823,7 @@
 
       function renderResourceLanguageItems(focusItemId) {
         if (!resourceLanguageList) return;
+        const ui = getResourceUiCopy();
         resourceLanguageList.innerHTML = "";
         const usedLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
@@ -7250,7 +7841,7 @@
             const removeBtn = document.createElement("button");
             removeBtn.type = "button";
             removeBtn.className = "contribute-language-remove";
-            removeBtn.textContent = "Remove";
+            removeBtn.textContent = ui.remove;
             removeBtn.addEventListener("click", () => {
               resourceLanguageItems = resourceLanguageItems.filter(
                 (next) => next.id !== item.id,
@@ -7270,18 +7861,18 @@
           fields.className = "contribute-language-fields";
 
           const langLabel = document.createElement("label");
-          langLabel.textContent = "Language";
+          langLabel.textContent = ui.language;
           const langSelect = document.createElement("select");
           const languageInputId = `resource-language-${item.id}`;
           langLabel.setAttribute("for", languageInputId);
           langSelect.id = languageInputId;
           langSelect.name = `resourceLanguage-${item.id}`;
-          langSelect.setAttribute("aria-label", "Language");
+          langSelect.setAttribute("aria-label", ui.language);
           const hasValue = Boolean(item.languageCode);
           if (!hasValue) {
             const placeholder = document.createElement("option");
             placeholder.value = "";
-            placeholder.textContent = "Select language";
+            placeholder.textContent = ui.selectLanguage;
             placeholder.selected = true;
             placeholder.disabled = true;
             langSelect.appendChild(placeholder);
@@ -7304,7 +7895,7 @@
               (next) => next.id !== item.id && next.languageCode === nextCode,
             );
             if (duplicate) {
-              setContributeStatus("This language was already added.", "error");
+              setContributeStatus(ui.duplicateLanguage, "error");
               langSelect.value = item.languageCode;
               setFieldError(langSelect, resourceValidationTriggered);
               return;
@@ -7319,16 +7910,18 @@
 
           const accessLabel = document.createElement("label");
           accessLabel.className = "contribute-language-type-field";
-          accessLabel.textContent = "Type";
+          accessLabel.textContent = ui.type;
           const accessSelect = document.createElement("select");
           const typeInputId = `resource-type-${item.id}`;
           accessLabel.setAttribute("for", typeInputId);
           accessSelect.id = typeInputId;
           accessSelect.name = `resourceType-${item.id}`;
-          accessSelect.setAttribute("aria-label", "Type");
+          accessSelect.setAttribute("aria-label", ui.type);
           accessSelect.innerHTML = RESOURCE_TYPE_OPTIONS.map(
             (option) =>
-              `<option value="${option.value}">${option.label}</option>`,
+              `<option value="${option.value}">${escapeHtml(
+                getResourceTypeLabel(option.value),
+              )}</option>`,
           ).join("");
           accessSelect.value = typeConfig.value;
           accessSelect.addEventListener("change", () => {
@@ -7350,7 +7943,7 @@
           const valueLabel = document.createElement("label");
           valueLabel.setAttribute("data-resource-focus-anchor", item.id);
           if (inputMode === "file") {
-            valueLabel.textContent = "Resource file";
+            valueLabel.textContent = ui.resourceFile;
             const fileShell = document.createElement("div");
             fileShell.className = "contribute-language-file-shell";
             const fileInput = document.createElement("input");
@@ -7395,11 +7988,11 @@
               const fileDisplayName =
                 String(item.fileName || "").trim() ||
                 String((item.file && item.file.name) || "").trim() ||
-                "Uploaded file";
+                ui.uploadedFile;
               const fileTab = document.createElement("button");
               fileTab.type = "button";
               fileTab.className = "contribute-language-file-tab";
-              fileTab.setAttribute("aria-label", "Change uploaded file");
+              fileTab.setAttribute("aria-label", ui.changeUploadedFile);
               fileTab.innerHTML = `
                 <span class="contribute-language-file-tab-name">${escapeHtml(
                   fileDisplayName,
@@ -7413,7 +8006,7 @@
               const fileTrigger = document.createElement("button");
               fileTrigger.type = "button";
               fileTrigger.className = "contribute-language-file-trigger";
-              fileTrigger.textContent = "Choose file";
+              fileTrigger.textContent = ui.chooseFile;
               fileTrigger.addEventListener("click", openPicker);
               fileShell.appendChild(fileTrigger);
             }
@@ -7421,11 +8014,11 @@
             const fileStatus = document.createElement("span");
             fileStatus.className = "contribute-language-file-status";
             fileStatus.textContent = item.fileName
-              ? `Ready: ${item.fileName}`
+              ? `${ui.ready}: ${item.fileName}`
               : "";
             valueLabel.appendChild(fileStatus);
           } else {
-            valueLabel.textContent = "Resource link for this language";
+            valueLabel.textContent = ui.resourceLink;
             const urlInput = document.createElement("input");
             const urlInputId = `resource-url-${item.id}`;
             valueLabel.setAttribute("for", urlInputId);
@@ -7433,7 +8026,7 @@
             urlInput.name = `resourceUrl-${item.id}`;
             urlInput.type = "url";
             urlInput.className = "contribute-language-url";
-            urlInput.placeholder = "https://...";
+            urlInput.placeholder = ui.urlPlaceholder || "https://...";
             urlInput.value = item.resourceUrl || "";
             urlInput.setAttribute("data-focus-value", "true");
             urlInput.addEventListener("input", () => {
@@ -7459,7 +8052,7 @@
             const pricingWrap = document.createElement("section");
             pricingWrap.className = "contribute-language-pricing";
             const pricingTitle = document.createElement("h6");
-            pricingTitle.textContent = "Modul de acces la resursă";
+            pricingTitle.textContent = ui.resourceAccessMode;
             pricingWrap.appendChild(pricingTitle);
             const pricingTabs = document.createElement("div");
             pricingTabs.className = "contribute-language-pricing-tabs";
@@ -7491,7 +8084,7 @@
               icon.innerHTML = renderPricingIconSvg(option.icon);
               const label = document.createElement("span");
               label.className = "contribute-language-pricing-label";
-              label.textContent = option.label;
+              label.textContent = getResourcePricingLabel(option.value);
               tab.appendChild(input);
               tab.appendChild(icon);
               tab.appendChild(label);
@@ -7504,7 +8097,7 @@
           if (duplicate) {
             const duplicateError = document.createElement("span");
             duplicateError.className = "contribute-field-error";
-            duplicateError.textContent = "This language was already added.";
+            duplicateError.textContent = ui.duplicateLanguage;
             card.appendChild(duplicateError);
           }
           resourceLanguageList.appendChild(card);
@@ -7532,6 +8125,8 @@
             });
           }
         }
+        resourceLanguageUiRenderedLang = resourceUiLang;
+        localizeContributeFormUi(activeLangBase);
       }
 
       function initializeResourceFormForCountry(countryId) {
@@ -7729,10 +8324,11 @@
           resourceOwnershipNameInput,
           shouldPaintInvalid && !ownershipName,
         );
-        if (!title) errors.push("Complete the title.");
-        if (!description) errors.push("Complete the description.");
-        if (!ownershipType) errors.push("Select entity type.");
-        if (!ownershipName) errors.push("Complete entity name.");
+        if (!title) errors.push(getResourceUiText("completeTitle"));
+        if (!description) errors.push(getResourceUiText("completeDescription"));
+        if (!ownershipType)
+          errors.push(getResourceUiText("selectEntityTypeError"));
+        if (!ownershipName) errors.push(getResourceUiText("completeEntityName"));
         const seenLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
           const card = resourceLanguageList
@@ -7752,14 +8348,14 @@
             .trim()
             .toLowerCase();
           if (!languageCode) {
-            errors.push("Select a language.");
+            errors.push(getResourceUiText("selectLanguageError"));
             setFieldError(languageSelect, shouldPaintInvalid);
             return;
           }
           const duplicated = seenLanguages.has(languageCode);
           seenLanguages.add(languageCode);
           if (duplicated) {
-            errors.push("This language was already added.");
+            errors.push(getResourceUiText("duplicateLanguage"));
             setFieldError(languageSelect, shouldPaintInvalid);
           } else {
             setFieldError(languageSelect, false);
@@ -7783,15 +8379,13 @@
             const fileOk =
               hasFile && (fileName ? RESOURCE_FILE_RE.test(fileName) : true);
             if (!hasFile) {
-              errors.push("Upload a file for each added language.");
+              errors.push(getResourceUiText("uploadFilePerLanguageError"));
               setFieldError(valueInput, shouldPaintInvalid);
             } else if (fileSize > ATTACHMENT_MAX_BYTES) {
-              errors.push(
-                "File too large. Maximum allowed size is 15MB per file.",
-              );
+              errors.push(getResourceUiText("fileTooLargeError"));
               setFieldError(valueInput, shouldPaintInvalid);
             } else if (!fileOk) {
-              errors.push("File format is not supported.");
+              errors.push(getResourceUiText("fileFormatUnsupportedError"));
               setFieldError(valueInput, shouldPaintInvalid);
             } else {
               setFieldError(valueInput, false);
@@ -7805,7 +8399,9 @@
                 getResourceLanguageOption(languageCode).label || "this language"
               ).trim();
               errors.push(
-                `Invalid link for ${languageName}. Use a full URL (https://...) or www....`,
+                getResourceUiText("invalidLinkForLanguage", {
+                  language: languageName,
+                }),
               );
               setFieldError(valueInput, shouldPaintInvalid);
             } else {
@@ -7837,10 +8433,10 @@
           shouldPaintInvalid &&
             !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail),
         );
-        if (!contactName) errors.push("Complete the name.");
-        if (!contactRole) errors.push("Complete the role.");
+        if (!contactName) errors.push(getResourceUiText("completeName"));
+        if (!contactRole) errors.push(getResourceUiText("completeRole"));
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-          errors.push("Complete email in a valid format.");
+          errors.push(getResourceUiText("completeEmailValid"));
         }
         const valid = errors.length === 0;
         if (valid) {
@@ -7849,6 +8445,140 @@
           setContributeStatus(errors[0], "error");
         }
         return valid;
+      }
+
+      function getExpectedNativeLanguage(countryId) {
+        const code = String(countryId || "")
+          .trim()
+          .toUpperCase();
+        return String(COUNTRY_PRIMARY_LANGUAGE[code] || "en")
+          .trim()
+          .toLowerCase();
+      }
+
+      function isClearlyEnglishText(text) {
+        const value = String(text || "")
+          .trim()
+          .toLowerCase();
+        if (!value) return false;
+        const words = value.split(/[^a-z]+/).filter(Boolean);
+        if (!words.length) return false;
+        const englishMarkers = new Set([
+          "the",
+          "and",
+          "for",
+          "of",
+          "to",
+          "in",
+          "on",
+          "with",
+          "from",
+          "about",
+          "resource",
+          "education",
+          "school",
+          "teacher",
+          "students",
+          "program",
+          "project",
+          "guide",
+          "title",
+          "description",
+        ]);
+        const hits = words.reduce(
+          (count, word) => (englishMarkers.has(word) ? count + 1 : count),
+          0,
+        );
+        return hits >= 2 || (hits >= 1 && words.length >= 10);
+      }
+
+      function countLanguageMarkers(words, markers) {
+        const source = Array.isArray(words) ? words : [];
+        const bag = markers instanceof Set ? markers : new Set();
+        return source.reduce(
+          (count, word) => (bag.has(String(word || "").toLowerCase()) ? count + 1 : count),
+          0,
+        );
+      }
+
+      function validateNativeContentLanguage(countryId, title, description) {
+        const expected = getExpectedNativeLanguage(countryId);
+        if (!expected || expected === "en") {
+          return { ok: true, message: "" };
+        }
+        const combined = `${String(title || "").trim()} ${String(
+          description || "",
+        ).trim()}`.trim();
+        if (!combined) {
+          return { ok: true, message: "" };
+        }
+        if (expected === "ro") {
+          const lower = combined.toLowerCase();
+          const hasDiacritics = /[ăâîșşțţ]/i.test(lower);
+          if (hasDiacritics) {
+            return { ok: true, message: "" };
+          }
+          const normalized = lower
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+          const words = normalized.split(/[^a-z]+/).filter(Boolean);
+          const roMarkers = new Set([
+            "si",
+            "este",
+            "sunt",
+            "pentru",
+            "romana",
+            "educatie",
+            "scoala",
+            "resursa",
+            "resurse",
+            "caracter",
+            "profesor",
+            "profesori",
+            "elev",
+            "elevi",
+            "program",
+            "proiect",
+            "ghid",
+            "lectie",
+            "lectii",
+          ]);
+          const enMarkers = new Set([
+            "the",
+            "and",
+            "for",
+            "with",
+            "from",
+            "about",
+            "resource",
+            "education",
+            "school",
+            "teacher",
+            "students",
+            "project",
+            "guide",
+          ]);
+          const roHits = countLanguageMarkers(words, roMarkers);
+          const enHits = countLanguageMarkers(words, enMarkers);
+          const wrongLanguage =
+            roHits === 0 ||
+            enHits > roHits ||
+            isClearlyEnglishText(normalized);
+          if (wrongLanguage) {
+            return {
+              ok: false,
+              message: getResourceUiText("nativeLanguageWarning"),
+            };
+          }
+          return { ok: true, message: "" };
+        }
+        if (isClearlyEnglishText(combined)) {
+          return {
+            ok: false,
+            message: getResourceUiText("nativeLanguageWarning"),
+          };
+        }
+        return { ok: true, message: "" };
       }
 
       function wireResourceForm() {
@@ -7972,10 +8702,8 @@
       }
 
       function openWithLanguage(nextLang) {
-        const target = isValidLangCode(nextLang)
-          ? String(nextLang).trim().toLowerCase()
-          : "en";
-        if (target === activeLang) return;
+        const target = normalizeUiLangCode(nextLang);
+        if (target === activeLangBase) return;
         window.__ecvaLanguageSwitching = true;
         const url = new URL(window.location.href);
         url.searchParams.set("lang", target);
@@ -7996,7 +8724,7 @@
         languageSwitch.innerHTML = "";
 
         const localLang = fallbackLocalLang;
-        if (activeLang === "en" && !localLang) {
+        if (activeLangBase === "en" && !localLang) {
           languageSwitch.style.display = "none";
           return;
         }
@@ -8016,7 +8744,7 @@
           );
           btn.setAttribute(
             "data-active",
-            langCode === activeLang ? "true" : "false",
+            langCode === activeLangBase ? "true" : "false",
           );
           btn.title = langCode.toUpperCase();
           btn.innerHTML = `<span class="language-flag-emoji">${LANGUAGE_FLAGS[langCode] || "🏳️"}</span>`;
@@ -8026,16 +8754,16 @@
       }
 
       async function initEmbedUiText() {
-        if (activeLang !== "en") {
+        if (activeLangBase !== "en") {
           const [moreLabel, lessLabel] = await translateBatch(
             ["Read More", "Show Less"],
-            activeLang,
+            activeLangBase,
           );
           ENTRY_TOGGLE_TEXT.more = String(moreLabel || "Read More");
           ENTRY_TOGGLE_TEXT.less = String(lessLabel || "Show Less");
           updateEntryToggleLabels();
         }
-        if (activeLang === "en") return;
+        if (activeLangBase === "en") return;
         const base = [
           "Copy code",
           "Choose the language and copy the embed code.",
@@ -8045,7 +8773,7 @@
         ];
         const [title, lead, hint, label, copy] = await translateBatch(
           base,
-          activeLang,
+          activeLangBase,
         );
         if (embedLaunchBtn) embedLaunchBtn.textContent = title;
         if (embedCodeTitle) embedCodeTitle.textContent = title;
@@ -8070,7 +8798,7 @@
 
       function showCopyStatus() {
         if (!embedCopyStatus) return;
-        const value = COPY_STATUS_TEXT[activeLang] || COPY_STATUS_TEXT.en;
+        const value = COPY_STATUS_TEXT[activeLangBase] || COPY_STATUS_TEXT.en;
         embedCopyStatus.textContent = value;
         embedCopyStatus.classList.add("is-visible");
         if (embedCopyStatusTimer) {
@@ -8149,7 +8877,7 @@
         }));
         if (!embedLanguageSelect) return;
         const previousValue = String(
-          embedLanguageSelect.value || activeLang || "en",
+          embedLanguageSelect.value || activeLangBase || "en",
         )
           .trim()
           .toLowerCase();
@@ -8384,9 +9112,10 @@
 
       function resetContributeRemoveConfirm() {
         if (!contributeRemoveBtn) return;
+        const removeLabel = getResourceUiText("remove");
         contributeRemoveBtn.classList.remove("is-confirm");
-        contributeRemoveBtn.setAttribute("aria-label", "Delete article");
-        contributeRemoveBtn.setAttribute("title", "Delete article");
+        contributeRemoveBtn.setAttribute("aria-label", removeLabel);
+        contributeRemoveBtn.setAttribute("title", removeLabel);
         if (contributeRemoveConfirmTimer) {
           window.clearTimeout(contributeRemoveConfirmTimer);
           contributeRemoveConfirmTimer = null;
@@ -8405,8 +9134,374 @@
       }
 
       function getRepFormCopy() {
-        if (activeLang === "ro") return REP_FORM_COPY.ro;
+        if (activeLangBase === "ro") return REP_FORM_COPY.ro;
         return REP_FORM_COPY.en;
+      }
+
+      function getResourceUiCopy() {
+        return resourceUiCopy && typeof resourceUiCopy === "object"
+          ? resourceUiCopy
+          : RESOURCE_UI_BASE;
+      }
+
+      function getResourceUiText(key, replacements) {
+        const copy = getResourceUiCopy();
+        const fromCopy = String((copy && copy[key]) || "").trim();
+        const base = String((RESOURCE_UI_BASE && RESOURCE_UI_BASE[key]) || "").trim();
+        let template = fromCopy || base || String(key || "").trim();
+        if (replacements && typeof replacements === "object") {
+          Object.entries(replacements).forEach(([token, value]) => {
+            const needle = `{${String(token || "").trim()}}`;
+            const replacement = String(value || "");
+            template = template.split(needle).join(replacement);
+          });
+        }
+        return template;
+      }
+
+      function getResourceTypeLabel(typeValue) {
+        const value = String(typeValue || "")
+          .trim()
+          .toLowerCase();
+        const keyByValue = {
+          webpage: "typeWebpage",
+          youtube: "typeYoutube",
+          document: "typeDocument",
+          image: "typeImage",
+        };
+        if (keyByValue[value]) {
+          const fromCopy = getResourceUiText(keyByValue[value]);
+          if (String(fromCopy || "").trim()) return fromCopy;
+        }
+        const labelsByLang =
+          RESOURCE_TYPE_OPTION_LABELS[resourceUiLang] ||
+          RESOURCE_TYPE_OPTION_LABELS.en ||
+          {};
+        if (labelsByLang && labelsByLang[value]) {
+          return String(labelsByLang[value]);
+        }
+        const fallback = RESOURCE_TYPE_OPTION_LABELS.en || {};
+        return String(fallback[value] || value || "Type");
+      }
+
+      function getResourcePricingLabel(pricingValue) {
+        const value = String(pricingValue || "")
+          .trim()
+          .toLowerCase();
+        const keyByValue = {
+          free: "pricingFree",
+          paid: "pricingPaid",
+          freemium: "pricingFreemium",
+          subscription: "pricingSubscription",
+        };
+        if (keyByValue[value]) {
+          const fromCopy = getResourceUiText(keyByValue[value]);
+          if (String(fromCopy || "").trim()) return fromCopy;
+        }
+        const labelsByLang =
+          RESOURCE_PRICING_OPTION_LABELS[resourceUiLang] ||
+          RESOURCE_PRICING_OPTION_LABELS.en ||
+          {};
+        if (labelsByLang && labelsByLang[value]) {
+          return String(labelsByLang[value]);
+        }
+        const fallback = RESOURCE_PRICING_OPTION_LABELS.en || {};
+        return String(fallback[value] || value || "Free");
+      }
+
+      function applyContributeModeCopy() {
+        if (!contributeModal) return;
+        const mode = String((contributeContext && contributeContext.mode) || "article")
+          .trim()
+          .toLowerCase();
+        const countryLabel =
+          String(
+            (contributeContext &&
+              (contributeContext.countryName || contributeContext.countryId)) ||
+              "",
+          ).trim() || "this country";
+        const pillarLabel =
+          String((contributeContext && contributeContext.pillarLabel) || "").trim() ||
+          "pillar";
+        if (mode === "representative") {
+          const repCopy = getRepFormCopy();
+          if (contributeModalTitle) {
+            contributeModalTitle.textContent = repCopy.title;
+          }
+          const leadNode = contributeModal.querySelector(".contribute-modal-lead");
+          if (leadNode) {
+            leadNode.textContent = String(repCopy.lead || "")
+              .replace("{country}", countryLabel)
+              .trim();
+          }
+          return;
+        }
+        const copy = getResourceUiCopy();
+        const modeTitle = contributeContext.editEntryTarget
+          ? copy.saveChanges
+          : contributeContext.directPublish
+            ? copy.postArticle
+            : copy.suggestArticle;
+        if (contributeModalTitle) contributeModalTitle.textContent = modeTitle;
+        const leadNode = contributeModal.querySelector(".contribute-modal-lead");
+        if (leadNode) {
+          const leadText = contributeContext.editEntryTarget
+            ? getResourceUiText("leadEditEntry", {
+                pillar: pillarLabel,
+                country: countryLabel,
+              })
+            : contributeContext.directPublish
+              ? getResourceUiText("leadDirectPublish", {
+                  country: countryLabel,
+                })
+              : getResourceUiText("leadSuggest", {
+                  pillar: pillarLabel,
+                  country: countryLabel,
+                });
+          leadNode.textContent = leadText;
+        }
+      }
+
+      function withResourceUiOverrides(baseCopy, rawLang) {
+        const lang = normalizeUiLangCode(rawLang);
+        const overrides = getLabelOverridesForLang(lang);
+        const merged = {
+          ...(baseCopy && typeof baseCopy === "object"
+            ? baseCopy
+            : RESOURCE_UI_BASE),
+        };
+        Object.entries(overrides).forEach(([key, value]) => {
+          const normalizedKey = String(key || "").trim();
+          const normalizedValue = String(value || "").trim();
+          if (!normalizedKey || !normalizedValue) return;
+          merged[normalizedKey] = normalizedValue;
+        });
+        return merged;
+      }
+
+      function protectResourceTemplateTokens(text) {
+        return String(text || "")
+          .replace(/\{country\}/g, "__ECVA_COUNTRY__")
+          .replace(/\{pillar\}/g, "__ECVA_PILLAR__")
+          .replace(/\{language\}/g, "__ECVA_LANGUAGE__");
+      }
+
+      function restoreResourceTemplateTokens(text) {
+        return String(text || "")
+          .replace(/__ECVA_COUNTRY__/g, "{country}")
+          .replace(/__ECVA_PILLAR__/g, "{pillar}")
+          .replace(/__ECVA_LANGUAGE__/g, "{language}");
+      }
+
+      async function ensureResourceUiCopy(targetLang) {
+        const lang = normalizeUiLangCode(targetLang);
+        if (resourceUiLang === lang) return getResourceUiCopy();
+        if (lang === "en") {
+          resourceUiCopy = withResourceUiOverrides(RESOURCE_UI_BASE, lang);
+          resourceUiLang = "en";
+          return resourceUiCopy;
+        }
+        if (lang === "ro") {
+          resourceUiCopy = withResourceUiOverrides(RESOURCE_UI_RO, lang);
+          resourceUiLang = "ro";
+          return resourceUiCopy;
+        }
+        const keys = Object.keys(RESOURCE_UI_BASE);
+        const translated = await translateBatch(
+          keys.map((key) => protectResourceTemplateTokens(RESOURCE_UI_BASE[key])),
+          lang,
+        );
+        const nextCopy = {};
+        keys.forEach((key, index) => {
+          const value = String(translated[index] || RESOURCE_UI_BASE[key]);
+          nextCopy[key] = restoreResourceTemplateTokens(value);
+        });
+        resourceUiCopy = withResourceUiOverrides(nextCopy, lang);
+        resourceUiLang = lang;
+        return resourceUiCopy;
+      }
+
+      function applyResourceFormUiCopy() {
+        if (!contributeForm) return;
+        const copy = getResourceUiCopy();
+        applyContributeModeCopy();
+        const segmentTitles = contributeForm.querySelectorAll(
+          ".contribute-form-segment-title",
+        );
+        if (segmentTitles[0]) segmentTitles[0].textContent = copy.ownership;
+        if (segmentTitles[1]) segmentTitles[1].textContent = copy.resourceBasicInfo;
+        if (segmentTitles[2]) segmentTitles[2].textContent = copy.availableLanguages;
+        if (segmentTitles[3]) segmentTitles[3].textContent = copy.contactHeader;
+        const sectionTitles = contributeForm.querySelectorAll(
+          ".contribute-form-section-title",
+        );
+        if (sectionTitles[0]) sectionTitles[0].textContent = copy.addOneVersion;
+        if (sectionTitles[1]) sectionTitles[1].textContent = copy.contactHelper;
+        const setLabelPrefix = (selector, text) => {
+          const field =
+            typeof selector === "string"
+              ? contributeForm.querySelector(selector)
+              : null;
+          const label = field ? field.closest("label") : null;
+          if (!label || !label.childNodes || !label.childNodes.length) return;
+          const first = label.childNodes[0];
+          if (first && first.nodeType === Node.TEXT_NODE) {
+            first.nodeValue = `${text}\n                    `;
+          }
+        };
+        setLabelPrefix("#resource-ownership-type", copy.entityType);
+        setLabelPrefix("#resource-ownership-name", copy.entityName);
+        setLabelPrefix("#resource-title-input", copy.title);
+        setLabelPrefix("#resource-description-input", copy.description);
+        setLabelPrefix('[name="contactName"]', copy.name);
+        setLabelPrefix('[name="contactRole"]', copy.role);
+        setLabelPrefix('[name="contactEmail"]', copy.email);
+        const ownershipPlaceholderOption =
+          resourceOwnershipTypeInput &&
+          resourceOwnershipTypeInput.querySelector('option[value=""]');
+        if (ownershipPlaceholderOption) {
+          ownershipPlaceholderOption.textContent = copy.selectEntityType;
+        }
+        if (resourceOwnershipTypeInput) {
+          const options = Array.from(resourceOwnershipTypeInput.options || []).filter(
+            (opt) => String((opt && opt.value) || "").trim(),
+          );
+          const labelsByValue = OWNERSHIP_OPTION_LABELS[resourceUiLang] || null;
+          if (labelsByValue) {
+            options.forEach((opt) => {
+              const value = String((opt && opt.value) || "").trim();
+              const label = String(labelsByValue[value] || value).trim();
+              if (label) opt.textContent = label;
+            });
+          } else {
+            const values = options.map((opt) => String(opt.value || "").trim());
+            const expectedLang = resourceUiLang;
+            translateBatch(values, expectedLang)
+              .then((translated) => {
+                if (resourceUiLang !== expectedLang) return;
+                options.forEach((opt, index) => {
+                  const fallback = String(opt.value || "").trim();
+                  const label = String(
+                    (translated && translated[index]) || fallback,
+                  ).trim();
+                  if (label) opt.textContent = label;
+                });
+              })
+              .catch(() => {});
+          }
+        }
+        if (resourceOwnershipNameInput) {
+          resourceOwnershipNameInput.setAttribute(
+            "placeholder",
+            copy.ownershipNamePlaceholder || RESOURCE_UI_BASE.ownershipNamePlaceholder,
+          );
+        }
+        if (resourceTitleInput) {
+          resourceTitleInput.setAttribute(
+            "placeholder",
+            copy.titlePlaceholder || RESOURCE_UI_BASE.titlePlaceholder,
+          );
+        }
+        if (resourceDescriptionInput) {
+          resourceDescriptionInput.setAttribute(
+            "placeholder",
+            copy.descriptionPlaceholder || RESOURCE_UI_BASE.descriptionPlaceholder,
+          );
+        }
+        const contactNameInput = contributeForm.querySelector('[name="contactName"]');
+        const contactRoleInput = contributeForm.querySelector('[name="contactRole"]');
+        const contactEmailInput = contributeForm.querySelector('[name="contactEmail"]');
+        if (contactNameInput) {
+          contactNameInput.setAttribute(
+            "placeholder",
+            copy.contactNamePlaceholder || RESOURCE_UI_BASE.contactNamePlaceholder,
+          );
+        }
+        if (contactRoleInput) {
+          contactRoleInput.setAttribute(
+            "placeholder",
+            copy.contactRolePlaceholder || RESOURCE_UI_BASE.contactRolePlaceholder,
+          );
+        }
+        if (contactEmailInput) {
+          contactEmailInput.setAttribute(
+            "placeholder",
+            copy.contactEmailPlaceholder || RESOURCE_UI_BASE.contactEmailPlaceholder,
+          );
+        }
+        const helpers = contributeForm.querySelectorAll(".contribute-field-helper");
+        if (helpers[0]) helpers[0].textContent = copy.titleHelper;
+        if (helpers[1]) helpers[1].textContent = copy.descriptionHelper;
+        if (helpers[2]) {
+          helpers[2].textContent = copy.emailFootnote || "";
+        }
+        if (resourceAddLanguageBtn) resourceAddLanguageBtn.textContent = copy.addLanguage;
+        if (contributeCancelBtn) contributeCancelBtn.textContent = copy.cancel;
+        if (contributeRemoveBtn) {
+          contributeRemoveBtn.setAttribute("aria-label", copy.remove || "Remove");
+          contributeRemoveBtn.setAttribute("title", copy.remove || "Remove");
+        }
+        const submitBtn = contributeForm.querySelector('[type="submit"]');
+        if (submitBtn) {
+          submitBtn.textContent = contributeContext.editEntryTarget
+            ? copy.saveChanges
+            : contributeContext.directPublish
+              ? copy.post
+              : copy.sendForReview;
+        }
+      }
+
+      function localizeContributePlaceholders(targetLang) {
+        // Placeholder values are now handled by resource UI copy keys.
+        void targetLang;
+      }
+
+      function localizeContributeFormUi(targetLang) {
+        const lang = normalizeUiLangCode(targetLang);
+        const overridesPromise = Object.prototype.hasOwnProperty.call(
+          labelOverridesByLang,
+          lang,
+        )
+          ? Promise.resolve(getLabelOverridesForLang(lang))
+          : requestLabelOverrides(lang);
+        overridesPromise
+          .then((labels) => {
+            const normalizedLang = normalizeUiLangCode(lang);
+            labelOverridesByLang[normalizedLang] =
+              labels && typeof labels === "object" ? labels : {};
+          })
+          .catch(() => {})
+          .finally(() => {
+            ensureResourceUiCopy(lang)
+              .then(() => {
+                const shouldRerenderCards = Boolean(
+                  resourceLanguageList &&
+                    resourceLanguageList.children.length &&
+                    resourceLanguageUiRenderedLang !== resourceUiLang,
+                );
+                if (shouldRerenderCards) {
+                  renderResourceLanguageItems();
+                  return;
+                }
+                applyResourceFormUiCopy();
+              })
+              .catch(() => {});
+          });
+        localizeContributePlaceholders(lang);
+        if (lang === "en" || lang === "ro") {
+          contributeInfoUiRenderedLang = lang;
+          return;
+        }
+        if (contributeInfoUiRenderedLang === lang) return;
+        const infoScope = contributeModalInfoBody
+          ? contributeModalInfoBody.closest(".contribute-modal-info")
+          : null;
+        if (!infoScope) return;
+        translateElementText(infoScope, lang)
+          .then(() => {
+            contributeInfoUiRenderedLang = lang;
+          })
+          .catch(() => {});
       }
 
       function resetContributeRepCrop() {
@@ -8721,28 +9816,23 @@
               : null,
         };
         const infoKey = mode === "representative" ? "representative" : pillarId;
-        const info = contributeInfoByPillar[infoKey] || {
+        const infoSource =
+          activeLangBase === "ro" && contributeInfoByPillarRo[infoKey]
+            ? contributeInfoByPillarRo
+            : contributeInfoByPillar;
+        const info = infoSource[infoKey] || {
           title: `${pillarLabel || "Section"} Contribution`,
           paragraphs: ["Provide verified details to enrich this section."],
         };
         const repCopy = getRepFormCopy();
-        const modeTitle =
-          mode === "representative"
-            ? repCopy.title
-            : contributeContext.directPublish
-              ? activeLang === "ro"
-                ? "Postează articol"
-                : "Post article"
-              : "Suggest an article";
-        if (contributeModalTitle) {
-          contributeModalTitle.textContent = modeTitle;
-        }
+        applyContributeModeCopy();
         if (contributeModalInfoTitle) {
           contributeModalInfoTitle.textContent = info.title;
         }
         contributeModalInfoBody.innerHTML = info.paragraphs
           .map((p) => `<p>${p}</p>`)
           .join("");
+        contributeInfoUiRenderedLang = activeLangBase === "ro" ? "ro" : "en";
         if (contributeForm) {
           contributeForm.reset();
           contributeForm.hidden = mode === "representative";
@@ -8765,13 +9855,12 @@
           const articleSubmitBtn =
             contributeForm.querySelector('[type="submit"]');
           if (articleSubmitBtn) {
+            const ui = getResourceUiCopy();
             articleSubmitBtn.textContent = contributeContext.editEntryTarget
-              ? "Save changes"
+              ? ui.saveChanges
               : contributeContext.directPublish
-                ? activeLang === "ro"
-                  ? "Postează"
-                  : "Post"
-                : "Send for review";
+                ? ui.post
+                : ui.sendForReview;
           }
           if (contributeRemoveBtn) {
             const shouldShowRemove = Boolean(contributeContext.editEntryTarget);
@@ -8796,10 +9885,7 @@
                 initializeResourceFormForCountry(countryId);
               }
             } catch (_resourceInitError) {
-              setContributeStatus(
-                "Could not load editor data. Please close and try again.",
-                "error",
-              );
+              setContributeStatus(getResourceUiText("couldNotLoadEditorData"), "error");
             }
           }
         }
@@ -8817,29 +9903,17 @@
           if (repSubmitBtn) repSubmitBtn.textContent = repCopy.submit;
         }
         resetContributeRepCrop();
-        const leadCountry = countryName || countryId || "this country";
-        const leadText =
-          mode === "representative"
-            ? activeLang === "ro"
-              ? `Trimite o recomandare de reprezentant pentru ${leadCountry}.`
-              : `Share a representative suggestion for ${leadCountry}.`
-            : contributeContext.editEntryTarget
-              ? `Edit this ${pillarLabel || "resource"} entry for ${leadCountry}.`
-              : contributeContext.directPublish
-                ? activeLang === "ro"
-                  ? `Publică direct un articol pentru ${leadCountry}.`
-                  : `Publish an article directly for ${leadCountry}.`
-                : `Share a verified ${pillarLabel || "pillar"} suggestion for ${leadCountry}.`;
-        const leadNode = contributeModal.querySelector(
-          ".contribute-modal-lead",
-        );
-        if (leadNode) leadNode.textContent = leadText;
+        applyContributeModeCopy();
         setContributeStatus("");
         setContributeRepStatus("");
         resetContributeRemoveConfirm();
+        localizeContributeFormUi(activeLangBase);
         contributeModal.classList.add("is-visible");
         contributeModal.setAttribute("aria-hidden", "false");
         syncGlobalScrollLock();
+        window.setTimeout(() => {
+          localizeContributeFormUi(activeLangBase);
+        }, 60);
       }
 
       function closeContributeModal() {
@@ -9164,9 +10238,9 @@
         }
         modalRoot.classList.remove("is-closing");
         const localizedHtml =
-          activeLang === "en"
+          activeLangBase === "en"
             ? html || ""
-            : await translateHtmlString(html || "", activeLang);
+            : await translateHtmlString(html || "", activeLangBase);
         modalContent.innerHTML = localizedHtml;
         wireEntryExpanders();
         modalRoot.classList.add("is-visible");
@@ -9222,6 +10296,38 @@
             } else {
               pending.reject(new Error("Country HTML payload is missing."));
             }
+          }
+          return;
+        }
+        if (event.data.type === "ecva-label-overrides") {
+          const payload = event.data.payload || {};
+          const lang = normalizeUiLangCode(payload.lang);
+          const labels =
+            payload.labels && typeof payload.labels === "object"
+              ? payload.labels
+              : {};
+          labelOverridesByLang[lang] = { ...labels };
+          const requestId = String(payload.requestId || "");
+          if (requestId && pendingLabelOverrideRequests.has(requestId)) {
+            const pending = pendingLabelOverrideRequests.get(requestId);
+            pendingLabelOverrideRequests.delete(requestId);
+            if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+            if (pending && typeof pending.resolve === "function") {
+              pending.resolve({ ...labelOverridesByLang[lang] });
+            }
+          }
+          return;
+        }
+        if (event.data.type === "ecva-label-overrides-updated") {
+          const payload = event.data.payload || {};
+          const lang = normalizeUiLangCode(payload.lang);
+          const labels =
+            payload.labels && typeof payload.labels === "object"
+              ? payload.labels
+              : {};
+          labelOverridesByLang[lang] = { ...labels };
+          if (contributeModal && contributeModal.classList.contains("is-visible")) {
+            localizeContributeFormUi(activeLangBase);
           }
           return;
         }
@@ -9303,11 +10409,12 @@
           }
           if (!contributeRemoveBtn.classList.contains("is-confirm")) {
             contributeRemoveBtn.classList.add("is-confirm");
+            const confirmRemoveLabel = `${getResourceUiText("remove")}?`;
             contributeRemoveBtn.setAttribute(
               "aria-label",
-              "Confirm delete article",
+              confirmRemoveLabel,
             );
-            contributeRemoveBtn.setAttribute("title", "Confirm delete article");
+            contributeRemoveBtn.setAttribute("title", confirmRemoveLabel);
             if (contributeRemoveConfirmTimer) {
               window.clearTimeout(contributeRemoveConfirmTimer);
             }
@@ -9327,13 +10434,13 @@
               entryIndex: Number(target.entryIndex),
             })
           ) {
-            setContributeStatus("Could not remove article right now.", "error");
+            setContributeStatus(
+              getResourceUiText("couldNotRemoveArticleRightNow"),
+              "error",
+            );
             return;
           }
-          setContributeStatus(
-            activeLang === "ro" ? "Articol șters." : "Article deleted.",
-            "success",
-          );
+          setContributeStatus(getResourceUiText("articleDeleted"), "success");
           window.setTimeout(() => {
             closeContributeModal();
           }, 320);
@@ -9370,21 +10477,30 @@
             formData.get("ownershipName") || "",
           ).trim();
           if (!countryId) {
-            setContributeStatus("Missing country context.", "error");
+            setContributeStatus(getResourceUiText("missingCountryContext"), "error");
             return;
           }
           if (!pillarId) {
-            setContributeStatus("Missing pillar context.", "error");
+            setContributeStatus(getResourceUiText("missingPillarContext"), "error");
             return;
           }
           if (!title || !description) {
+            setContributeStatus(getResourceUiText("completeTitleAndDescription"), "error");
+            return;
+          }
+          const nativeLanguageCheck = validateNativeContentLanguage(
+            countryId,
+            title,
+            description,
+          );
+          if (!nativeLanguageCheck.ok) {
             setContributeStatus(
-              "Please complete title and description.",
+              nativeLanguageCheck.message || getResourceUiText("nativeLanguageWarning"),
               "error",
             );
             return;
           }
-          setContributeStatus("Uploading resource data...", "");
+          setContributeStatus(getResourceUiText("uploadingResourceData"), "");
           const submitBtn = contributeForm.querySelector('[type="submit"]');
           if (submitBtn) submitBtn.disabled = true;
           try {
@@ -9535,48 +10651,102 @@
               ) {
                 throw new Error("map_frame_not_ready");
               }
-              setContributeStatus("Changes saved.", "success");
+              setContributeStatus(getResourceUiText("changesSaved"), "success");
               window.setTimeout(() => {
                 closeContributeModal();
               }, 800);
             } else if (contributeContext.directPublish) {
-              const languageFlags = resourceLanguages
-                .map((item) => String(item.languageFlag || "").trim())
-                .filter(Boolean);
-              if (
-                !postToMapFrame("ecva-editor-add-entry", {
-                  countryId,
+              if (countryId === "GB") {
+                const languageFlags = resourceLanguages
+                  .map((item) => String(item.languageFlag || "").trim())
+                  .filter(Boolean);
+                if (
+                  !postToMapFrame("ecva-editor-add-entry", {
+                    countryId,
+                    pillarId,
+                    entry: {
+                      title,
+                      summary: description,
+                      description,
+                      languages: [...new Set(languageFlags)],
+                      ownership: {
+                        type: ownershipType,
+                        name: ownershipName,
+                      },
+                      resourceLanguages,
+                      representativeContact: {
+                        name: contactName,
+                        role: contactRole,
+                        email: contactEmail,
+                      },
+                    },
+                  })
+                ) {
+                  throw new Error("map_frame_not_ready");
+                }
+                setContributeStatus(
+                  getResourceUiText("articlePublished"),
+                  "success",
+                );
+                clearResourceDraft();
+                window.setTimeout(() => {
+                  closeContributeModal();
+                }, 900);
+              } else {
+                const submission = {
+                  id: `${countryId}-${Date.now()}-${Math.random()
+                    .toString(36)
+                    .slice(2, 7)}`,
+                  type: "article",
+                  status: "new",
                   pillarId,
-                  entry: {
-                    title,
-                    summary: description,
-                    description,
-                    languages: [...new Set(languageFlags)],
-                    ownership: {
-                      type: ownershipType,
-                      name: ownershipName,
-                    },
-                    resourceLanguages,
-                    representativeContact: {
-                      name: contactName,
-                      role: contactRole,
-                      email: contactEmail,
-                    },
+                  pillarLabel: pillarLabel || "Pillar",
+                  title,
+                  nativeTitle: title,
+                  englishTitle: "",
+                  description,
+                  nativeDescription: description,
+                  englishDescription: "",
+                  translationChecked: false,
+                  translationSourceTitle: "",
+                  translationSourceDescription: "",
+                  translationCheckedAt: "",
+                  ownership: {
+                    type: ownershipType,
+                    name: ownershipName,
                   },
-                })
-              ) {
-                throw new Error("map_frame_not_ready");
+                  languageAvailability,
+                  links,
+                  attachments,
+                  resourceLanguages,
+                  submittedBy: {
+                    name: contactName,
+                    email: contactEmail,
+                  },
+                  representativeContact: {
+                    name: contactName,
+                    role: contactRole,
+                    email: contactEmail,
+                  },
+                  createdAt: new Date().toISOString(),
+                };
+                if (
+                  !postToMapFrame("ecva-editor-add-submission", {
+                    countryId,
+                    submission,
+                  })
+                ) {
+                  throw new Error("map_frame_not_ready");
+                }
+                setContributeStatus(
+                  getResourceUiText("entrySentForTranslationReview"),
+                  "success",
+                );
+                clearResourceDraft();
+                window.setTimeout(() => {
+                  closeContributeModal();
+                }, 1000);
               }
-              setContributeStatus(
-                activeLang === "ro"
-                  ? "Articol publicat."
-                  : "Article published.",
-                "success",
-              );
-              clearResourceDraft();
-              window.setTimeout(() => {
-                closeContributeModal();
-              }, 900);
             } else {
               const submission = {
                 id: `${countryId}-${Date.now()}-${Math.random()
@@ -9587,7 +10757,16 @@
                 pillarId,
                 pillarLabel: pillarLabel || "Pillar",
                 title,
+                nativeTitle: title,
+                englishTitle: countryId === "GB" ? title : "",
                 description,
+                nativeDescription: description,
+                englishDescription: countryId === "GB" ? description : "",
+                translationChecked: countryId === "GB",
+                translationSourceTitle: countryId === "GB" ? title : "",
+                translationSourceDescription: countryId === "GB" ? description : "",
+                translationCheckedAt:
+                  countryId === "GB" ? new Date().toISOString() : "",
                 ownership: {
                   type: ownershipType,
                   name: ownershipName,
@@ -9617,7 +10796,10 @@
               }
               runContributeConfetti();
               triggerContributeSuccessFlow();
-              setContributeStatus("Suggestion sent for review.", "success");
+              setContributeStatus(
+                getResourceUiText("suggestionSentForReview"),
+                "success",
+              );
               clearResourceDraft();
               window.setTimeout(() => {
                 closeContributeModal();
@@ -9629,31 +10811,28 @@
               "missing_language_selection"
             ) {
               setContributeStatus(
-                "Select a language for each resource version.",
+                getResourceUiText("selectLanguagePerVersion"),
                 "error",
               );
             } else if (
               String((error && error.message) || "") === "missing_resource_file"
             ) {
               setContributeStatus(
-                "Upload a file for each selected file-based resource type.",
+                getResourceUiText("uploadFilePerSelectedType"),
                 "error",
               );
             } else if (
               String((error && error.message) || "") ===
               "attachment_file_too_large"
             ) {
-              setContributeStatus(
-                "File too large. Maximum allowed size is 15MB per file.",
-                "error",
-              );
+              setContributeStatus(getResourceUiText("fileTooLargeError"), "error");
             } else if (
               String((error && error.message) || "") === "missing_edit_target"
             ) {
-              setContributeStatus("Edit target is missing.", "error");
+              setContributeStatus(getResourceUiText("editTargetMissing"), "error");
             } else {
               setContributeStatus(
-                "Could not submit your suggestion. Please try again.",
+                getResourceUiText("submitSuggestionFailed"),
                 "error",
               );
             }
@@ -9929,9 +11108,9 @@
           .map((item) => `<option value="${item.code}">${item.label}</option>`)
           .join("");
         embedLanguageSelect.value = embedLanguageOptions.some(
-          (item) => item.code === activeLang,
+          (item) => item.code === activeLangBase,
         )
-          ? activeLang
+          ? activeLangBase
           : "en";
         embedLanguageSelect.addEventListener("change", refreshEmbedCodePreview);
         refreshEmbedCodePreview();
@@ -9997,7 +11176,7 @@
       initEmbedUiText();
       translateElementText(
         document.querySelector(".mobile-legend"),
-        activeLang,
+        activeLangBase,
       );
       renderLanguageSwitch();
       syncGlobalScrollLock();

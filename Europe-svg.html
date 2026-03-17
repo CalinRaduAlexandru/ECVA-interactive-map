@@ -1214,6 +1214,7 @@
             };
 
             const countryInboxByCountry = {};
+            const uiLabelOverridesByLang = {};
             const EDITOR_STATE_META = { inboxSchemaVersion: 2 };
 
             const pillarTemplate = [
@@ -2567,12 +2568,35 @@
               return JSON.parse(JSON.stringify(getCountryInbox(code)));
             }
 
+            function normalizeLangKey(rawLang) {
+              const value = String(rawLang || "").trim().toLowerCase();
+              if (!/^[a-z]{2}(?:-[a-z]{2})?$/.test(value)) return "en";
+              return value.slice(0, 2);
+            }
+
+            function getLabelOverridesPayload(rawLang) {
+              const lang = normalizeLangKey(rawLang);
+              const source =
+                uiLabelOverridesByLang[lang] &&
+                typeof uiLabelOverridesByLang[lang] === "object"
+                  ? uiLabelOverridesByLang[lang]
+                  : {};
+              const payload = {};
+              Object.entries(source).forEach(([key, value]) => {
+                const normalizedKey = String(key || "").trim();
+                if (!normalizedKey) return;
+                payload[normalizedKey] = String(value || "").trim();
+              });
+              return payload;
+            }
+
             function getEditorStateSnapshot() {
               const snapshot = JSON.parse(JSON.stringify(pillarConfigByCountry));
               snapshot.__representatives = JSON.parse(JSON.stringify(representativesByCountry));
               snapshot.__countryStatus = JSON.parse(JSON.stringify(countryStatus));
               snapshot.__countryInbox = JSON.parse(JSON.stringify(countryInboxByCountry));
               snapshot.__accessCodes = JSON.parse(JSON.stringify(countryAccessCodesByCountry));
+              snapshot.__uiLabelOverrides = JSON.parse(JSON.stringify(uiLabelOverridesByLang));
               snapshot.__meta = { ...EDITOR_STATE_META };
               return snapshot;
             }
@@ -2631,6 +2655,11 @@
                 nextState.__accessCodes && typeof nextState.__accessCodes === "object"
                   ? nextState.__accessCodes
                   : null;
+              const uiLabelOverridesState =
+                nextState.__uiLabelOverrides &&
+                typeof nextState.__uiLabelOverrides === "object"
+                  ? nextState.__uiLabelOverrides
+                  : null;
               if (storedInboxSchemaVersion < EDITOR_STATE_META.inboxSchemaVersion) {
                 Object.keys(countryInboxByCountry).forEach((countryId) => {
                   delete countryInboxByCountry[countryId];
@@ -2657,6 +2686,21 @@
                   const normalizedCode = String(code || "").trim().toLowerCase();
                   if (!normalizedCode) return;
                   countryAccessCodesByCountry[normalizedCountry] = normalizedCode;
+                });
+              }
+              if (uiLabelOverridesState) {
+                Object.keys(uiLabelOverridesByLang).forEach((lang) => {
+                  delete uiLabelOverridesByLang[lang];
+                });
+                Object.entries(uiLabelOverridesState).forEach(([lang, labels]) => {
+                  const normalizedLang = normalizeLangKey(lang);
+                  if (!labels || typeof labels !== "object") return;
+                  uiLabelOverridesByLang[normalizedLang] = {};
+                  Object.entries(labels).forEach(([key, value]) => {
+                    const normalizedKey = String(key || "").trim();
+                    if (!normalizedKey) return;
+                    uiLabelOverridesByLang[normalizedLang][normalizedKey] = String(value || "").trim();
+                  });
                 });
               }
 
@@ -2707,6 +2751,11 @@
             function normalizeSubmissionRecord(countryId, rawSubmission) {
               const code = String(countryId || "").trim().toUpperCase();
               if (!code || !rawSubmission || typeof rawSubmission !== "object") return null;
+              const mode =
+                String(rawSubmission.type || "").trim().toLowerCase() === "representative"
+                  ? "representative"
+                  : "article";
+              const translationRequired = mode === "article" && code !== "GB";
               const legacyRepresentativeName = String(
                 rawSubmission.representativeName || rawSubmission.name || "",
               ).trim();
@@ -2819,27 +2868,51 @@
                             : null,
                       }
                     : null;
+              const nativeTitle =
+                String(rawSubmission.nativeTitle || rawSubmission.title || "").trim() ||
+                legacyRepresentativeName;
+              const nativeDescription =
+                String(rawSubmission.nativeDescription || rawSubmission.description || "").trim() ||
+                [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
+                  .filter(Boolean)
+                  .join(" • ");
+              const translationChecked = translationRequired
+                ? Boolean(rawSubmission.translationChecked)
+                : true;
+              const englishTitleRaw = String(rawSubmission.englishTitle || "").trim();
+              const englishDescriptionRaw = String(
+                rawSubmission.englishDescription || "",
+              ).trim();
+              const englishTitle = translationRequired
+                ? englishTitleRaw
+                : englishTitleRaw || nativeTitle;
+              const englishDescription = translationRequired
+                ? englishDescriptionRaw
+                : englishDescriptionRaw || nativeDescription;
               return {
                 id:
                   String(rawSubmission.id || "").trim() ||
                   `${code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
                 countryId: code,
-                type:
-                  String(rawSubmission.type || "").trim().toLowerCase() === "representative"
-                    ? "representative"
-                    : "article",
+                type: mode,
                 status: normalizeSubmissionStatus(rawSubmission.status),
                 pillarId: String(rawSubmission.pillarId || "").trim().toLowerCase(),
                 pillarLabel: String(rawSubmission.pillarLabel || "").trim(),
-                title:
-                  String(rawSubmission.title || "").trim() ||
-                  legacyRepresentativeName,
+                title: nativeTitle,
+                nativeTitle,
+                englishTitle,
                 subtitle: String(rawSubmission.subtitle || "").trim(),
-                description:
-                  String(rawSubmission.description || "").trim() ||
-                  [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
-                    .filter(Boolean)
-                    .join(" • "),
+                description: nativeDescription,
+                nativeDescription,
+                englishDescription,
+                translationChecked,
+                translationSourceTitle: String(
+                  rawSubmission.translationSourceTitle || "",
+                ).trim(),
+                translationSourceDescription: String(
+                  rawSubmission.translationSourceDescription || "",
+                ).trim(),
+                translationCheckedAt: String(rawSubmission.translationCheckedAt || "").trim(),
                 languageAvailability: String(rawSubmission.languageAvailability || "").trim(),
                 ownership,
                 links,
@@ -2892,6 +2965,25 @@
               return { countryId, accessCode };
             }
 
+            function updateLabelOverridesFromEditor(payload) {
+              if (!payload || typeof payload !== "object") return null;
+              const lang = normalizeLangKey(payload.lang);
+              const labels =
+                payload.labels && typeof payload.labels === "object"
+                  ? payload.labels
+                  : {};
+              const nextLabels = {};
+              Object.entries(labels).forEach(([key, value]) => {
+                const normalizedKey = String(key || "").trim();
+                if (!normalizedKey) return;
+                const normalizedValue = String(value || "").trim();
+                if (!normalizedValue) return;
+                nextLabels[normalizedKey] = normalizedValue;
+              });
+              uiLabelOverridesByLang[lang] = nextLabels;
+              return { lang, labels: nextLabels };
+            }
+
             function updateSubmissionFromEditor(payload) {
               if (!payload || typeof payload !== "object") return null;
               const countryId = String(payload.countryId || "").trim().toUpperCase();
@@ -2906,9 +2998,41 @@
               if (!record) return null;
               if (typeof fields.title === "string") {
                 record.title = String(fields.title || "").trim();
+                record.nativeTitle = record.title;
               }
               if (typeof fields.description === "string") {
                 record.description = String(fields.description || "").trim();
+                record.nativeDescription = record.description;
+              }
+              if (typeof fields.nativeTitle === "string") {
+                record.nativeTitle = String(fields.nativeTitle || "").trim();
+                record.title = record.nativeTitle;
+              }
+              if (typeof fields.nativeDescription === "string") {
+                record.nativeDescription = String(fields.nativeDescription || "").trim();
+                record.description = record.nativeDescription;
+              }
+              if (typeof fields.englishTitle === "string") {
+                record.englishTitle = String(fields.englishTitle || "").trim();
+              }
+              if (typeof fields.englishDescription === "string") {
+                record.englishDescription = String(fields.englishDescription || "").trim();
+              }
+              if (typeof fields.translationChecked === "boolean") {
+                record.translationChecked = Boolean(fields.translationChecked);
+              }
+              if (typeof fields.translationSourceTitle === "string") {
+                record.translationSourceTitle = String(
+                  fields.translationSourceTitle || "",
+                ).trim();
+              }
+              if (typeof fields.translationSourceDescription === "string") {
+                record.translationSourceDescription = String(
+                  fields.translationSourceDescription || "",
+                ).trim();
+              }
+              if (typeof fields.translationCheckedAt === "string") {
+                record.translationCheckedAt = String(fields.translationCheckedAt || "").trim();
               }
               if (typeof fields.subtitle === "string") {
                 record.subtitle = String(fields.subtitle || "").trim();
@@ -2988,6 +3112,21 @@
                       ? crop
                       : null,
                 };
+              }
+              if (String(record.type || "").trim().toLowerCase() === "article") {
+                if (countryId === "GB") {
+                  record.translationChecked = true;
+                  record.englishTitle = String(record.englishTitle || record.nativeTitle || record.title || "").trim();
+                  record.englishDescription = String(
+                    record.englishDescription ||
+                      record.nativeDescription ||
+                      record.description ||
+                      "",
+                  ).trim();
+                } else if (!record.translationChecked) {
+                  record.englishTitle = String(record.englishTitle || "").trim();
+                  record.englishDescription = String(record.englishDescription || "").trim();
+                }
               }
               record.updatedAt = new Date().toISOString();
               return { countryId, submissionId };
@@ -4001,6 +4140,23 @@
                 return;
               }
 
+              if (type === "ecva-request-label-overrides") {
+                const lang = normalizeLangKey(payload.lang);
+                const requestId = String(payload.requestId || "").trim();
+                window.parent.postMessage(
+                  {
+                    type: "ecva-label-overrides",
+                    payload: {
+                      lang,
+                      requestId,
+                      labels: getLabelOverridesPayload(lang),
+                    },
+                  },
+                  "*",
+                );
+                return;
+              }
+
               if (type === "ecva-editor-update-country-status") {
                 const updated = updateCountryStatusFromEditor(payload);
                 if (!updated) return;
@@ -4258,6 +4414,29 @@
                   {
                     type: "ecva-editor-state-changed",
                     payload: { state: getEditorStateSnapshot(), countryId: updated.countryId },
+                  },
+                  "*",
+                );
+                return;
+              }
+
+              if (type === "ecva-editor-update-label-overrides") {
+                const updated = updateLabelOverridesFromEditor(payload);
+                if (!updated) return;
+                window.parent.postMessage(
+                  {
+                    type: "ecva-label-overrides-updated",
+                    payload: {
+                      lang: updated.lang,
+                      labels: getLabelOverridesPayload(updated.lang),
+                    },
+                  },
+                  "*",
+                );
+                window.parent.postMessage(
+                  {
+                    type: "ecva-editor-state-changed",
+                    payload: { state: getEditorStateSnapshot() },
                   },
                   "*",
                 );

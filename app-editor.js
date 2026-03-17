@@ -21,6 +21,28 @@
   const editorTitle = document.getElementById("ecva-editor-title");
   const editorSubtitle = document.getElementById("ecva-editor-subtitle");
   const editorDescription = document.getElementById("ecva-editor-description");
+  const editorTranslationBlock = document.getElementById(
+    "ecva-editor-translation-block",
+  );
+  const editorReviewBand = document.getElementById("ecva-editor-review-band");
+  const editorTranslationNote = document.getElementById(
+    "ecva-editor-translation-note",
+  );
+  const editorCheckTranslationBtn = document.getElementById(
+    "ecva-editor-check-translation-btn",
+  );
+  const editorNativeTitlePreview = document.getElementById(
+    "ecva-editor-native-title-preview",
+  );
+  const editorNativeDescriptionPreview = document.getElementById(
+    "ecva-editor-native-description-preview",
+  );
+  const editorEnglishTitlePreview = document.getElementById(
+    "ecva-editor-english-title-preview",
+  );
+  const editorEnglishDescriptionPreview = document.getElementById(
+    "ecva-editor-english-description-preview",
+  );
   const editorLanguageAvailability = document.getElementById(
     "ecva-editor-language",
   );
@@ -44,6 +66,7 @@
   const editorCropStatus = document.getElementById("ecva-editor-crop-status");
   const editorCancelBtn = document.getElementById("ecva-editor-cancel-btn");
   const editorRemoveBtn = document.getElementById("ecva-editor-remove-btn");
+  const editorSaveBtn = document.getElementById("ecva-editor-save-btn");
 
   const toast = document.getElementById("ecva-toast");
   const mobileLegendLogo = document.querySelector(
@@ -54,8 +77,136 @@
   const EDITOR_API = "/api/editor-data";
   const EDITOR_VERSIONS_API = "/api/editor-data/versions";
   const UPLOAD_API = "/api/upload-image";
+  const TRANSLATE_BATCH_API = "/api/translate-batch";
   const GLOBAL_ACCESS_CODES = new Set();
   const INVALID_CODE_MESSAGE = "Invalid code";
+  const normalizeLanguageCode = (rawLang) => {
+    const value = String(rawLang || "")
+      .trim()
+      .toLowerCase();
+    if (!/^[a-z]{2}(?:-[a-z]{2})?$/.test(value)) return "en";
+    return value.slice(0, 2);
+  };
+  const COUNTRY_PRIMARY_LANGUAGE = {
+    AD: "ca",
+    AL: "sq",
+    AM: "hy",
+    AT: "de",
+    BA: "bs",
+    BE: "nl",
+    BG: "bg",
+    BY: "be",
+    CH: "de",
+    CY: "el",
+    CZ: "cs",
+    DE: "de",
+    DK: "da",
+    EE: "et",
+    ES: "es",
+    FI: "fi",
+    FR: "fr",
+    GB: "en",
+    GE: "ka",
+    GR: "el",
+    HR: "hr",
+    HU: "hu",
+    IE: "en",
+    IS: "is",
+    IT: "it",
+    LT: "lt",
+    LU: "lb",
+    LV: "lv",
+    MD: "ro",
+    ME: "sr",
+    MK: "mk",
+    NL: "nl",
+    NO: "no",
+    PL: "pl",
+    PT: "pt",
+    RO: "ro",
+    RS: "sr",
+    SE: "sv",
+    SI: "sl",
+    SK: "sk",
+    TR: "tr",
+    UA: "uk",
+  };
+  const LANGUAGE_ENDONYMS = {
+    en: "English",
+    ro: "Romana",
+    fr: "Français",
+    de: "Deutsch",
+    es: "Espanol",
+    cs: "Cestina",
+    da: "Dansk",
+    et: "Eesti",
+    fi: "Suomi",
+    el: "Ellinika",
+    is: "Islenska",
+    no: "Norsk",
+    sv: "Svenska",
+    nl: "Nederlands",
+    bg: "Bulgarski",
+    be: "Belaruskaya",
+    sq: "Shqip",
+    hy: "Hayeren",
+    bs: "Bosanski",
+    ka: "Kartuli",
+    hr: "Hrvatski",
+    hu: "Magyar",
+    it: "Italiano",
+    lt: "Lietuviu",
+    lb: "Letzebuergesch",
+    lv: "Latviesu",
+    sr: "Srpski",
+    mk: "Makedonski",
+    pl: "Polski",
+    pt: "Portugues",
+    sl: "Slovenscina",
+    sk: "Slovencina",
+    tr: "Turkce",
+    uk: "Ukrainska",
+    ca: "Catala",
+  };
+  const RESOURCE_UI_BASE_SOURCE =
+    window.__ECVA_RESOURCE_UI_BASE &&
+    typeof window.__ECVA_RESOURCE_UI_BASE === "object"
+      ? window.__ECVA_RESOURCE_UI_BASE
+      : {};
+  const RESOURCE_UI_LABEL_SCHEMA_SOURCE = Array.isArray(
+    window.__ECVA_RESOURCE_UI_LABEL_SCHEMA,
+  )
+    ? window.__ECVA_RESOURCE_UI_LABEL_SCHEMA
+    : Object.keys(RESOURCE_UI_BASE_SOURCE).map((key) => ({
+        key,
+        group: "general",
+        english: String(RESOURCE_UI_BASE_SOURCE[key] || ""),
+      }));
+  const RESOURCE_LABEL_GROUP_LABELS = {
+    modal: "Modal",
+    form: "Form",
+    language_card: "Language Card",
+    options: "Options",
+    validation: "Validation",
+    status: "Status",
+    general: "General",
+  };
+  const RESOURCE_LABEL_SCHEMA = RESOURCE_UI_LABEL_SCHEMA_SOURCE.map((item) => {
+    const key = String(item && item.key ? item.key : "").trim();
+    const english = String(item && item.english ? item.english : "").trim();
+    const group = String(item && item.group ? item.group : "general")
+      .trim()
+      .toLowerCase();
+    return { key, english, group: group || "general" };
+  })
+    .filter((item) => item.key)
+    .sort((a, b) => {
+      const groupA = RESOURCE_LABEL_GROUP_LABELS[a.group] || a.group;
+      const groupB = RESOURCE_LABEL_GROUP_LABELS[b.group] || b.group;
+      const byGroup = String(groupA).localeCompare(String(groupB));
+      if (byGroup !== 0) return byGroup;
+      return String(a.key).localeCompare(String(b.key));
+    });
 
   function getCurrentLang() {
     const query = new URLSearchParams(window.location.search);
@@ -64,12 +215,8 @@
     )
       .trim()
       .toLowerCase();
-    if (fromQuery) return fromQuery;
-    return (
-      String(document.documentElement.lang || "en")
-        .trim()
-        .toLowerCase() || "en"
-    );
+    if (fromQuery) return normalizeLanguageCode(fromQuery);
+    return normalizeLanguageCode(document.documentElement.lang || "en");
   }
 
   function canEditContent() {
@@ -93,6 +240,92 @@
   function displayCountryCode(rawCode) {
     const normalized = normalizeManageCountryCode(rawCode);
     return normalized === "GB" ? "UK" : normalized;
+  }
+
+  function requiresSubmissionTranslation(rawCountryCode, rawType) {
+    const mode = String(rawType || "article")
+      .trim()
+      .toLowerCase();
+    if (mode === "representative") return false;
+    return normalizeManageCountryCode(rawCountryCode) !== "GB";
+  }
+
+  function getCountryPrimaryLanguage(rawCountryCode) {
+    const countryCode = normalizeManageCountryCode(rawCountryCode);
+    if (!countryCode) return "en";
+    return normalizeLanguageCode(COUNTRY_PRIMARY_LANGUAGE[countryCode] || "en");
+  }
+
+  function getLanguageDisplayLabel(rawLang) {
+    const lang = normalizeLanguageCode(rawLang);
+    return String(LANGUAGE_ENDONYMS[lang] || lang.toUpperCase());
+  }
+
+  function getAvailableLanguageCodes() {
+    const set = new Set();
+    Object.values(COUNTRY_PRIMARY_LANGUAGE).forEach((lang) => {
+      const code = normalizeLanguageCode(lang);
+      if (code && code !== "en") set.add(code);
+    });
+    if (!set.size) {
+      const current = normalizeLanguageCode(getCurrentLang());
+      if (current && current !== "en") set.add(current);
+    }
+    return Array.from(set).sort((a, b) =>
+      getLanguageDisplayLabel(a).localeCompare(getLanguageDisplayLabel(b)),
+    );
+  }
+
+  function getDefaultLabelManageLanguage() {
+    const selected = normalizeManageCountryCode(selectedCountryId);
+    if (selected) {
+      const selectedLang = getCountryPrimaryLanguage(selected);
+      if (selectedLang && selectedLang !== "en") return selectedLang;
+    }
+    if (accessScope.mode === "country") {
+      const scopedLang = getCountryPrimaryLanguage(accessScope.countryId);
+      if (scopedLang && scopedLang !== "en") return scopedLang;
+    }
+    const current = normalizeLanguageCode(getCurrentLang());
+    if (current && current !== "en") return current;
+    const langs = getAvailableLanguageCodes();
+    return langs[0] || "ro";
+  }
+
+  function sanitizeLabelOverrides(raw) {
+    const input = raw && typeof raw === "object" ? raw : {};
+    const out = {};
+    Object.entries(input).forEach(([key, value]) => {
+      const normalizedKey = String(key || "").trim();
+      if (!normalizedKey) return;
+      const normalizedValue = String(value || "").trim();
+      if (!normalizedValue) return;
+      out[normalizedKey] = normalizedValue;
+    });
+    return out;
+  }
+
+  function setLabelOverridesForLang(rawLang, rawLabels) {
+    const lang = normalizeLanguageCode(rawLang);
+    labelOverridesByLang[lang] = sanitizeLabelOverrides(rawLabels);
+    return { ...labelOverridesByLang[lang] };
+  }
+
+  function getLabelOverridesForLang(rawLang) {
+    const lang = normalizeLanguageCode(rawLang);
+    const source =
+      labelOverridesByLang[lang] && typeof labelOverridesByLang[lang] === "object"
+        ? labelOverridesByLang[lang]
+        : {};
+    return sanitizeLabelOverrides(source);
+  }
+
+  function ensureLabelDraft(rawLang) {
+    const lang = normalizeLanguageCode(rawLang);
+    if (!labelDraftByLang[lang] || typeof labelDraftByLang[lang] !== "object") {
+      labelDraftByLang[lang] = getLabelOverridesForLang(lang);
+    }
+    return labelDraftByLang[lang];
   }
 
   function buildCountryAccessCode(rawCode, salt) {
@@ -292,8 +525,23 @@
   let representativeManageCloseBtn = null;
   let representativeManageAddBtn = null;
   let representativeManageCountryId = "";
+  let labelManageBtn = null;
+  let labelManageModal = null;
+  let labelManageCloseBtn = null;
+  let labelManageLangSelect = null;
+  let labelManageSearchInput = null;
+  let labelManageList = null;
+  let labelManageSaveBtn = null;
+  let labelManageResetBtn = null;
+  let labelManageNotice = null;
+  let labelManageLanguage = "en";
+  let labelOverridesByLang = {};
+  let labelDraftByLang = {};
+  let pendingLabelOverrideRequests = new Map();
+  let labelOverrideRequestCounter = 0;
   let removeConfirmTimer = null;
   let pendingEntryDataRequests = new Map();
+  let submissionTranslationState = null;
 
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
@@ -903,6 +1151,7 @@
       (editorModal && editorModal.classList.contains("is-visible")) ||
       (versionHistoryModal &&
         versionHistoryModal.classList.contains("is-visible")) ||
+      (labelManageModal && labelManageModal.classList.contains("is-visible")) ||
       (representativeManageModal &&
         representativeManageModal.classList.contains("is-visible")) ||
       (resetCodeModal && resetCodeModal.classList.contains("is-visible")),
@@ -1015,6 +1264,8 @@
     syncAdminOverlayScrollLock();
     ensureVersionHistoryUi();
     ensureVersionHistoryButton();
+    ensureLabelManageUi();
+    ensureLabelManageButton();
     updateVersionHistoryButtonVisibility();
     if (requestFreshCountries) {
       postToMap("ecva-request-active-countries");
@@ -1054,11 +1305,21 @@
     closeResetCodeConfirm();
     closeEditorModal();
     closeVersionHistoryModal();
+    closeLabelManageModal();
     closeRepresentativeManageModal();
     pendingInboxRequests.forEach((pending) => {
       if (pending && pending.timeout) window.clearTimeout(pending.timeout);
     });
     pendingInboxRequests.clear();
+    pendingLabelOverrideRequests.forEach((pending) => {
+      if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+      if (pending && typeof pending.resolve === "function") {
+        pending.resolve(
+          getLabelOverridesForLang(pending && pending.lang ? pending.lang : "en"),
+        );
+      }
+    });
+    pendingLabelOverrideRequests.clear();
     releaseFocusBeforeHide(manageRoot, manageBtn || closeManageBtn);
     manageRoot.classList.remove("is-visible");
     manageRoot.setAttribute("aria-hidden", "true");
@@ -1176,6 +1437,315 @@
     releaseFocusBeforeHide(versionHistoryModal, closeManageBtn || manageBtn);
     versionHistoryModal.classList.remove("is-visible");
     versionHistoryModal.setAttribute("aria-hidden", "true");
+    syncAdminOverlayScrollLock();
+  }
+
+  function getResourceLabelSchemaRows(rawLang, searchText) {
+    const lang = normalizeLanguageCode(rawLang);
+    const draft = ensureLabelDraft(lang);
+    const term = String(searchText || "")
+      .trim()
+      .toLowerCase();
+    return RESOURCE_LABEL_SCHEMA.filter((item) => {
+      if (!term) return true;
+      const key = String(item.key || "").toLowerCase();
+      const english = String(item.english || "").toLowerCase();
+      const draftValue = String(draft[item.key] || "").toLowerCase();
+      const group = String(
+        RESOURCE_LABEL_GROUP_LABELS[item.group] || item.group || "",
+      ).toLowerCase();
+      return (
+        key.includes(term) ||
+        english.includes(term) ||
+        draftValue.includes(term) ||
+        group.includes(term)
+      );
+    });
+  }
+
+  function renderLabelManageList() {
+    if (!labelManageList || !labelManageLangSelect) return;
+    const lang = normalizeLanguageCode(
+      labelManageLangSelect.value || labelManageLanguage,
+    );
+    labelManageLanguage = lang;
+    const draft = ensureLabelDraft(lang);
+    const rows = getResourceLabelSchemaRows(
+      lang,
+      labelManageSearchInput && labelManageSearchInput.value
+        ? labelManageSearchInput.value
+        : "",
+    );
+    const langLabel = getLanguageDisplayLabel(lang);
+    if (!rows.length) {
+      labelManageList.innerHTML =
+        '<p class="ecva-label-manage-empty">No labels match this search.</p>';
+      return;
+    }
+    labelManageList.innerHTML = rows
+      .map((item) => {
+        const key = String(item.key || "");
+        const group = String(item.group || "general");
+        const groupLabel = String(
+          RESOURCE_LABEL_GROUP_LABELS[group] || group || "General",
+        );
+        const english = String(item.english || "");
+        const value = String(draft[key] || "");
+        return `
+          <article class="ecva-label-manage-row" data-label-key="${escapeHtml(key)}">
+            <header class="ecva-label-manage-row-head">
+              <span class="ecva-label-manage-group">${escapeHtml(groupLabel)}</span>
+              <code>${escapeHtml(key)}</code>
+            </header>
+            <div class="ecva-label-manage-row-grid">
+              <label>
+                <span>English</span>
+                <textarea readonly>${escapeHtml(english)}</textarea>
+              </label>
+              <label>
+                <span>${escapeHtml(langLabel)}</span>
+                <textarea data-label-input="${escapeHtml(key)}" placeholder="Custom translation">${escapeHtml(value)}</textarea>
+              </label>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+    labelManageList
+      .querySelectorAll("textarea[data-label-input]")
+      .forEach((inputEl) => {
+        inputEl.addEventListener("input", () => {
+          const key = String(
+            inputEl.getAttribute("data-label-input") || "",
+          ).trim();
+          if (!key) return;
+          const nextValue = String(inputEl.value || "").trim();
+          if (!nextValue) {
+            delete draft[key];
+          } else {
+            draft[key] = nextValue;
+          }
+        });
+      });
+  }
+
+  function updateLabelManageNotice(message, isError) {
+    if (!labelManageNotice) return;
+    labelManageNotice.textContent = String(message || "");
+    labelManageNotice.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function populateLabelManageLanguageOptions() {
+    if (!labelManageLangSelect) return;
+    const langs = getAvailableLanguageCodes();
+    const preferred = getDefaultLabelManageLanguage();
+    if (preferred && preferred !== "en" && !langs.includes(preferred)) {
+      langs.unshift(preferred);
+    }
+    const uniqueLangs = Array.from(new Set(langs.filter(Boolean)));
+    labelManageLangSelect.innerHTML = uniqueLangs
+      .map(
+        (lang) =>
+          `<option value="${escapeHtml(lang)}">${escapeHtml(getLanguageDisplayLabel(lang))}</option>`,
+      )
+      .join("");
+    const selectedCandidate = normalizeLanguageCode(
+      labelManageLanguage || preferred,
+    );
+    labelManageLanguage = uniqueLangs.includes(selectedCandidate)
+      ? selectedCandidate
+      : uniqueLangs[0] || preferred || "ro";
+    labelManageLangSelect.value = labelManageLanguage;
+  }
+
+  function saveLabelOverridesFromModal() {
+    if (!labelManageLangSelect) return;
+    const lang = normalizeLanguageCode(labelManageLangSelect.value);
+    labelManageLanguage = lang;
+    if (lang === "en") {
+      updateLabelManageNotice("English is source text and cannot be overridden.", true);
+      return;
+    }
+    const draft = sanitizeLabelOverrides(ensureLabelDraft(lang));
+    labelDraftByLang[lang] = { ...draft };
+    setLabelOverridesForLang(lang, draft);
+    postToMap("ecva-editor-update-label-overrides", { lang, labels: draft });
+    updateLabelManageNotice("Translations saved.", false);
+    showToast("Label translations saved.");
+  }
+
+  function resetLabelOverridesForCurrentLanguage() {
+    if (!labelManageLangSelect) return;
+    const lang = normalizeLanguageCode(labelManageLangSelect.value);
+    if (lang === "en") {
+      updateLabelManageNotice("English is source text and cannot be reset.", true);
+      return;
+    }
+    labelDraftByLang[lang] = {};
+    setLabelOverridesForLang(lang, {});
+    postToMap("ecva-editor-update-label-overrides", { lang, labels: {} });
+    renderLabelManageList();
+    updateLabelManageNotice("Language overrides were reset.", false);
+    showToast("Language overrides reset.");
+  }
+
+  async function loadLabelOverridesIntoModal(rawLang) {
+    const lang = normalizeLanguageCode(rawLang);
+    labelManageLanguage = lang;
+    updateLabelManageNotice("Loading translations...", false);
+    const labels = await requestLabelOverrides(lang).catch(() => ({}));
+    setLabelOverridesForLang(lang, labels);
+    labelDraftByLang[lang] = { ...getLabelOverridesForLang(lang) };
+    renderLabelManageList();
+    updateLabelManageNotice("", false);
+  }
+
+  function ensureLabelManageUi() {
+    if (labelManageModal) return;
+    const style = document.createElement("style");
+    style.textContent = `
+      .ecva-label-manage-modal{position:fixed;inset:0;z-index:3340;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
+      .ecva-label-manage-modal.is-visible{display:flex}
+      .ecva-label-manage-dialog{width:min(980px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px}
+      .ecva-label-manage-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      .ecva-label-manage-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
+      .ecva-label-manage-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-label-manage-filters{display:grid;grid-template-columns:minmax(180px,240px) minmax(220px,1fr) auto auto;gap:8px;align-items:end}
+      .ecva-label-manage-filters label{display:grid;gap:4px;font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
+      .ecva-label-manage-filters select,.ecva-label-manage-filters input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 13px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
+      .ecva-label-manage-list{overflow:auto;display:grid;gap:8px;align-content:start;padding-right:2px}
+      .ecva-label-manage-row{border:1px solid rgba(141,161,172,.38);border-radius:12px;background:#fff;padding:10px;display:grid;gap:8px}
+      .ecva-label-manage-row-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      .ecva-label-manage-row-head code{font:700 12px/1.2 "IBM Plex Mono",monospace;color:#2a4552;background:#eef5f8;padding:3px 6px;border-radius:7px}
+      .ecva-label-manage-group{display:inline-flex;min-height:20px;align-items:center;padding:0 8px;border-radius:999px;border:1px solid rgba(121,145,157,.45);font:800 10px/1 "Alexandria",sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#2b4451;background:rgba(236,245,250,.9)}
+      .ecva-label-manage-row-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      .ecva-label-manage-row-grid label{display:grid;gap:4px}
+      .ecva-label-manage-row-grid label>span{font:700 11px/1.2 "Alexandria",sans-serif;color:#4c6a79}
+      .ecva-label-manage-row-grid textarea{min-height:64px;max-height:180px;resize:vertical;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 12px/1.4 "Alexandria",sans-serif;padding:8px 10px;box-sizing:border-box}
+      .ecva-label-manage-row-grid textarea[readonly]{background:#f0f5f8;color:#44606e}
+      .ecva-label-manage-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      .ecva-label-manage-notice{min-height:18px;font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
+      .ecva-label-manage-notice.is-error{color:#b42318}
+      .ecva-label-manage-empty{margin:0;padding:12px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
+      .ecva-label-manage-btn{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-label-manage-btn.primary{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
+      .ecva-label-manage-btn.danger{background:#fff0f0;color:#7d2d2d;border-color:rgba(160,93,93,.55)}
+      @media (max-width:900px){.ecva-label-manage-dialog{width:min(980px,calc(100vw - 14px));padding:12px}.ecva-label-manage-row-grid{grid-template-columns:1fr}.ecva-label-manage-filters{grid-template-columns:1fr 1fr}}
+    `;
+    document.head.appendChild(style);
+
+    const modal = document.createElement("div");
+    modal.className = "ecva-label-manage-modal";
+    modal.setAttribute("aria-hidden", "true");
+    modal.innerHTML = `
+      <section class="ecva-label-manage-dialog" role="dialog" aria-modal="true" aria-label="Label translations">
+        <header class="ecva-label-manage-head">
+          <h3 class="ecva-label-manage-title">Label translations</h3>
+          <button type="button" class="ecva-label-manage-close">Close</button>
+        </header>
+        <section class="ecva-label-manage-filters">
+          <label>
+            <span>Language</span>
+            <select class="ecva-label-manage-lang"></select>
+          </label>
+          <label>
+            <span>Search labels</span>
+            <input type="search" class="ecva-label-manage-search" placeholder="Search key or text" />
+          </label>
+          <button type="button" class="ecva-label-manage-btn danger">Reset language</button>
+          <button type="button" class="ecva-label-manage-btn primary">Save translations</button>
+        </section>
+        <div class="ecva-label-manage-list"></div>
+        <footer class="ecva-label-manage-foot">
+          <p class="ecva-label-manage-notice" aria-live="polite"></p>
+          <button type="button" class="ecva-label-manage-btn">Close</button>
+        </footer>
+      </section>
+    `;
+    document.body.appendChild(modal);
+
+    labelManageModal = modal;
+    labelManageCloseBtn = modal.querySelector(".ecva-label-manage-close");
+    labelManageLangSelect = modal.querySelector(".ecva-label-manage-lang");
+    labelManageSearchInput = modal.querySelector(".ecva-label-manage-search");
+    labelManageList = modal.querySelector(".ecva-label-manage-list");
+    labelManageSaveBtn = modal.querySelector(".ecva-label-manage-btn.primary");
+    labelManageResetBtn = modal.querySelector(".ecva-label-manage-btn.danger");
+    labelManageNotice = modal.querySelector(".ecva-label-manage-notice");
+    const footCloseBtn = modal.querySelector(".ecva-label-manage-foot .ecva-label-manage-btn");
+
+    labelManageCloseBtn?.addEventListener("click", closeLabelManageModal);
+    footCloseBtn?.addEventListener("click", closeLabelManageModal);
+    labelManageModal.addEventListener("click", (event) => {
+      if (event.target === labelManageModal) closeLabelManageModal();
+    });
+    labelManageSearchInput?.addEventListener("input", () => {
+      renderLabelManageList();
+    });
+    labelManageLangSelect?.addEventListener("change", async () => {
+      const lang = normalizeLanguageCode(labelManageLangSelect.value);
+      labelManageLanguage = lang;
+      if (!labelDraftByLang[lang]) {
+        await loadLabelOverridesIntoModal(lang);
+      } else {
+        renderLabelManageList();
+      }
+      updateLabelManageNotice("", false);
+    });
+    labelManageSaveBtn?.addEventListener("click", saveLabelOverridesFromModal);
+    labelManageResetBtn?.addEventListener(
+      "click",
+      resetLabelOverridesForCurrentLanguage,
+    );
+  }
+
+  function ensureLabelManageButton() {
+    if (!manageRoot) return;
+    if (labelManageBtn) return;
+    const topbar = manageRoot.querySelector(".ecva-manage-topbar");
+    if (!topbar) return;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "ecva-manage-close";
+    btn.textContent = "Label translations";
+    btn.addEventListener("click", openLabelManageModal);
+    const closeBtn = topbar.querySelector("#ecva-manage-close-btn");
+    if (closeBtn && closeBtn.parentNode === topbar) {
+      topbar.insertBefore(btn, closeBtn);
+    } else {
+      topbar.appendChild(btn);
+    }
+    labelManageBtn = btn;
+  }
+
+  async function openLabelManageModal() {
+    ensureLabelManageUi();
+    if (!labelManageModal || !labelManageLangSelect) return;
+    labelManageLanguage = getDefaultLabelManageLanguage();
+    populateLabelManageLanguageOptions();
+    if (!labelManageLangSelect.value) {
+      updateLabelManageNotice("No native language available.", true);
+      return;
+    }
+    const targetLang = normalizeLanguageCode(labelManageLangSelect.value);
+    await loadLabelOverridesIntoModal(targetLang);
+    jumpToCountryWindowTopAcrossContexts();
+    setAdminOverlayTopOffset(labelManageModal, 24);
+    labelManageModal.classList.add("is-visible");
+    labelManageModal.setAttribute("aria-hidden", "false");
+    syncAdminOverlayScrollLock();
+    if (labelManageSearchInput) {
+      labelManageSearchInput.value = "";
+      renderLabelManageList();
+      labelManageSearchInput.focus({ preventScroll: true });
+    }
+  }
+
+  function closeLabelManageModal() {
+    if (!labelManageModal) return;
+    releaseFocusBeforeHide(labelManageModal, closeManageBtn || manageBtn);
+    labelManageModal.classList.remove("is-visible");
+    labelManageModal.setAttribute("aria-hidden", "true");
     syncAdminOverlayScrollLock();
   }
 
@@ -1588,6 +2158,7 @@
       editorRemoveBtn.style.display = canRemove ? "inline-flex" : "none";
       resetEditorRemoveState();
     }
+    updateEditorSaveAvailability();
   }
 
   function setSubmissionEntryFieldsVisible(isVisible) {
@@ -1595,7 +2166,207 @@
     entryFieldsWrap.classList.toggle("is-submission", Boolean(isVisible));
   }
 
+  function isSubmissionArticleTarget(target) {
+    return Boolean(
+      target &&
+        typeof target === "object" &&
+        target.type === "submission-article" &&
+        String(target.countryId || "").trim(),
+    );
+  }
+
+  function updateEditorSaveAvailability() {
+    if (!editorSaveBtn) return;
+    const state = submissionTranslationState;
+    const needsCheck = Boolean(state && state.required);
+    const ready = !needsCheck || (state.checked && !state.checking);
+    editorSaveBtn.disabled = !ready;
+    if (state && state.checking) {
+      editorSaveBtn.textContent = "Checking...";
+    } else if (needsCheck && !ready) {
+      editorSaveBtn.textContent = "Save (translation required)";
+    } else {
+      editorSaveBtn.textContent = "Save";
+    }
+  }
+
+  function updateSubmissionTranslationPreview() {
+    const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
+    const nativeDescription = String(
+      (editorDescription && editorDescription.value) || "",
+    ).trim();
+    if (editorNativeTitlePreview) {
+      editorNativeTitlePreview.textContent = nativeTitle || "No title yet.";
+    }
+    if (editorNativeDescriptionPreview) {
+      editorNativeDescriptionPreview.textContent =
+        nativeDescription || "No description yet.";
+    }
+  }
+
+  function updateSubmissionTranslationUi() {
+    const state = submissionTranslationState;
+    const visible = Boolean(state && state.visible);
+    if (editorTranslationBlock) {
+      editorTranslationBlock.classList.toggle("is-visible", visible);
+    }
+    if (!visible) {
+      updateEditorSaveAvailability();
+      return;
+    }
+    updateSubmissionTranslationPreview();
+    const checked = Boolean(state.checked);
+    if (editorReviewBand) {
+      editorReviewBand.textContent = checked
+        ? "Translation review"
+        : "Content review";
+      editorReviewBand.classList.toggle("is-passed", checked);
+    }
+    if (editorTranslationNote) {
+      if (state.checking) {
+        editorTranslationNote.textContent = "Checking translation...";
+      } else if (checked) {
+        editorTranslationNote.textContent =
+          "Translation verified for current native text.";
+      } else {
+        editorTranslationNote.textContent =
+          "Edit native title/description and run Check translation before saving.";
+      }
+    }
+    if (editorEnglishTitlePreview) {
+      editorEnglishTitlePreview.textContent =
+        String(state.englishTitle || "").trim() || "Not checked yet.";
+    }
+    if (editorEnglishDescriptionPreview) {
+      editorEnglishDescriptionPreview.textContent =
+        String(state.englishDescription || "").trim() || "Not checked yet.";
+    }
+    if (editorCheckTranslationBtn) {
+      const canCheck =
+        !state.checking &&
+        (String((editorTitle && editorTitle.value) || "").trim() ||
+          String((editorDescription && editorDescription.value) || "").trim());
+      editorCheckTranslationBtn.disabled = !canCheck;
+      editorCheckTranslationBtn.textContent = state.checking
+        ? "Checking..."
+        : "Check translation";
+    }
+    updateEditorSaveAvailability();
+  }
+
+  function resetSubmissionTranslationState() {
+    submissionTranslationState = null;
+    if (editorEnglishTitlePreview) editorEnglishTitlePreview.textContent = "";
+    if (editorEnglishDescriptionPreview)
+      editorEnglishDescriptionPreview.textContent = "";
+    if (editorNativeTitlePreview) editorNativeTitlePreview.textContent = "";
+    if (editorNativeDescriptionPreview)
+      editorNativeDescriptionPreview.textContent = "";
+    updateSubmissionTranslationUi();
+  }
+
+  function invalidateSubmissionTranslationOnNativeEdit() {
+    const state = submissionTranslationState;
+    if (!state || !state.required) return;
+    const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
+    const nativeDescription = String(
+      (editorDescription && editorDescription.value) || "",
+    ).trim();
+    if (
+      nativeTitle === String(state.translationSourceTitle || "") &&
+      nativeDescription === String(state.translationSourceDescription || "")
+    ) {
+      state.checked = true;
+    } else {
+      state.checked = false;
+    }
+    updateSubmissionTranslationUi();
+  }
+
+  async function runSubmissionTranslationCheck() {
+    const state = submissionTranslationState;
+    const target = editorTarget;
+    if (!state || !state.required || !isSubmissionArticleTarget(target)) return;
+    const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
+    const nativeDescription = String(
+      (editorDescription && editorDescription.value) || "",
+    ).trim();
+    if (!nativeTitle && !nativeDescription) {
+      showToast("Add title or description before translation check.", true);
+      return;
+    }
+    state.checking = true;
+    updateSubmissionTranslationUi();
+    try {
+      const payload = {
+        sourceLang: "auto",
+        targetLang: "en",
+        texts: [nativeTitle, nativeDescription],
+      };
+      const response = await fetch(TRANSLATE_BATCH_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error(`translation_status_${response.status}`);
+      }
+      const data = await response.json();
+      const translated = Array.isArray(data && data.translated)
+        ? data.translated
+        : [nativeTitle, nativeDescription];
+      state.englishTitle = String(translated[0] || nativeTitle).trim();
+      state.englishDescription = String(translated[1] || nativeDescription).trim();
+      state.translationSourceTitle = nativeTitle;
+      state.translationSourceDescription = nativeDescription;
+      state.checked = true;
+      state.checkedAt = new Date().toISOString();
+      showToast("Translation checked.");
+    } catch (_error) {
+      showToast("Could not check translation right now.", true);
+    } finally {
+      state.checking = false;
+      updateSubmissionTranslationUi();
+    }
+  }
+
+  function initializeSubmissionTranslationState(countryId, item) {
+    const translationRequired = requiresSubmissionTranslation(countryId, "article");
+    const nativeTitle = String(item && item.nativeTitle ? item.nativeTitle : item.title || "").trim();
+    const nativeDescription = String(
+      item && item.nativeDescription ? item.nativeDescription : item.description || "",
+    ).trim();
+    const englishTitle = String(item && item.englishTitle ? item.englishTitle : "").trim();
+    const englishDescription = String(
+      item && item.englishDescription ? item.englishDescription : "",
+    ).trim();
+    const checked = translationRequired
+      ? Boolean(item && item.translationChecked)
+      : true;
+    submissionTranslationState = {
+      visible: translationRequired,
+      required: translationRequired,
+      checking: false,
+      checked,
+      countryId: normalizeManageCountryCode(countryId),
+      englishTitle: translationRequired ? englishTitle : englishTitle || nativeTitle,
+      englishDescription: translationRequired
+        ? englishDescription
+        : englishDescription || nativeDescription,
+      translationSourceTitle: String(
+        (item && item.translationSourceTitle) || (checked ? nativeTitle : ""),
+      ).trim(),
+      translationSourceDescription: String(
+        (item && item.translationSourceDescription) ||
+          (checked ? nativeDescription : ""),
+      ).trim(),
+      checkedAt: String((item && item.translationCheckedAt) || "").trim(),
+    };
+    updateSubmissionTranslationUi();
+  }
+
   function clearEditorFields() {
+    resetSubmissionTranslationState();
     if (editorTitle) editorTitle.value = "";
     if (editorSubtitle) editorSubtitle.value = "";
     if (editorDescription) editorDescription.value = "";
@@ -1990,30 +2761,58 @@
                       : null,
                 }
               : null;
+        const mode =
+          String(item.type || "")
+            .trim()
+            .toLowerCase() === "representative"
+            ? "representative"
+            : "article";
+        const translationRequired = requiresSubmissionTranslation(code, mode);
+        const nativeTitle = String(item.nativeTitle || item.title || "").trim();
+        const nativeDescription = String(
+          item.nativeDescription || item.description || "",
+        ).trim();
+        const englishTitle = String(item.englishTitle || "").trim();
+        const englishDescription = String(item.englishDescription || "").trim();
+        const translationChecked = translationRequired
+          ? Boolean(item.translationChecked)
+          : true;
         return {
           id:
             String(item.id || "").trim() ||
             `${code}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           countryId: code,
-          type:
-            String(item.type || "")
-              .trim()
-              .toLowerCase() === "representative"
-              ? "representative"
-              : "article",
+          type: mode,
           status: normalizeSubmissionStatus(item.status),
           pillarId: String(item.pillarId || "")
             .trim()
             .toLowerCase(),
           pillarLabel: String(item.pillarLabel || "").trim(),
-          title:
-            String(item.title || "").trim() || legacyRepresentativeName,
+          title: nativeTitle || legacyRepresentativeName,
+          nativeTitle: nativeTitle || legacyRepresentativeName,
+          englishTitle: translationRequired
+            ? englishTitle
+            : englishTitle || nativeTitle || legacyRepresentativeName,
           subtitle: String(item.subtitle || "").trim(),
           description:
-            String(item.description || "").trim() ||
+            nativeDescription ||
             [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
               .filter(Boolean)
               .join(" • "),
+          nativeDescription:
+            nativeDescription ||
+            [legacyRepresentativeTitle, legacyRepresentativeOrganisation]
+              .filter(Boolean)
+              .join(" • "),
+          englishDescription: translationRequired
+            ? englishDescription
+            : englishDescription || nativeDescription,
+          translationChecked,
+          translationSourceTitle: String(item.translationSourceTitle || "").trim(),
+          translationSourceDescription: String(
+            item.translationSourceDescription || "",
+          ).trim(),
+          translationCheckedAt: String(item.translationCheckedAt || "").trim(),
           languageAvailability: String(item.languageAvailability || "").trim(),
           links: Array.isArray(item.links)
             ? item.links.map((next) => String(next || "").trim()).filter(Boolean)
@@ -2114,6 +2913,23 @@
         countryId: code,
       });
       postToMap("ecva-request-country-inbox", { countryId: code, requestId });
+    });
+  }
+
+  function requestLabelOverrides(rawLang) {
+    const lang = normalizeLanguageCode(rawLang);
+    return new Promise((resolve) => {
+      if (!mapFrame.contentWindow) {
+        resolve(getLabelOverridesForLang(lang));
+        return;
+      }
+      const requestId = `labels-${Date.now()}-${(labelOverrideRequestCounter += 1)}`;
+      const timeout = window.setTimeout(() => {
+        pendingLabelOverrideRequests.delete(requestId);
+        resolve(getLabelOverridesForLang(lang));
+      }, 2200);
+      pendingLabelOverrideRequests.set(requestId, { lang, resolve, timeout });
+      postToMap("ecva-request-label-overrides", { lang, requestId });
     });
   }
 
@@ -3052,8 +3868,12 @@
 
   function buildEntryFromArticleSubmission(item) {
     const safeItem = item && typeof item === "object" ? item : {};
-    const title = String(safeItem.title || "").trim() || "Untitled entry";
-    const description = String(safeItem.description || "").trim();
+    const title =
+      String(safeItem.englishTitle || safeItem.title || "").trim() ||
+      "Untitled entry";
+    const description = String(
+      safeItem.englishDescription || safeItem.description || "",
+    ).trim();
     const ownership =
       safeItem.ownership && typeof safeItem.ownership === "object"
         ? safeItem.ownership
@@ -3310,11 +4130,16 @@
       openEditorModal();
       return;
     }
-    if (editorTitle) editorTitle.value = String(item.title || "").trim();
+    if (editorTitle) {
+      editorTitle.value = String(item.nativeTitle || item.title || "").trim();
+    }
     if (editorSubtitle)
       editorSubtitle.value = String(item.subtitle || item.pillarLabel || "").trim();
-    if (editorDescription)
-      editorDescription.value = String(item.description || "").trim();
+    if (editorDescription) {
+      editorDescription.value = String(
+        item.nativeDescription || item.description || "",
+      ).trim();
+    }
     if (editorLanguageAvailability) {
       editorLanguageAvailability.value = String(
         item.languageAvailability || "",
@@ -3337,6 +4162,7 @@
     if (editorContactEmail)
       editorContactEmail.value = String(contact.email || "").trim();
     setSubmissionEntryFieldsVisible(true);
+    initializeSubmissionTranslationState(code, item);
     editorTarget = {
       type: "submission-article",
       countryId: code,
@@ -3397,9 +4223,15 @@
     const representativeOrganisation = String(
       (representativeDraft && representativeDraft.organisation) || "",
     ).trim();
+    const translationRequired = requiresSubmissionTranslation(
+      item && item.countryId,
+      mode,
+    );
+    const translationReady =
+      !translationRequired || Boolean(item && item.translationChecked);
     const actions = [];
     const canManage = currentStatus === "new";
-    if (currentStatus === "new") {
+    if (currentStatus === "new" && translationReady) {
       actions.push(
         '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
       );
@@ -3409,7 +4241,7 @@
       actions.push(
         '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
       );
-    } else if (currentStatus === "pending") {
+    } else if (currentStatus === "pending" && translationReady) {
       actions.push(
         '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
       );
@@ -3475,6 +4307,11 @@
           ${
             !isRepresentative && description
               ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>`
+              : ""
+          }
+          ${
+            !isRepresentative && !translationReady
+              ? '<p class="ecva-inbox-contact"><strong>Translation review:</strong> Run <em>Manage entry → Check translation</em> before actioning this entry.</p>'
               : ""
           }
           ${
@@ -3599,12 +4436,22 @@
           const status = btn.getAttribute("data-action-status");
           const isAccept = btn.getAttribute("data-action-accept") === "true";
           if (!submissionId || !status) return;
+          const inbox = getCountryInbox(countryId);
+          const item = inbox.find(
+            (next) =>
+              String(next && next.id ? next.id : "") === String(submissionId),
+          );
+          const mode = String(item && item.type ? item.type : "")
+            .trim()
+            .toLowerCase();
+          if (
+            requiresSubmissionTranslation(countryId, mode) &&
+            !Boolean(item && item.translationChecked)
+          ) {
+            showToast("Check translation before updating this entry.", true);
+            return;
+          }
           if (isAccept) {
-            const inbox = getCountryInbox(countryId);
-            const item = inbox.find(
-              (next) =>
-                String(next && next.id ? next.id : "") === String(submissionId),
-            );
             const isRepresentative =
               item &&
               String(item.type || "")
@@ -3848,6 +4695,46 @@
       return;
     }
 
+    if (type === "ecva-label-overrides") {
+      const lang = normalizeLanguageCode(payload.lang);
+      const labels = setLabelOverridesForLang(lang, payload.labels);
+      if (labelManageLanguage === lang) {
+        labelDraftByLang[lang] = { ...labels };
+        if (
+          labelManageModal &&
+          labelManageModal.classList.contains("is-visible")
+        ) {
+          renderLabelManageList();
+        }
+      }
+      const requestId = String(payload.requestId || "").trim();
+      if (requestId && pendingLabelOverrideRequests.has(requestId)) {
+        const pending = pendingLabelOverrideRequests.get(requestId);
+        pendingLabelOverrideRequests.delete(requestId);
+        if (pending && pending.timeout) window.clearTimeout(pending.timeout);
+        if (pending && typeof pending.resolve === "function") {
+          pending.resolve({ ...labels });
+        }
+      }
+      return;
+    }
+
+    if (type === "ecva-label-overrides-updated") {
+      const lang = normalizeLanguageCode(payload.lang);
+      const labels = setLabelOverridesForLang(lang, payload.labels);
+      if (labelManageLanguage === lang) {
+        labelDraftByLang[lang] = { ...labels };
+        if (
+          labelManageModal &&
+          labelManageModal.classList.contains("is-visible")
+        ) {
+          renderLabelManageList();
+          updateLabelManageNotice("Translations synced.", false);
+        }
+      }
+      return;
+    }
+
     if (type === "ecva-active-countries") {
       activeCountries = Array.isArray(payload.countries)
         ? payload.countries
@@ -3870,6 +4757,10 @@
       }
       ensureSelectedCountryIsAllowed();
       renderCountryTabs();
+      if (labelManageModal && labelManageModal.classList.contains("is-visible")) {
+        populateLabelManageLanguageOptions();
+        renderLabelManageList();
+      }
       resolveActiveCountriesWaiters();
       if (selectedCountryId) {
         selectCountry(selectedCountryId);
@@ -4046,6 +4937,26 @@
     });
   }
 
+  if (editorTitle) {
+    editorTitle.addEventListener("input", () => {
+      updateSubmissionTranslationPreview();
+      invalidateSubmissionTranslationOnNativeEdit();
+    });
+  }
+
+  if (editorDescription) {
+    editorDescription.addEventListener("input", () => {
+      updateSubmissionTranslationPreview();
+      invalidateSubmissionTranslationOnNativeEdit();
+    });
+  }
+
+  if (editorCheckTranslationBtn) {
+    editorCheckTranslationBtn.addEventListener("click", () => {
+      runSubmissionTranslationCheck();
+    });
+  }
+
   if (editorForm) {
     editorForm.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -4082,12 +4993,50 @@
       }
 
       if (editorMode === "entry" && target.type === "submission-article") {
+        const translationRequired = requiresSubmissionTranslation(
+          target.countryId,
+          "article",
+        );
+        const state = submissionTranslationState;
+        if (
+          translationRequired &&
+          (!state || !state.checked || state.checking)
+        ) {
+          showToast("Run Check translation before saving.", true);
+          return;
+        }
+        const nativeTitle = editorTitle ? editorTitle.value : "";
+        const nativeDescription = editorDescription
+          ? editorDescription.value
+          : "";
         postToMap("ecva-editor-update-submission", {
           countryId: target.countryId,
           submissionId: target.submissionId,
           fields: {
-            title: editorTitle ? editorTitle.value : "",
-            description: editorDescription ? editorDescription.value : "",
+            title: nativeTitle,
+            description: nativeDescription,
+            nativeTitle,
+            nativeDescription,
+            englishTitle: translationRequired
+              ? String((state && state.englishTitle) || "").trim()
+              : String(nativeTitle || "").trim(),
+            englishDescription: translationRequired
+              ? String((state && state.englishDescription) || "").trim()
+              : String(nativeDescription || "").trim(),
+            translationChecked: translationRequired
+              ? Boolean(state && state.checked)
+              : true,
+            translationSourceTitle: translationRequired
+              ? String((state && state.translationSourceTitle) || "").trim()
+              : String(nativeTitle || "").trim(),
+            translationSourceDescription: translationRequired
+              ? String(
+                  (state && state.translationSourceDescription) || "",
+                ).trim()
+              : String(nativeDescription || "").trim(),
+            translationCheckedAt: translationRequired
+              ? String((state && state.checkedAt) || new Date().toISOString())
+              : new Date().toISOString(),
             languageAvailability: editorLanguageAvailability
               ? editorLanguageAvailability.value
               : "",
@@ -4424,6 +5373,13 @@
     if (event.key !== "Escape") return;
     if (document.getElementById("ecva-reset-code-confirm")) {
       closeResetCodeConfirm();
+      return;
+    }
+    if (
+      labelManageModal &&
+      labelManageModal.classList.contains("is-visible")
+    ) {
+      closeLabelManageModal();
       return;
     }
     if (editorModal && editorModal.classList.contains("is-visible")) {
