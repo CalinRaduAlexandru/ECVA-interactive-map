@@ -317,7 +317,7 @@
         "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
       stepReviewText: "Revizuiește textul",
       stepCheckTranslation: "Verifică traducerea",
-      stepLanguagesLinks: "Limbi și linkuri",
+      stepLanguagesLinks: "Limbi disponibile și linkuri",
       stepContactDetails: "Date de contact",
       back: "Înapoi",
       cancel: "Anulează",
