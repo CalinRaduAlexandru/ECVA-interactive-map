@@ -6053,7 +6053,7 @@
                     </div>
                   </label>
                   <label>
-                    Description
+                    Short and clear resource description.
                     <div class="contribute-input-wrap is-textarea">
                       <textarea
                         id="resource-description-input"
@@ -6069,11 +6069,6 @@
                         >0/200</span
                       >
                     </div>
-                    <span
-                      id="resource-description-helper"
-                      class="contribute-field-helper"
-                      >Write a short and clear description of the resource.</span
-                    >
                   </label>
                 </section>
               </section>
@@ -6658,7 +6653,9 @@
                 </div>
               </label>
               <label>
-                <span id="ecva-editor-description-field-label">Description</span>
+                <span id="ecva-editor-description-field-label"
+                  >Short and clear resource description.</span
+                >
                 <div class="contribute-input-wrap is-textarea">
                   <textarea
                     id="ecva-editor-description"
@@ -6672,11 +6669,6 @@
                     >0/200</span
                   >
                 </div>
-                <span
-                  id="ecva-editor-description-helper"
-                  class="contribute-field-helper"
-                  >Write a short and clear description of the resource.</span
-                >
               </label>
             </section>
             <section
@@ -8000,9 +7992,6 @@
       const resourceDescriptionInput = document.getElementById(
         "resource-description-input",
       );
-      const resourceDescriptionHelper = document.getElementById(
-        "resource-description-helper",
-      );
       const resourceOwnershipTypeInput = document.getElementById(
         "resource-ownership-type",
       );
@@ -8191,6 +8180,7 @@
         resourceBasicInfo: "Resource basic information",
         title: "Title",
         titleHelper: "Title will be displayed publicly.",
+        stepDescriptionLabel: "Short and clear resource description.",
         description: "Description",
         descriptionHelper: "Write a short and clear description of the resource.",
         availableLanguages: "Available languages",
@@ -8310,6 +8300,7 @@
         resourceBasicInfo: "Informații de bază despre resursă",
         title: "Titlu",
         titleHelper: "Titlul va fi afișat public.",
+        stepDescriptionLabel: "Descriere scurtă și clară a resursei.",
         description: "Descriere",
         descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
         availableLanguages: "Limbi disponibile",
@@ -8490,6 +8481,7 @@
         resourceBasicInfo: "form",
         title: "form",
         titleHelper: "form",
+        stepDescriptionLabel: "form",
         description: "form",
         descriptionHelper: "form",
         availableLanguages: "form",
@@ -11373,7 +11365,10 @@
         setLabelPrefix("#resource-ownership-type", copy.entityType);
         setLabelPrefix("#resource-ownership-name", copy.entityName);
         setLabelPrefix("#resource-title-input", copy.title);
-        setLabelPrefix("#resource-description-input", copy.description);
+        setLabelPrefix(
+          "#resource-description-input",
+          copy.stepDescriptionLabel || copy.description,
+        );
         setLabelPrefix('[name="contactName"]', copy.name);
         setLabelPrefix('[name="contactRole"]', copy.role);
         setLabelPrefix('[name="contactEmail"]', copy.email);
@@ -11449,10 +11444,6 @@
             "placeholder",
             copy.contactEmailPlaceholder || RESOURCE_UI_BASE.contactEmailPlaceholder,
           );
-        }
-        if (resourceDescriptionHelper) {
-          resourceDescriptionHelper.textContent =
-            copy.descriptionHelper || RESOURCE_UI_BASE.descriptionHelper;
         }
         if (resourceContactEmailFootnote) {
           resourceContactEmailFootnote.textContent =

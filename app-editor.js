@@ -39,9 +39,6 @@
   const editorDescriptionCount = document.getElementById(
     "ecva-editor-description-count",
   );
-  const editorDescriptionHelper = document.getElementById(
-    "ecva-editor-description-helper",
-  );
   const editorTranslationBlock = document.getElementById(
     "ecva-editor-translation-block",
   );
@@ -303,6 +300,7 @@
     descriptionTooLong: "Description must be {max} characters or fewer.",
     titlePlaceholder: "e.g. Character Toolkit for Schools",
     descriptionPlaceholder: "Write a short and clear resource description.",
+    stepDescriptionLabel: "Short and clear resource description.",
     titleHelper: "Title will be displayed publicly.",
     descriptionHelper: "Write a short and clear description of the resource.",
   };
@@ -357,6 +355,7 @@
       descriptionTooLong: "Descrierea trebuie să aibă maximum {max} caractere.",
       titlePlaceholder: "ex. Toolkit de educație a caracterului pentru școli",
       descriptionPlaceholder: "Scrie o descriere scurtă și clară a resursei.",
+      stepDescriptionLabel: "Descriere scurtă și clară a resursei.",
       titleHelper: "Titlul va fi afișat public.",
       descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
     },
@@ -2496,6 +2495,16 @@
     editorUiCopyLang = lang;
     ensureEditorUiCopy(lang);
     const copy = getEditorUiCopy(lang);
+    if (editorTitleFieldLabel) {
+      editorTitleFieldLabel.textContent = copy.title || EDITOR_UI_COPY_BASE.title;
+    }
+    if (editorDescriptionFieldLabel) {
+      editorDescriptionFieldLabel.textContent =
+        copy.stepDescriptionLabel ||
+        copy.description ||
+        EDITOR_UI_COPY_BASE.stepDescriptionLabel ||
+        EDITOR_UI_COPY_BASE.description;
+    }
     if (editorTitle) {
       editorTitle.placeholder =
         copy.titlePlaceholder || EDITOR_UI_COPY_BASE.titlePlaceholder;
@@ -2503,10 +2512,6 @@
     if (editorDescription) {
       editorDescription.placeholder =
         copy.descriptionPlaceholder || EDITOR_UI_COPY_BASE.descriptionPlaceholder;
-    }
-    if (editorDescriptionHelper) {
-      editorDescriptionHelper.textContent =
-        copy.descriptionHelper || EDITOR_UI_COPY_BASE.descriptionHelper;
     }
     updateEditorTextCounters();
     if (editorBackBtn) {
@@ -3693,12 +3698,6 @@
     const titleLabel = String(titleText || "Title").trim() || "Title";
     const descriptionLabel =
       String(descriptionText || "Description").trim() || "Description";
-    if (editorTitleFieldLabel) {
-      editorTitleFieldLabel.textContent = titleLabel;
-    }
-    if (editorDescriptionFieldLabel) {
-      editorDescriptionFieldLabel.textContent = descriptionLabel;
-    }
     if (editorNativeTitleLabel) {
       editorNativeTitleLabel.textContent = titleLabel;
     }
