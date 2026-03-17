@@ -8397,7 +8397,7 @@
         stepReviewText: "Revizuiește textul",
         stepDescribeResource: "Descrie resursa",
         stepCheckTranslation: "Verifică traducerea",
-        stepLanguagesLinks: "Limbi disponibile și linkuri",
+        stepLanguagesLinks: "Limbi și linkuri",
         stepContactDetails: "Date de contact",
         back: "Înapoi",
         next: "Următorul",
@@ -10498,10 +10498,7 @@
 
       function getContributeStepOneLabel() {
         const fallback = getResourceUiText("stepReviewText");
-        const languageLabel = String(getContributeNativeLanguageLabel() || "English").trim();
-        const localized = getResourceUiText("stepWriteNativeBeforeSubmit", {
-          language: languageLabel,
-        });
+        const localized = getResourceUiText("stepDescribeResource");
         const value = String(localized || "").trim();
         return value || fallback;
       }
