@@ -6207,10 +6207,7 @@
                 </section>
                 <section class="contribute-form-segment">
                   <p class="contribute-form-segment-title" id="resource-contact-title">
-                    For more informations, contact:
-                  </p>
-                  <p class="contribute-form-section-title" id="resource-contact-helper">
-                    These details are public and shown at the end of the article.
+                    Contact informations
                   </p>
                   <div class="contribute-form-row">
                     <label>
@@ -6240,8 +6237,8 @@
                       placeholder="name@example.org"
                       required
                     />
-                    <span class="contribute-field-helper"
-                      >Used if clarifications are needed.</span
+                  <span class="contribute-field-helper"
+                      >Contact information will be used if clarifications are needed. These details are public and shown at the end of the article.</span
                     >
                   </label>
                 </section>
@@ -6781,63 +6778,64 @@
             </section>
             <section
               id="ecva-editor-step-contact"
-              class="ecva-editor-step-panel ecva-editor-submission-field contribute-form contribute-form-segment"
+              class="ecva-editor-step-panel ecva-editor-submission-field contribute-form"
             >
-              <p class="contribute-form-segment-title">Ownership</p>
-              <div class="contribute-form-row contribute-form-row-ownership">
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">Ownership</p>
+                <div class="contribute-form-row contribute-form-row-ownership">
+                  <label>
+                    Entity type
+                    <select id="ecva-editor-ownership-type">
+                      <option value="" selected disabled>Select entity type</option>
+                      <option value="Non-profit organisation">
+                        Non-profit organisation
+                      </option>
+                      <option value="Foundation">Foundation</option>
+                      <option value="Public institution">Public institution</option>
+                      <option value="University">University</option>
+                      <option value="School">School</option>
+                      <option value="Research institute">Research institute</option>
+                      <option value="Private company">Private company</option>
+                      <option value="Government body">Government body</option>
+                      <option value="Independent expert">Independent expert</option>
+                      <option value="Collaborative partnership">
+                        Collaborative partnership
+                      </option>
+                      <option value="Other legal entity">Other legal entity</option>
+                    </select>
+                  </label>
+                  <label>
+                    Name of the entity
+                    <input
+                      id="ecva-editor-ownership-name"
+                      type="text"
+                      placeholder="Write the name..."
+                    />
+                  </label>
+                </div>
+              </section>
+              <section class="contribute-form-segment">
+                <p class="contribute-form-segment-title">
+                  Contact informations
+                </p>
+                <div class="contribute-form-row">
+                  <label>
+                    Name
+                    <input id="ecva-editor-contact-name" type="text" />
+                  </label>
+                  <label>
+                    Role
+                    <input id="ecva-editor-contact-role" type="text" />
+                  </label>
+                </div>
                 <label>
-                  Entity type
-                  <select id="ecva-editor-ownership-type">
-                    <option value="" selected disabled>Select entity type</option>
-                    <option value="Non-profit organisation">
-                      Non-profit organisation
-                    </option>
-                    <option value="Foundation">Foundation</option>
-                    <option value="Public institution">Public institution</option>
-                    <option value="University">University</option>
-                    <option value="School">School</option>
-                    <option value="Research institute">Research institute</option>
-                    <option value="Private company">Private company</option>
-                    <option value="Government body">Government body</option>
-                    <option value="Independent expert">Independent expert</option>
-                    <option value="Collaborative partnership">
-                      Collaborative partnership
-                    </option>
-                    <option value="Other legal entity">Other legal entity</option>
-                  </select>
+                  Email
+                  <input id="ecva-editor-contact-email" type="text" />
                 </label>
-                <label>
-                  Name of the entity
-                  <input
-                    id="ecva-editor-ownership-name"
-                    type="text"
-                    placeholder="Write the name..."
-                  />
-                </label>
-              </div>
-              <p class="contribute-form-segment-title">
-                For more informations, contact:
-              </p>
-              <p class="contribute-form-section-title">
-                These details are public and shown at the end of the article.
-              </p>
-              <div class="contribute-form-row">
-                <label>
-                  Name
-                  <input id="ecva-editor-contact-name" type="text" />
-                </label>
-                <label>
-                  Role
-                  <input id="ecva-editor-contact-role" type="text" />
-                </label>
-              </div>
-              <label>
-                Email
-                <input id="ecva-editor-contact-email" type="text" />
-              </label>
-              <p class="contribute-field-helper">
-                Used if clarifications are needed.
-              </p>
+                <p class="contribute-field-helper">
+                  Contact information will be used if clarifications are needed. These details are public and shown at the end of the article.
+                </p>
+              </section>
             </section>
           </div>
           <div id="ecva-editor-rep-fields" class="ecva-editor-section">
@@ -8148,10 +8146,11 @@
         availableLanguages: "Available languages",
         addOneVersion: "Add one resource version per language",
         addLanguage: "Add another language",
-        contactHeader: "For more informations, contact:",
+        contactHeader: "Contact informations",
         contactHelper:
           "These details are public and shown at the end of the article.",
-        emailFootnote: "Used if clarifications are needed.",
+        emailFootnote:
+          "Contact information will be used if clarifications are needed. These details are public and shown at the end of the article.",
         name: "Name",
         role: "Role",
         email: "Email",
@@ -8266,11 +8265,11 @@
         availableLanguages: "Limbi disponibile",
         addOneVersion: "Adaugă o versiune a resursei pentru fiecare limbă",
         addLanguage: "Adaugă altă limbă",
-        contactHeader: "Pentru mai multe informații, contact:",
+        contactHeader: "Informații de contact",
         contactHelper:
           "Aceste detalii sunt publice și apar la finalul articolului.",
         emailFootnote:
-          "Va putea fi folosit de utilizatori în cazul în care vor fi necesare clarificări.",
+          "Informațiile de contact vor putea fi folosite dacă sunt necesare clarificări. Aceste detalii sunt publice și apar la finalul articolului.",
         name: "Nume",
         role: "Rol",
         email: "Email",
