@@ -75,6 +75,12 @@
   const editorEnglishDescriptionPreview = document.getElementById(
     "ecva-editor-english-description-preview",
   );
+  const editorEnglishTitleLabel = document.getElementById(
+    "ecva-editor-english-title-label",
+  );
+  const editorEnglishDescriptionLabel = document.getElementById(
+    "ecva-editor-english-description-label",
+  );
   const editorResourceLanguageList = document.getElementById(
     "ecva-editor-resource-language-list",
   );
@@ -111,6 +117,8 @@
     ? editorModal.querySelector(".ecva-editor-remove-confirm-text")
     : null;
   const editorSaveBtn = document.getElementById("ecva-editor-save-btn");
+  const editorPendingBtn = document.getElementById("ecva-editor-pending-btn");
+  const editorAcceptBtn = document.getElementById("ecva-editor-accept-btn");
 
   const toast = document.getElementById("ecva-toast");
   const mobileLegendLogo = document.querySelector(
@@ -242,10 +250,14 @@
     confirmAction: "Confirm",
     next: "Next",
     save: "Save",
+    pendingAction: "Pending",
+    acceptAction: "Accept",
+    choosePendingOrAcceptBeforeSaving:
+      "Choose Pending or Accept to finish this review.",
     checking: "Checking...",
     contentReview: "Content review",
     translationReview: "Translation review",
-    checkTranslationButton: "Check translation",
+    checkTranslationButton: "Refresh translation",
     noTitleYet: "No title yet.",
     noDescriptionYet: "No description yet.",
     notCheckedYet: "Not checked yet.",
@@ -281,10 +293,14 @@
       confirmAction: "Confirmă",
       next: "Următorul",
       save: "Salvează",
+      pendingAction: "Pending",
+      acceptAction: "Acceptă",
+      choosePendingOrAcceptBeforeSaving:
+        "Alege Pending sau Acceptă pentru a finaliza această revizuire.",
       checking: "Se verifică...",
       contentReview: "Revizuire conținut",
       translationReview: "Revizuire traducere",
-      checkTranslationButton: "Verifică traducerea",
+      checkTranslationButton: "Reactualizează traducerea",
       noTitleYet: "Titlul nu este completat.",
       noDescriptionYet: "Descrierea nu este completată.",
       notCheckedYet: "Nu este verificat încă.",
@@ -757,6 +773,7 @@
   let editorReviewSteps = [];
   let editorUiCopyLang = "en";
   let editorAutoTranslationPrimed = false;
+  let editorSubmissionFinalStatus = "";
   const editorUiCopyCache = new Map([
     ["en", { ...EDITOR_UI_COPY_BASE }],
     ["ro", { ...EDITOR_UI_COPY_PRESET.ro }],
@@ -2466,6 +2483,14 @@
           EDITOR_UI_COPY_BASE.checkTranslationButton;
       }
     }
+    if (editorPendingBtn) {
+      editorPendingBtn.textContent =
+        copy.pendingAction || EDITOR_UI_COPY_BASE.pendingAction;
+    }
+    if (editorAcceptBtn) {
+      editorAcceptBtn.textContent =
+        copy.acceptAction || EDITOR_UI_COPY_BASE.acceptAction;
+    }
   }
 
   function setEditorMode(mode) {
@@ -2664,6 +2689,7 @@
     if (!isWizard) {
       [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
         if (!panel) return;
+        panel.hidden = false;
         panel.classList.add("is-visible");
       });
       if (editorBackBtn) editorBackBtn.style.display = "none";
@@ -2672,6 +2698,23 @@
       updateEditorHeading();
       return;
     }
+    editorReviewSteps.forEach((step, index) => {
+      if (!step || !step.panel) return;
+      const isActive = index === editorReviewStepIndex;
+      step.panel.hidden = !isActive;
+      step.panel.classList.toggle("is-visible", isActive);
+    });
+    [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
+      if (!panel) return;
+      const belongsToWizard = editorReviewSteps.some((step) => step.panel === panel);
+      if (!belongsToWizard) {
+        panel.hidden = true;
+        panel.classList.remove("is-visible");
+      }
+    });
+    if (editorBackBtn) {
+      editorBackBtn.style.display = editorReviewStepIndex > 0 ? "inline-flex" : "none";
+    }
     const currentStep =
       editorReviewSteps[editorReviewStepIndex] ||
       editorReviewSteps[editorReviewSteps.length - 1] ||
@@ -2679,27 +2722,8 @@
     const currentStepId = String(currentStep && currentStep.id ? currentStep.id : "")
       .trim()
       .toLowerCase();
-    editorReviewSteps.forEach((step, index) => {
-      if (!step || !step.panel) return;
-      const stepId = String(step.id || "")
-        .trim()
-        .toLowerCase();
-      const alsoShowTextOnTranslation =
-        currentStepId === "translation" && stepId === "text";
-      step.panel.classList.toggle(
-        "is-visible",
-        index === editorReviewStepIndex || alsoShowTextOnTranslation,
-      );
-    });
-    [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
-      if (!panel) return;
-      const belongsToWizard = editorReviewSteps.some((step) => step.panel === panel);
-      if (!belongsToWizard) {
-        panel.classList.remove("is-visible");
-      }
-    });
-    if (editorBackBtn) {
-      editorBackBtn.style.display = editorReviewStepIndex > 0 ? "inline-flex" : "none";
+    if (currentStepId === "translation") {
+      maybePrimeTranslationStep(-1, editorReviewStepIndex);
     }
     renderEditorReviewStepper();
     updateEditorSaveAvailability();
@@ -2843,8 +2867,140 @@
       resourceUrl: "",
       fileName: "",
       file: null,
+      urlDraftByType: {
+        webpage: "",
+        youtube: "",
+      },
+      fileDraftByType: {
+        document: { resourceUrl: "", fileName: "", file: null },
+        image: { resourceUrl: "", fileName: "", file: null },
+      },
+      pricingDraftByType: {
+        webpage: "free",
+      },
       isPrimary: Boolean(isPrimary),
     };
+  }
+
+  function createEditorResourceFileDraft(rawDraft) {
+    const draft = rawDraft && typeof rawDraft === "object" ? rawDraft : {};
+    return {
+      resourceUrl: String(draft.resourceUrl || ""),
+      fileName: String(draft.fileName || ""),
+      file: draft.file instanceof File ? draft.file : null,
+    };
+  }
+
+  function ensureEditorResourceItemDraftMemory(item) {
+    if (!item || typeof item !== "object") return;
+    if (!item.urlDraftByType || typeof item.urlDraftByType !== "object") {
+      item.urlDraftByType = {};
+    }
+    if (!item.fileDraftByType || typeof item.fileDraftByType !== "object") {
+      item.fileDraftByType = {};
+    }
+    if (!item.pricingDraftByType || typeof item.pricingDraftByType !== "object") {
+      item.pricingDraftByType = {};
+    }
+
+    EDITOR_RESOURCE_TYPE_OPTIONS.forEach((option) => {
+      const config = getEditorResourceTypeConfig(option.value);
+      if (config.inputMode === "url") {
+        if (typeof item.urlDraftByType[config.value] !== "string") {
+          item.urlDraftByType[config.value] = "";
+        }
+        return;
+      }
+      item.fileDraftByType[config.value] = createEditorResourceFileDraft(
+        item.fileDraftByType[config.value],
+      );
+    });
+
+    item.pricingDraftByType.webpage = getEditorResourcePricingConfig(
+      item.pricingDraftByType.webpage || item.resourcePricing || "free",
+    ).value;
+
+    const activeConfig = getEditorResourceTypeConfig(item.resourceType);
+    if (activeConfig.inputMode === "url") {
+      const activeType = activeConfig.value;
+      const activeUrl = String(item.resourceUrl || "");
+      if (activeUrl && !String(item.urlDraftByType[activeType] || "").trim()) {
+        item.urlDraftByType[activeType] = activeUrl;
+      }
+      if (activeType === "webpage") {
+        item.pricingDraftByType.webpage = getEditorResourcePricingConfig(
+          item.resourcePricing || item.pricingDraftByType.webpage || "free",
+        ).value;
+      }
+      return;
+    }
+
+    const activeType = activeConfig.value;
+    const currentDraft = createEditorResourceFileDraft(item.fileDraftByType[activeType]);
+    const hasDraft =
+      Boolean(String(currentDraft.resourceUrl || "").trim()) ||
+      Boolean(String(currentDraft.fileName || "").trim()) ||
+      currentDraft.file instanceof File;
+    if (!hasDraft) {
+      item.fileDraftByType[activeType] = createEditorResourceFileDraft({
+        resourceUrl: item.resourceUrl,
+        fileName: item.fileName,
+        file: item.file,
+      });
+      return;
+    }
+    item.fileDraftByType[activeType] = currentDraft;
+  }
+
+  function storeEditorResourceItemActiveDraft(item) {
+    if (!item || typeof item !== "object") return;
+    ensureEditorResourceItemDraftMemory(item);
+    const activeConfig = getEditorResourceTypeConfig(item.resourceType);
+    const activeType = activeConfig.value;
+    if (activeConfig.inputMode === "url") {
+      item.urlDraftByType[activeType] = String(item.resourceUrl || "");
+      if (activeType === "webpage") {
+        item.pricingDraftByType.webpage = getEditorResourcePricingConfig(
+          item.resourcePricing || "free",
+        ).value;
+      }
+      return;
+    }
+    item.fileDraftByType[activeType] = createEditorResourceFileDraft({
+      resourceUrl: item.resourceUrl,
+      fileName: item.fileName,
+      file: item.file,
+    });
+  }
+
+  function restoreEditorResourceItemDraftForType(item, nextTypeValue) {
+    if (!item || typeof item !== "object") return;
+    ensureEditorResourceItemDraftMemory(item);
+    const nextConfig = getEditorResourceTypeConfig(nextTypeValue);
+    const nextType = nextConfig.value;
+    item.resourceType = nextType;
+    if (nextConfig.inputMode === "url") {
+      item.resourceUrl = String((item.urlDraftByType && item.urlDraftByType[nextType]) || "");
+      item.fileName = "";
+      item.file = null;
+      if (nextType === "webpage") {
+        item.resourcePricing = getEditorResourcePricingConfig(
+          (item.pricingDraftByType && item.pricingDraftByType.webpage) ||
+            item.resourcePricing ||
+            "free",
+        ).value;
+      } else {
+        item.resourcePricing = "free";
+      }
+      return;
+    }
+    const fileDraft = createEditorResourceFileDraft(
+      item.fileDraftByType && item.fileDraftByType[nextType],
+    );
+    item.resourceUrl = String(fileDraft.resourceUrl || "");
+    item.fileName = String(fileDraft.fileName || "");
+    item.file = fileDraft.file instanceof File ? fileDraft.file : null;
+    item.resourcePricing = "free";
   }
 
   function resetEditorResourceLanguageItems(countryId) {
@@ -2891,6 +3047,8 @@
         itemData.resourceUrl = String(version.resourceUrl || "").trim();
         itemData.fileName = String(version.fileName || "").trim();
         itemData.file = null;
+        ensureEditorResourceItemDraftMemory(itemData);
+        storeEditorResourceItemActiveDraft(itemData);
         return itemData;
       });
     if (!editorResourceLanguageItems.length) {
@@ -2947,6 +3105,7 @@
     editorResourceLanguageList.innerHTML = "";
     const usedLanguages = new Set();
     editorResourceLanguageItems.forEach((item) => {
+      ensureEditorResourceItemDraftMemory(item);
       const typeConfig = getEditorResourceTypeConfig(item.resourceType);
       const duplicate = usedLanguages.has(item.languageCode);
       if (item.languageCode) usedLanguages.add(item.languageCode);
@@ -3032,16 +3191,8 @@
       typeSelect.value = typeConfig.value;
       typeSelect.addEventListener("change", () => {
         const nextType = getEditorResourceTypeConfig(typeSelect.value).value;
-        const nextTypeConfig = getEditorResourceTypeConfig(nextType);
-        item.resourceType = nextType;
-        if (nextTypeConfig.inputMode === "url") {
-          item.file = null;
-          item.fileName = "";
-          item.resourceUrl = "";
-        } else {
-          item.resourcePricing = "free";
-          item.resourceUrl = "";
-        }
+        storeEditorResourceItemActiveDraft(item);
+        restoreEditorResourceItemDraftForType(item, nextType);
         renderEditorResourceLanguageItems(item.id);
       });
       typeLabel.appendChild(typeSelect);
@@ -3069,6 +3220,7 @@
           item.file = file || null;
           item.fileName = file && file.name ? file.name : "";
           item.resourceUrl = "";
+          storeEditorResourceItemActiveDraft(item);
           renderEditorResourceLanguageItems(item.id);
         });
         shell.appendChild(fileInput);
@@ -3115,6 +3267,7 @@
         input.setAttribute("data-focus-value", "true");
         input.addEventListener("input", () => {
           item.resourceUrl = String(input.value || "");
+          storeEditorResourceItemActiveDraft(item);
           setInputValidity(input, true);
         });
         input.addEventListener("blur", () => {
@@ -3123,6 +3276,7 @@
             input.value = normalized;
           }
           item.resourceUrl = normalized;
+          storeEditorResourceItemActiveDraft(item);
           setInputValidity(input, true);
         });
         valueLabel.appendChild(input);
@@ -3153,6 +3307,7 @@
           input.checked = option.value === activePricing.value;
           input.addEventListener("change", () => {
             item.resourcePricing = getEditorResourcePricingConfig(input.value).value;
+            storeEditorResourceItemActiveDraft(item);
             renderEditorResourceLanguageItems(item.id);
           });
           const icon = document.createElement("span");
@@ -3456,6 +3611,48 @@
     if (editorNativeDescriptionLabel) {
       editorNativeDescriptionLabel.textContent = descriptionLabel;
     }
+    if (editorEnglishTitleLabel) {
+      editorEnglishTitleLabel.textContent = titleLabel;
+    }
+    if (editorEnglishDescriptionLabel) {
+      editorEnglishDescriptionLabel.textContent = descriptionLabel;
+    }
+  }
+
+  function isEditableTextNode(node) {
+    return node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement;
+  }
+
+  function readTextNodeValue(node) {
+    if (!node) return "";
+    if (isEditableTextNode(node)) return String(node.value || "");
+    return String(node.textContent || "");
+  }
+
+  function writeTextNodeValue(node, value) {
+    if (!node) return;
+    const nextValue = String(value || "");
+    if (isEditableTextNode(node)) {
+      if (node.value !== nextValue) {
+        node.value = nextValue;
+      }
+      return;
+    }
+    node.textContent = nextValue;
+  }
+
+  function setSubmissionTranslationInputsEditable(isEditable) {
+    const editable = Boolean(isEditable);
+    [
+      editorNativeTitlePreview,
+      editorNativeDescriptionPreview,
+      editorEnglishTitlePreview,
+      editorEnglishDescriptionPreview,
+    ].forEach((field) => {
+      if (!isEditableTextNode(field)) return;
+      field.disabled = !editable;
+      field.readOnly = !editable;
+    });
   }
 
   function syncSubmissionNativeFieldLabels() {
@@ -3557,10 +3754,18 @@
   }
 
   function updateEditorSaveAvailability() {
-    if (!editorSaveBtn) return;
+    if (!editorSaveBtn && !editorPendingBtn && !editorAcceptBtn) return;
     const copy = getEditorUiCopy(editorUiCopyLang);
     const state = submissionTranslationState;
     const checking = Boolean(state && state.checking);
+    const setDecisionButtonsVisible = (visible) => {
+      if (editorPendingBtn) {
+        editorPendingBtn.style.display = visible ? "inline-flex" : "none";
+      }
+      if (editorAcceptBtn) {
+        editorAcceptBtn.style.display = visible ? "inline-flex" : "none";
+      }
+    };
     if (isEditorSubmissionArticleTarget() && editorReviewWizardEnabled) {
       const maxIndex = editorReviewSteps.length - 1;
       const isFinalStep = editorReviewStepIndex >= maxIndex;
@@ -3574,37 +3779,64 @@
         currentStep &&
         String(currentStep.id || "").trim().toLowerCase() === "translation"
       ) {
-        editorSaveBtn.textContent = copy.checking || EDITOR_UI_COPY_BASE.checking;
-        editorSaveBtn.disabled = true;
+        if (editorSaveBtn) {
+          editorSaveBtn.style.display = "inline-flex";
+          editorSaveBtn.textContent = copy.checking || EDITOR_UI_COPY_BASE.checking;
+          editorSaveBtn.disabled = true;
+        }
+        setDecisionButtonsVisible(false);
         return;
       }
-      editorSaveBtn.textContent = isFinalStep
-        ? copy.save || EDITOR_UI_COPY_BASE.save
-        : copy.next || EDITOR_UI_COPY_BASE.next;
-      editorSaveBtn.disabled = Boolean(currentError) || checking;
+      if (!isFinalStep) {
+        if (editorSaveBtn) {
+          editorSaveBtn.style.display = "inline-flex";
+          editorSaveBtn.textContent = copy.next || EDITOR_UI_COPY_BASE.next;
+          editorSaveBtn.disabled = Boolean(currentError) || checking;
+        }
+        setDecisionButtonsVisible(false);
+        return;
+      }
+      if (editorSaveBtn) {
+        editorSaveBtn.style.display = "none";
+      }
+      setDecisionButtonsVisible(true);
+      const firstInvalidStep = getFirstInvalidEditorReviewStepIndex(false);
+      const disableFinalActions = firstInvalidStep >= 0 || checking;
+      if (editorPendingBtn) {
+        editorPendingBtn.textContent =
+          copy.pendingAction || EDITOR_UI_COPY_BASE.pendingAction;
+        editorPendingBtn.disabled = disableFinalActions;
+      }
+      if (editorAcceptBtn) {
+        editorAcceptBtn.textContent =
+          copy.acceptAction || EDITOR_UI_COPY_BASE.acceptAction;
+        editorAcceptBtn.disabled = disableFinalActions;
+      }
       return;
     }
+    setDecisionButtonsVisible(false);
     const needsCheck = Boolean(state && state.required);
     const ready = !needsCheck || (state.checked && !state.checking);
-    editorSaveBtn.disabled = !ready;
-    editorSaveBtn.textContent = copy.save || EDITOR_UI_COPY_BASE.save;
+    if (editorSaveBtn) {
+      editorSaveBtn.style.display = "inline-flex";
+      editorSaveBtn.disabled = !ready;
+      editorSaveBtn.textContent = copy.save || EDITOR_UI_COPY_BASE.save;
+    }
   }
 
   function updateSubmissionTranslationPreview() {
     const copy = getEditorUiCopy(editorUiCopyLang);
-    const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
-    const nativeDescription = String(
-      (editorDescription && editorDescription.value) || "",
-    ).trim();
-    if (editorNativeTitlePreview) {
-      editorNativeTitlePreview.textContent =
-        nativeTitle || copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet;
+    const nativeTitle = String((editorTitle && editorTitle.value) || "");
+    const nativeDescription = String((editorDescription && editorDescription.value) || "");
+    writeTextNodeValue(editorNativeTitlePreview, nativeTitle);
+    writeTextNodeValue(editorNativeDescriptionPreview, nativeDescription);
+    if (isEditableTextNode(editorNativeTitlePreview)) {
+      editorNativeTitlePreview.placeholder =
+        copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet;
     }
-    if (editorNativeDescriptionPreview) {
-      editorNativeDescriptionPreview.textContent =
-        nativeDescription ||
-        copy.noDescriptionYet ||
-        EDITOR_UI_COPY_BASE.noDescriptionYet;
+    if (isEditableTextNode(editorNativeDescriptionPreview)) {
+      editorNativeDescriptionPreview.placeholder =
+        copy.noDescriptionYet || EDITOR_UI_COPY_BASE.noDescriptionYet;
     }
   }
 
@@ -3617,6 +3849,7 @@
       editorTranslationBlock.classList.toggle("is-visible", visible);
     }
     if (!visible) {
+      setSubmissionTranslationInputsEditable(false);
       if (editorReviewWizardEnabled) {
         updateEditorReviewUi();
       } else {
@@ -3624,6 +3857,7 @@
       }
       return;
     }
+    setSubmissionTranslationInputsEditable(true);
     updateSubmissionTranslationPreview();
     const checked = Boolean(state.checked);
     if (editorReviewBand) {
@@ -3653,16 +3887,23 @@
       }
     }
     if (editorEnglishTitlePreview) {
-      editorEnglishTitlePreview.textContent =
-        String(state.englishTitle || "").trim() ||
-        copy.notCheckedYet ||
-        EDITOR_UI_COPY_BASE.notCheckedYet;
+      writeTextNodeValue(editorEnglishTitlePreview, String(state.englishTitle || ""));
+      if (isEditableTextNode(editorEnglishTitlePreview)) {
+        editorEnglishTitlePreview.placeholder = checked
+          ? copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet
+          : copy.notCheckedYet || EDITOR_UI_COPY_BASE.notCheckedYet;
+      }
     }
     if (editorEnglishDescriptionPreview) {
-      editorEnglishDescriptionPreview.textContent =
-        String(state.englishDescription || "").trim() ||
-        copy.notCheckedYet ||
-        EDITOR_UI_COPY_BASE.notCheckedYet;
+      writeTextNodeValue(
+        editorEnglishDescriptionPreview,
+        String(state.englishDescription || ""),
+      );
+      if (isEditableTextNode(editorEnglishDescriptionPreview)) {
+        editorEnglishDescriptionPreview.placeholder = checked
+          ? copy.noDescriptionYet || EDITOR_UI_COPY_BASE.noDescriptionYet
+          : copy.notCheckedYet || EDITOR_UI_COPY_BASE.notCheckedYet;
+      }
     }
     if (editorCheckTranslationBtn) {
       const canCheck =
@@ -3683,15 +3924,38 @@
 
   function resetSubmissionTranslationState() {
     submissionTranslationState = null;
-    if (editorEnglishTitlePreview) editorEnglishTitlePreview.textContent = "";
-    if (editorEnglishDescriptionPreview)
-      editorEnglishDescriptionPreview.textContent = "";
-    if (editorNativeTitlePreview) editorNativeTitlePreview.textContent = "";
-    if (editorNativeDescriptionPreview)
-      editorNativeDescriptionPreview.textContent = "";
+    writeTextNodeValue(editorEnglishTitlePreview, "");
+    writeTextNodeValue(editorEnglishDescriptionPreview, "");
+    writeTextNodeValue(editorNativeTitlePreview, "");
+    writeTextNodeValue(editorNativeDescriptionPreview, "");
     if (editorSourceLangLabel) editorSourceLangLabel.textContent = "Language";
     if (editorSourceLangFlag) editorSourceLangFlag.textContent = "🏳️";
     updateSubmissionTranslationUi();
+  }
+
+  function syncNativeTranslationInputsToMainFields() {
+    const nativeTitle = readTextNodeValue(editorNativeTitlePreview);
+    const nativeDescription = readTextNodeValue(editorNativeDescriptionPreview);
+    if (editorTitle && editorTitle.value !== nativeTitle) {
+      editorTitle.value = nativeTitle;
+    }
+    if (editorDescription && editorDescription.value !== nativeDescription) {
+      editorDescription.value = nativeDescription;
+    }
+    updateSubmissionTranslationPreview();
+    invalidateSubmissionTranslationOnNativeEdit();
+    refreshEditorReviewProgress();
+  }
+
+  function syncEnglishTranslationInputsToState() {
+    const state = submissionTranslationState;
+    if (!state) return;
+    state.englishTitle = readTextNodeValue(editorEnglishTitlePreview);
+    state.englishDescription = readTextNodeValue(editorEnglishDescriptionPreview);
+    if (state.checked && !state.checkedAt) {
+      state.checkedAt = new Date().toISOString();
+    }
+    refreshEditorReviewProgress();
   }
 
   function invalidateSubmissionTranslationOnNativeEdit() {
@@ -3822,6 +4086,7 @@
     editorReviewStepIndex = 0;
     editorReviewSteps = [];
     editorAutoTranslationPrimed = false;
+    editorSubmissionFinalStatus = "";
     if (editorTitle) editorTitle.value = "";
     if (editorDescription) editorDescription.value = "";
     if (editorOwnershipType) editorOwnershipType.value = "";
@@ -6426,6 +6691,30 @@
     });
   }
 
+  if (editorNativeTitlePreview) {
+    editorNativeTitlePreview.addEventListener("input", () => {
+      syncNativeTranslationInputsToMainFields();
+    });
+  }
+
+  if (editorNativeDescriptionPreview) {
+    editorNativeDescriptionPreview.addEventListener("input", () => {
+      syncNativeTranslationInputsToMainFields();
+    });
+  }
+
+  if (editorEnglishTitlePreview) {
+    editorEnglishTitlePreview.addEventListener("input", () => {
+      syncEnglishTranslationInputsToState();
+    });
+  }
+
+  if (editorEnglishDescriptionPreview) {
+    editorEnglishDescriptionPreview.addEventListener("input", () => {
+      syncEnglishTranslationInputsToState();
+    });
+  }
+
   if (editorCheckTranslationBtn) {
     editorCheckTranslationBtn.addEventListener("click", () => {
       runSubmissionTranslationCheck();
@@ -6436,6 +6725,26 @@
     editorBackBtn.addEventListener("click", () => {
       if (!editorReviewWizardEnabled) return;
       setEditorReviewStep(editorReviewStepIndex - 1, { force: true });
+    });
+  }
+
+  if (editorPendingBtn) {
+    editorPendingBtn.addEventListener("click", () => {
+      if (editorPendingBtn.disabled) return;
+      editorSubmissionFinalStatus = "pending";
+      if (editorForm && typeof editorForm.requestSubmit === "function") {
+        editorForm.requestSubmit();
+      }
+    });
+  }
+
+  if (editorAcceptBtn) {
+    editorAcceptBtn.addEventListener("click", () => {
+      if (editorAcceptBtn.disabled) return;
+      editorSubmissionFinalStatus = "archived";
+      if (editorForm && typeof editorForm.requestSubmit === "function") {
+        editorForm.requestSubmit();
+      }
     });
   }
 
@@ -6467,6 +6776,10 @@
       event.preventDefault();
       if (!editorTarget) return;
       const target = { ...editorTarget };
+      const requestedFinalStatus = String(editorSubmissionFinalStatus || "")
+        .trim()
+        .toLowerCase();
+      editorSubmissionFinalStatus = "";
       if (editorMode === "entry" && target.type === "entry") {
         if (target.action === "add") {
           postToMap("ecva-editor-add-entry", {
@@ -6529,6 +6842,15 @@
             );
             return;
           }
+          if (!requestedFinalStatus) {
+            const copy = getEditorUiCopy(editorUiCopyLang);
+            showToast(
+              copy.choosePendingOrAcceptBeforeSaving ||
+                EDITOR_UI_COPY_BASE.choosePendingOrAcceptBeforeSaving,
+              true,
+            );
+            return;
+          }
         }
         if (translationRequired && (!state || !state.checked || state.checking)) {
           const copy = getEditorUiCopy(editorUiCopyLang);
@@ -6558,6 +6880,12 @@
           editorSaveBtn.disabled = true;
           editorSaveBtn.textContent = "Saving...";
         }
+        if (editorPendingBtn) {
+          editorPendingBtn.disabled = true;
+        }
+        if (editorAcceptBtn) {
+          editorAcceptBtn.disabled = true;
+        }
         try {
           resourcePayload = await buildEditorResourceSubmissionPayload();
         } catch (error) {
@@ -6570,65 +6898,97 @@
           updateSubmissionTranslationUi();
           return;
         }
+        const updatedFields = {
+          title: nativeTitle,
+          description: nativeDescription,
+          nativeTitle,
+          nativeDescription,
+          englishTitle: translationRequired
+            ? String((state && state.englishTitle) || "").trim()
+            : String(nativeTitle || "").trim(),
+          englishDescription: translationRequired
+            ? String((state && state.englishDescription) || "").trim()
+            : String(nativeDescription || "").trim(),
+          translationChecked: translationRequired
+            ? Boolean(state && state.checked)
+            : true,
+          translationSourceTitle: translationRequired
+            ? String((state && state.translationSourceTitle) || "").trim()
+            : String(nativeTitle || "").trim(),
+          translationSourceDescription: translationRequired
+            ? String(
+                (state && state.translationSourceDescription) || "",
+              ).trim()
+            : String(nativeDescription || "").trim(),
+          translationCheckedAt: translationRequired
+            ? String((state && state.checkedAt) || new Date().toISOString())
+            : new Date().toISOString(),
+          languageAvailability: String(
+            (resourcePayload && resourcePayload.languageAvailability) || "",
+          ).trim(),
+          links: Array.isArray(resourcePayload && resourcePayload.links)
+            ? resourcePayload.links
+            : [],
+          attachments: Array.isArray(
+            resourcePayload && resourcePayload.attachments,
+          )
+            ? resourcePayload.attachments
+            : [],
+          resourceLanguages: Array.isArray(
+            resourcePayload && resourcePayload.resourceLanguages,
+          )
+            ? resourcePayload.resourceLanguages
+            : [],
+          ownership: {
+            type: String(
+              (editorOwnershipType && editorOwnershipType.value) || "",
+            ).trim(),
+            name: String(
+              (editorOwnershipName && editorOwnershipName.value) || "",
+            ).trim(),
+          },
+          representativeContact: {
+            name: editorContactName ? editorContactName.value : "",
+            role: editorContactRole ? editorContactRole.value : "",
+            email: editorContactEmail ? editorContactEmail.value : "",
+          },
+        };
         postToMap("ecva-editor-update-submission", {
           countryId: target.countryId,
           submissionId: target.submissionId,
-          fields: {
-            title: nativeTitle,
-            description: nativeDescription,
-            nativeTitle,
-            nativeDescription,
-            englishTitle: translationRequired
-              ? String((state && state.englishTitle) || "").trim()
-              : String(nativeTitle || "").trim(),
-            englishDescription: translationRequired
-              ? String((state && state.englishDescription) || "").trim()
-              : String(nativeDescription || "").trim(),
-            translationChecked: translationRequired
-              ? Boolean(state && state.checked)
-              : true,
-            translationSourceTitle: translationRequired
-              ? String((state && state.translationSourceTitle) || "").trim()
-              : String(nativeTitle || "").trim(),
-            translationSourceDescription: translationRequired
-              ? String(
-                  (state && state.translationSourceDescription) || "",
-                ).trim()
-              : String(nativeDescription || "").trim(),
-            translationCheckedAt: translationRequired
-              ? String((state && state.checkedAt) || new Date().toISOString())
-              : new Date().toISOString(),
-            languageAvailability: String(
-              (resourcePayload && resourcePayload.languageAvailability) || "",
-            ).trim(),
-            links: Array.isArray(resourcePayload && resourcePayload.links)
-              ? resourcePayload.links
-              : [],
-            attachments: Array.isArray(
-              resourcePayload && resourcePayload.attachments,
-            )
-              ? resourcePayload.attachments
-              : [],
-            resourceLanguages: Array.isArray(
-              resourcePayload && resourcePayload.resourceLanguages,
-            )
-              ? resourcePayload.resourceLanguages
-              : [],
-            ownership: {
-              type: String(
-                (editorOwnershipType && editorOwnershipType.value) || "",
-              ).trim(),
-              name: String(
-                (editorOwnershipName && editorOwnershipName.value) || "",
-              ).trim(),
-            },
-            representativeContact: {
-              name: editorContactName ? editorContactName.value : "",
-              role: editorContactRole ? editorContactRole.value : "",
-              email: editorContactEmail ? editorContactEmail.value : "",
-            },
-          },
+          fields: updatedFields,
         });
+        if (editorReviewWizardEnabled) {
+          const nextStatus =
+            requestedFinalStatus === "archived" ? "archived" : "pending";
+          const inbox = getCountryInbox(target.countryId);
+          const existingSubmission = inbox.find(
+            (item) => String(item && item.id ? item.id : "") === String(target.submissionId),
+          );
+          const normalizedCountryId = normalizeManageCountryCode(target.countryId);
+          const pillarId =
+            String(target.pillarId || (existingSubmission && existingSubmission.pillarId) || "")
+              .trim()
+              .toLowerCase() || "resources";
+          if (nextStatus === "archived") {
+            const normalizedItem = {
+              ...(existingSubmission && typeof existingSubmission === "object"
+                ? existingSubmission
+                : {}),
+              countryId: normalizedCountryId,
+              id: String(target.submissionId),
+              pillarId,
+              status: "archived",
+              ...updatedFields,
+            };
+            postToMap("ecva-editor-add-entry", {
+              countryId: normalizedCountryId,
+              pillarId,
+              entry: buildEntryFromArticleSubmission(normalizedItem),
+            });
+          }
+          updateSubmissionStatus(normalizedCountryId, target.submissionId, nextStatus);
+        }
         closeEditorModal();
         return;
       }

@@ -5079,6 +5079,23 @@
         resize: vertical;
       }
 
+      .ecva-editor-form select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding-right: 38px;
+        background-color: #f7fbfd;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23344f5c' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        background-size: 14px 14px;
+        cursor: pointer;
+      }
+
+      .ecva-editor-form select:disabled {
+        cursor: not-allowed;
+      }
+
       .ecva-editor-translation-block {
         display: none;
         gap: 10px;
@@ -5237,6 +5254,25 @@
         word-break: break-word;
       }
 
+      .ecva-editor-translation-field .ecva-editor-translation-input,
+      .ecva-editor-translation-field .ecva-editor-translation-textarea {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid rgba(124, 147, 159, 0.58);
+        border-radius: 10px;
+        background: rgba(249, 252, 253, 0.96);
+        color: #1f3946;
+        font-family: "Alexandria", sans-serif;
+        font-size: 18px;
+        font-weight: 700;
+        padding: 10px 12px;
+      }
+
+      .ecva-editor-translation-field .ecva-editor-translation-textarea {
+        min-height: 112px;
+        resize: vertical;
+      }
+
       .ecva-editor-actions {
         display: flex;
         align-items: center;
@@ -5297,15 +5333,40 @@
         padding: 0 22px;
       }
 
+      .ecva-editor-cancel-btn,
+      .ecva-editor-back-btn,
+      .ecva-editor-save-btn,
+      .ecva-editor-pending-btn,
+      .ecva-editor-accept-btn {
+        height: 54px;
+        padding-top: 0;
+        padding-bottom: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+
       .ecva-editor-back-btn {
         min-width: 136px;
         padding: 0 22px;
         white-space: nowrap;
+        transform: translateY(0);
       }
 
       .ecva-editor-save-btn {
         min-width: 188px;
         padding: 0 28px;
+      }
+
+      .ecva-editor-pending-btn {
+        min-width: 136px;
+        padding: 0 22px;
+      }
+
+      .ecva-editor-accept-btn {
+        min-width: 152px;
+        padding: 0 24px;
       }
 
       @media (max-width: 700px) {
@@ -6233,19 +6294,20 @@
                     </h6>
                     <div class="ecva-editor-translation-field">
                       <strong id="ecva-editor-native-title-label">Title</strong>
-                      <p
+                      <input
                         id="ecva-editor-native-title-preview"
-                        class="ecva-editor-translation-preview"
-                      ></p>
+                        class="ecva-editor-translation-input"
+                        type="text"
+                      />
                     </div>
                     <div class="ecva-editor-translation-field">
                       <strong id="ecva-editor-native-description-label"
                         >Description</strong
                       >
-                      <p
+                      <textarea
                         id="ecva-editor-native-description-preview"
-                        class="ecva-editor-translation-preview"
-                      ></p>
+                        class="ecva-editor-translation-textarea"
+                      ></textarea>
                     </div>
                   </article>
                   <div class="ecva-editor-translation-bridge" aria-hidden="true">
@@ -6258,18 +6320,21 @@
                       <span>English</span>
                     </h6>
                     <div class="ecva-editor-translation-field">
-                      <strong>Title</strong>
-                      <p
+                      <strong id="ecva-editor-english-title-label">Title</strong>
+                      <input
                         id="ecva-editor-english-title-preview"
-                        class="ecva-editor-translation-preview"
-                      ></p>
+                        class="ecva-editor-translation-input"
+                        type="text"
+                      />
                     </div>
                     <div class="ecva-editor-translation-field">
-                      <strong>Description</strong>
-                      <p
+                      <strong id="ecva-editor-english-description-label"
+                        >Description</strong
+                      >
+                      <textarea
                         id="ecva-editor-english-description-preview"
-                        class="ecva-editor-translation-preview"
-                      ></p>
+                        class="ecva-editor-translation-textarea"
+                      ></textarea>
                     </div>
                   </article>
                 </div>
@@ -6445,6 +6510,22 @@
                 type="submit"
               >
                 Save
+              </button>
+              <button
+                id="ecva-editor-pending-btn"
+                class="ecva-admin-btn secondary ecva-editor-pending-btn"
+                type="button"
+                style="display: none"
+              >
+                Pending
+              </button>
+              <button
+                id="ecva-editor-accept-btn"
+                class="ecva-admin-btn primary ecva-editor-accept-btn"
+                type="button"
+                style="display: none"
+              >
+                Accept
               </button>
             </div>
           </div>
