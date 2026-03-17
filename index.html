@@ -7975,6 +7975,9 @@
       const contributeModalInfoBody = document.getElementById(
         "contribute-modal-info-body",
       );
+      const contributeModalInfoCard = contributeModalInfoBody
+        ? contributeModalInfoBody.closest(".contribute-modal-info")
+        : null;
       const contributeModalMain = document.getElementById(
         "contribute-modal-main",
       );
@@ -8239,6 +8242,7 @@
       const RESOURCE_UI_BASE = {
         suggestArticle: "Suggest an article",
         postArticle: "Post article",
+        editArticle: "Edit article",
         saveChanges: "Save changes",
         sendForReview: "Send for review",
         post: "Post",
@@ -8362,6 +8366,7 @@
       const RESOURCE_UI_RO = {
         suggestArticle: "Sugerează un articol",
         postArticle: "Postează articol",
+        editArticle: "Modifică articolul",
         saveChanges: "Salvează modificările",
         sendForReview: "Trimite la review",
         post: "Postează",
@@ -8544,6 +8549,7 @@
       const RESOURCE_UI_KEY_GROUPS = {
         suggestArticle: "modal",
         postArticle: "modal",
+        editArticle: "modal",
         saveChanges: "modal",
         sendForReview: "modal",
         post: "modal",
@@ -11307,6 +11313,17 @@
         contributeModalDialog.classList.add(`is-pillar-${normalized}`);
       }
 
+      function shouldShowContributeInfoCard() {
+        if (!contributeContext) return true;
+        const mode = String(contributeContext.mode || "article")
+          .trim()
+          .toLowerCase();
+        if (mode !== "article") return true;
+        return !Boolean(
+          contributeContext.editEntryTarget || contributeContext.directPublish,
+        );
+      }
+
       function applyContributeModeCopy() {
         if (!contributeModal) return;
         const mode = String((contributeContext && contributeContext.mode) || "article")
@@ -11335,8 +11352,11 @@
           return;
         }
         const copy = getResourceUiCopy();
+        if (contributeModalInfoCard) {
+          contributeModalInfoCard.hidden = !shouldShowContributeInfoCard();
+        }
         const modeTitle = contributeContext.editEntryTarget
-          ? copy.saveChanges
+          ? copy.editArticle || copy.saveChanges
           : contributeContext.directPublish
             ? copy.postArticle
             : copy.suggestArticle;
@@ -11604,6 +11624,13 @@
               .catch(() => {});
           });
         localizeContributePlaceholders(lang);
+        if (contributeModalInfoCard) {
+          contributeModalInfoCard.hidden = !shouldShowContributeInfoCard();
+        }
+        if (!shouldShowContributeInfoCard()) {
+          contributeInfoUiRenderedLang = lang;
+          return;
+        }
         if (lang === "en" || lang === "ro") {
           contributeInfoUiRenderedLang = lang;
           return;
@@ -11943,6 +11970,10 @@
         };
         const repCopy = getRepFormCopy();
         applyContributeModeCopy();
+        const shouldShowInfoCard = shouldShowContributeInfoCard();
+        if (contributeModalInfoCard) {
+          contributeModalInfoCard.hidden = !shouldShowInfoCard;
+        }
         if (contributeModalInfoTitle) {
           contributeModalInfoTitle.textContent = info.title;
         }
