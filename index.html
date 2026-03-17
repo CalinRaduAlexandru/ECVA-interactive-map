@@ -691,6 +691,107 @@
         transform: translateY(12px) scale(0.98);
         transition: transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
         position: relative;
+        --ecva-editor-step-shell-border: rgba(132, 153, 165, 0.4);
+        --ecva-editor-step-shell-bg-a: rgba(248, 252, 254, 0.96);
+        --ecva-editor-step-shell-bg-b: rgba(240, 247, 251, 0.92);
+        --ecva-editor-step-active-bg: rgba(219, 235, 248, 0.6);
+        --ecva-editor-step-hover-bg: rgba(228, 240, 248, 0.48);
+        --ecva-editor-step-active-dot-border: rgba(63, 117, 171, 0.72);
+        --ecva-editor-step-active-dot-bg: #d9ebfc;
+        --ecva-editor-step-active-dot-color: #245179;
+        --ecva-editor-step-active-label: #2b4b62;
+        --ecva-editor-step-done-dot-border: rgba(52, 131, 97, 0.7);
+        --ecva-editor-step-done-dot-bg: #d8f0e4;
+        --ecva-editor-step-done-dot-color: #1f6b49;
+        --ecva-editor-step-done-label: #2b6650;
+        --ecva-editor-step-done-line: rgba(69, 149, 112, 0.62);
+      }
+
+      .contribute-modal-dialog.is-pillar-default {
+        --ecva-editor-step-active-bg: rgba(219, 235, 248, 0.6);
+        --ecva-editor-step-hover-bg: rgba(228, 240, 248, 0.48);
+        --ecva-editor-step-active-dot-border: rgba(63, 117, 171, 0.72);
+        --ecva-editor-step-active-dot-bg: #d9ebfc;
+        --ecva-editor-step-active-dot-color: #245179;
+        --ecva-editor-step-active-label: #2b4b62;
+        --ecva-editor-step-done-dot-border: rgba(52, 131, 97, 0.7);
+        --ecva-editor-step-done-dot-bg: #d8f0e4;
+        --ecva-editor-step-done-dot-color: #1f6b49;
+        --ecva-editor-step-done-label: #2b6650;
+        --ecva-editor-step-done-line: rgba(69, 149, 112, 0.62);
+      }
+
+      .contribute-modal-dialog.is-pillar-resources {
+        --ecva-editor-step-shell-border: rgba(178, 85, 138, 0.35);
+        --ecva-editor-step-shell-bg-a: rgba(255, 248, 252, 0.95);
+        --ecva-editor-step-shell-bg-b: rgba(250, 238, 246, 0.92);
+        --ecva-editor-step-active-bg: rgba(245, 218, 233, 0.76);
+        --ecva-editor-step-hover-bg: rgba(249, 228, 239, 0.7);
+        --ecva-editor-step-active-dot-border: rgba(178, 85, 138, 0.82);
+        --ecva-editor-step-active-dot-bg: #f2d7e5;
+        --ecva-editor-step-active-dot-color: #8d3b68;
+        --ecva-editor-step-active-label: #8d3b68;
+        --ecva-editor-step-done-dot-border: rgba(178, 85, 138, 0.8);
+        --ecva-editor-step-done-dot-bg: #f3d9e8;
+        --ecva-editor-step-done-dot-color: #8d3b68;
+        --ecva-editor-step-done-label: #8d3b68;
+        --ecva-editor-step-done-line: rgba(178, 85, 138, 0.68);
+      }
+
+      .contribute-modal-dialog.is-pillar-events {
+        --ecva-editor-step-active-bg: rgba(214, 243, 235, 0.72);
+        --ecva-editor-step-hover-bg: rgba(224, 246, 239, 0.66);
+        --ecva-editor-step-active-dot-border: rgba(33, 166, 138, 0.72);
+        --ecva-editor-step-active-dot-bg: #d4f3eb;
+        --ecva-editor-step-active-dot-color: #1a7d68;
+        --ecva-editor-step-active-label: #1a7d68;
+        --ecva-editor-step-done-dot-border: rgba(33, 166, 138, 0.72);
+        --ecva-editor-step-done-dot-bg: #d4f3eb;
+        --ecva-editor-step-done-dot-color: #1a7d68;
+        --ecva-editor-step-done-label: #1a7d68;
+        --ecva-editor-step-done-line: rgba(33, 166, 138, 0.62);
+      }
+
+      .contribute-modal-dialog.is-pillar-organisations {
+        --ecva-editor-step-active-bg: rgba(255, 231, 213, 0.76);
+        --ecva-editor-step-hover-bg: rgba(255, 238, 223, 0.72);
+        --ecva-editor-step-active-dot-border: rgba(245, 133, 99, 0.76);
+        --ecva-editor-step-active-dot-bg: #ffe5d3;
+        --ecva-editor-step-active-dot-color: #b75f43;
+        --ecva-editor-step-active-label: #b75f43;
+        --ecva-editor-step-done-dot-border: rgba(245, 133, 99, 0.74);
+        --ecva-editor-step-done-dot-bg: #ffe5d3;
+        --ecva-editor-step-done-dot-color: #b75f43;
+        --ecva-editor-step-done-label: #b75f43;
+        --ecva-editor-step-done-line: rgba(245, 133, 99, 0.64);
+      }
+
+      .contribute-modal-dialog.is-pillar-research {
+        --ecva-editor-step-active-bg: rgba(228, 220, 255, 0.76);
+        --ecva-editor-step-hover-bg: rgba(236, 230, 255, 0.7);
+        --ecva-editor-step-active-dot-border: rgba(117, 96, 224, 0.74);
+        --ecva-editor-step-active-dot-bg: #e7dcff;
+        --ecva-editor-step-active-dot-color: #5845b3;
+        --ecva-editor-step-active-label: #5845b3;
+        --ecva-editor-step-done-dot-border: rgba(117, 96, 224, 0.72);
+        --ecva-editor-step-done-dot-bg: #e7dcff;
+        --ecva-editor-step-done-dot-color: #5845b3;
+        --ecva-editor-step-done-label: #5845b3;
+        --ecva-editor-step-done-line: rgba(117, 96, 224, 0.62);
+      }
+
+      .contribute-modal-dialog.is-pillar-government {
+        --ecva-editor-step-active-bg: rgba(221, 233, 255, 0.76);
+        --ecva-editor-step-hover-bg: rgba(229, 238, 255, 0.7);
+        --ecva-editor-step-active-dot-border: rgba(88, 133, 234, 0.72);
+        --ecva-editor-step-active-dot-bg: #dce9ff;
+        --ecva-editor-step-active-dot-color: #2f4f9b;
+        --ecva-editor-step-active-label: #2f4f9b;
+        --ecva-editor-step-done-dot-border: rgba(88, 133, 234, 0.7);
+        --ecva-editor-step-done-dot-bg: #dce9ff;
+        --ecva-editor-step-done-dot-color: #2f4f9b;
+        --ecva-editor-step-done-label: #2f4f9b;
+        --ecva-editor-step-done-line: rgba(88, 133, 234, 0.62);
       }
 
       .contribute-modal-dialog::after {
@@ -798,6 +899,31 @@
       .contribute-form {
         display: grid;
         gap: 14px;
+      }
+
+      .contribute-wizard-stepper {
+        margin: 0;
+      }
+
+      .contribute-wizard-stepper-list {
+        --contribute-step-count: 4;
+        grid-template-columns: repeat(
+          var(--contribute-step-count),
+          minmax(0, 1fr)
+        ) !important;
+      }
+
+      .contribute-step-panel {
+        display: none;
+        gap: 12px;
+      }
+
+      .contribute-step-panel.is-visible {
+        display: grid;
+      }
+
+      .contribute-step-panel[hidden] {
+        display: none !important;
       }
 
       .contribute-form[hidden] {
@@ -996,7 +1122,7 @@
         -moz-appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23344f5c' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 14px center;
+        background-position: right 18px center;
         background-size: 14px 14px;
       }
 
@@ -1017,7 +1143,7 @@
         -moz-appearance: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath fill='%23344f5c' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
         background-repeat: no-repeat;
-        background-position: right 12px center;
+        background-position: right 16px center;
         background-size: 14px 14px;
         cursor: pointer;
       }
@@ -1251,6 +1377,12 @@
         }
       }
 
+      @media (max-width: 860px) {
+        .contribute-wizard-stepper-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+      }
+
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
       .contribute-form select.is-invalid,
@@ -1282,6 +1414,11 @@
         justify-content: flex-end;
         gap: 10px;
         margin-top: 2px;
+      }
+
+      .contribute-form-actions .contribute-form-btn[hidden],
+      .contribute-form-actions .ecva-admin-btn[hidden] {
+        display: none !important;
       }
 
       .contribute-form-actions .contribute-form-status {
@@ -5777,159 +5914,276 @@
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" />
               <input type="hidden" name="pillarLabel" />
-              <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">Ownership</p>
-                <div class="contribute-form-row contribute-form-row-ownership">
+              <nav
+                id="contribute-wizard-stepper"
+                class="ecva-editor-stepper contribute-wizard-stepper"
+                aria-label="Review progress"
+                hidden
+              >
+                <ol
+                  id="contribute-wizard-stepper-list"
+                  class="ecva-editor-stepper-list contribute-wizard-stepper-list"
+                ></ol>
+              </nav>
+              <section
+                id="contribute-step-text"
+                class="contribute-step-panel is-visible"
+              >
+                <section class="contribute-form-segment">
+                  <p class="contribute-form-segment-title" id="resource-basic-title">
+                    Resource basic information
+                  </p>
                   <label>
-                    Entity type
-                    <select
-                      id="resource-ownership-type"
-                      class="contribute-entity-type-select"
-                      name="ownershipType"
+                    Title
+                    <input
+                      id="resource-title-input"
+                      type="text"
+                      name="title"
+                      placeholder="e.g. Character Toolkit for Schools"
+                      maxlength="72"
                       required
+                    />
+                    <span class="contribute-field-helper"
+                      >Title will be displayed publicly.</span
                     >
-                      <option value="" selected disabled>
-                        Select entity type
-                      </option>
-                      <option value="Non-profit organisation">
-                        Non-profit organisation
-                      </option>
-                      <option value="Foundation">Foundation</option>
-                      <option value="Public institution">
-                        Public institution
-                      </option>
-                      <option value="University">University</option>
-                      <option value="School">School</option>
-                      <option value="Research institute">
-                        Research institute
-                      </option>
-                      <option value="Private company">Private company</option>
-                      <option value="Government body">Government body</option>
-                      <option value="Independent expert">
-                        Independent expert
-                      </option>
-                      <option value="Collaborative partnership">
-                        Collaborative partnership
-                      </option>
-                      <option value="Other legal entity">
-                        Other legal entity
-                      </option>
-                    </select>
+                    <span
+                      class="contribute-field-count"
+                      id="resource-title-count"
+                      aria-live="polite"
+                      >0/72</span
+                    >
                   </label>
                   <label>
-                    Name of the entity
-                    <input
-                      id="resource-ownership-name"
-                      type="text"
-                      name="ownershipName"
-                      placeholder="Write the name..."
+                    Description
+                    <textarea
+                      id="resource-description-input"
+                      name="description"
+                      maxlength="200"
+                      placeholder="Write a short and clear resource description."
                       required
-                    />
+                    ></textarea>
+                    <span class="contribute-field-helper"
+                      >Write a short and clear description of the resource.</span
+                    >
+                    <span
+                      class="contribute-field-count"
+                      id="resource-description-count"
+                      aria-live="polite"
+                      >0/200</span
+                    >
                   </label>
-                </div>
+                </section>
               </section>
-              <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">
-                  Resource basic information
-                </p>
-                <label>
-                  Title
-                  <input
-                    id="resource-title-input"
-                    type="text"
-                    name="title"
-                    placeholder="e.g. Character Toolkit for Schools"
-                    maxlength="72"
-                    required
-                  />
-                  <span class="contribute-field-helper"
-                    >Title will be displayed publicly.</span
+              <section id="contribute-step-translation" class="contribute-step-panel" hidden>
+                <section class="contribute-form-segment">
+                  <div
+                    id="contribute-translation-block"
+                    class="ecva-editor-translation-block"
                   >
-                  <span
-                    class="contribute-field-count"
-                    id="resource-title-count"
-                    aria-live="polite"
-                    >0/72</span
-                  >
-                </label>
-                <label>
-                  Description
-                  <textarea
-                    id="resource-description-input"
-                    name="description"
-                    maxlength="200"
-                    placeholder="Write a short and clear resource description."
-                    required
-                  ></textarea>
-                  <span class="contribute-field-helper"
-                    >Write a short and clear description of the resource.</span
-                  >
-                  <span
-                    class="contribute-field-count"
-                    id="resource-description-count"
-                    aria-live="polite"
-                    >0/200</span
-                  >
-                </label>
+                    <div class="ecva-editor-review-head">
+                      <span
+                        id="contribute-review-band"
+                        class="ecva-editor-review-band"
+                        >Content review</span
+                      >
+                      <button
+                        id="contribute-check-translation-btn"
+                        class="ecva-editor-check-translation-btn"
+                        type="button"
+                      >
+                        Refresh translation
+                      </button>
+                    </div>
+                    <p
+                      id="contribute-translation-note"
+                      class="ecva-editor-translation-note"
+                    ></p>
+                    <div class="ecva-editor-translation-grid">
+                      <article class="ecva-editor-translation-col">
+                        <h6>
+                          <span
+                            id="contribute-source-lang-flag"
+                            class="ecva-editor-lang-flag"
+                            aria-hidden="true"
+                            >🏳️</span
+                          >
+                          <span id="contribute-source-lang-label">Language</span>
+                        </h6>
+                        <div class="ecva-editor-translation-field">
+                          <strong id="contribute-native-title-label">Title</strong>
+                          <input
+                            id="contribute-native-title-preview"
+                            class="ecva-editor-translation-input"
+                            type="text"
+                            maxlength="72"
+                          />
+                        </div>
+                        <div class="ecva-editor-translation-field">
+                          <strong id="contribute-native-description-label"
+                            >Description</strong
+                          >
+                          <textarea
+                            id="contribute-native-description-preview"
+                            class="ecva-editor-translation-textarea"
+                            maxlength="200"
+                          ></textarea>
+                        </div>
+                      </article>
+                      <div class="ecva-editor-translation-bridge" aria-hidden="true">
+                        <span>→</span>
+                        <span>←</span>
+                      </div>
+                      <article class="ecva-editor-translation-col">
+                        <h6>
+                          <span class="ecva-editor-lang-flag" aria-hidden="true"
+                            >🇬🇧</span
+                          >
+                          <span>English</span>
+                        </h6>
+                        <div class="ecva-editor-translation-field">
+                          <strong id="contribute-english-title-label">Title</strong>
+                          <input
+                            id="contribute-english-title-preview"
+                            class="ecva-editor-translation-input"
+                            type="text"
+                            maxlength="72"
+                          />
+                        </div>
+                        <div class="ecva-editor-translation-field">
+                          <strong id="contribute-english-description-label"
+                            >Description</strong
+                          >
+                          <textarea
+                            id="contribute-english-description-preview"
+                            class="ecva-editor-translation-textarea"
+                            maxlength="200"
+                          ></textarea>
+                        </div>
+                      </article>
+                    </div>
+                  </div>
+                </section>
               </section>
-              <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">Available languages</p>
-                <p class="contribute-form-section-title">
-                  Add one resource version per language
-                </p>
-                <div
-                  id="resource-language-list"
-                  class="contribute-language-list"
-                ></div>
-                <div class="contribute-language-controls">
-                  <button
-                    id="resource-add-language-btn"
-                    class="contribute-form-btn secondary"
-                    type="button"
+              <section id="contribute-step-languages" class="contribute-step-panel" hidden>
+                <section class="contribute-form-segment">
+                  <p
+                    class="contribute-form-segment-title"
+                    id="resource-languages-title"
                   >
-                    Add another language
-                  </button>
-                </div>
+                    Available languages
+                  </p>
+                  <p class="contribute-form-section-title" id="resource-languages-helper">
+                    Add one resource version per language
+                  </p>
+                  <div
+                    id="resource-language-list"
+                    class="contribute-language-list"
+                  ></div>
+                  <div class="contribute-language-controls">
+                    <button
+                      id="resource-add-language-btn"
+                      class="contribute-form-btn secondary"
+                      type="button"
+                    >
+                      Add another language
+                    </button>
+                  </div>
+                </section>
               </section>
-              <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">
-                  For more informations, contact:
-                </p>
-                <p class="contribute-form-section-title">
-                  These details are public and shown at the end of the article.
-                </p>
-                <div class="contribute-form-row">
+              <section id="contribute-step-contact" class="contribute-step-panel" hidden>
+                <section class="contribute-form-segment">
+                  <p class="contribute-form-segment-title" id="resource-ownership-title">
+                    Ownership
+                  </p>
+                  <div class="contribute-form-row contribute-form-row-ownership">
+                    <label>
+                      Entity type
+                      <select
+                        id="resource-ownership-type"
+                        class="contribute-entity-type-select"
+                        name="ownershipType"
+                        required
+                      >
+                        <option value="" selected disabled>
+                          Select entity type
+                        </option>
+                        <option value="Non-profit organisation">
+                          Non-profit organisation
+                        </option>
+                        <option value="Foundation">Foundation</option>
+                        <option value="Public institution">
+                          Public institution
+                        </option>
+                        <option value="University">University</option>
+                        <option value="School">School</option>
+                        <option value="Research institute">
+                          Research institute
+                        </option>
+                        <option value="Private company">Private company</option>
+                        <option value="Government body">Government body</option>
+                        <option value="Independent expert">
+                          Independent expert
+                        </option>
+                        <option value="Collaborative partnership">
+                          Collaborative partnership
+                        </option>
+                        <option value="Other legal entity">
+                          Other legal entity
+                        </option>
+                      </select>
+                    </label>
+                    <label>
+                      Name of the entity
+                      <input
+                        id="resource-ownership-name"
+                        type="text"
+                        name="ownershipName"
+                        placeholder="Write the name..."
+                        required
+                      />
+                    </label>
+                  </div>
+                </section>
+                <section class="contribute-form-segment">
+                  <p class="contribute-form-segment-title" id="resource-contact-title">
+                    For more informations, contact:
+                  </p>
+                  <p class="contribute-form-section-title" id="resource-contact-helper">
+                    These details are public and shown at the end of the article.
+                  </p>
+                  <div class="contribute-form-row">
+                    <label>
+                      Name
+                      <input
+                        type="text"
+                        name="contactName"
+                        placeholder="Full name"
+                        required
+                      />
+                    </label>
+                    <label>
+                      Role
+                      <input
+                        type="text"
+                        name="contactRole"
+                        placeholder="Role / title"
+                        required
+                      />
+                    </label>
+                  </div>
                   <label>
-                    Name
+                    Email
                     <input
-                      type="text"
-                      name="contactName"
-                      placeholder="Full name"
+                      type="email"
+                      name="contactEmail"
+                      placeholder="name@example.org"
                       required
                     />
+                    <span class="contribute-field-helper"
+                      >Used if clarifications are needed.</span
+                    >
                   </label>
-                  <label>
-                    Role
-                    <input
-                      type="text"
-                      name="contactRole"
-                      placeholder="Role / title"
-                      required
-                    />
-                  </label>
-                </div>
-                <label>
-                  Email
-                  <input
-                    type="email"
-                    name="contactEmail"
-                    placeholder="name@example.org"
-                    required
-                  />
-                  <span class="contribute-field-helper"
-                    >Used if clarifications are needed.</span
-                  >
-                </label>
+                </section>
               </section>
               <div class="contribute-form-actions">
                 <p
@@ -5960,9 +6214,25 @@
                   Cancel
                 </button>
                 <button
+                  class="contribute-form-btn secondary"
+                  id="contribute-back-btn"
+                  type="button"
+                  hidden
+                >
+                  Back
+                </button>
+                <button
+                  class="contribute-form-btn primary"
+                  id="contribute-next-btn"
+                  type="button"
+                >
+                  Next
+                </button>
+                <button
                   class="contribute-form-btn primary"
                   id="resource-submit-btn"
                   type="submit"
+                  hidden
                 >
                   Send for review
                 </button>
@@ -7501,11 +7771,87 @@
       const contributeCancelBtn = document.getElementById(
         "contribute-cancel-btn",
       );
+      const contributeBackBtn = document.getElementById("contribute-back-btn");
+      const contributeNextBtn = document.getElementById("contribute-next-btn");
       const contributeRepCancelBtn = document.getElementById(
         "contribute-rep-cancel-btn",
       );
       const contributeForm = document.getElementById("contribute-form");
       const contributeRepForm = document.getElementById("contribute-rep-form");
+      const contributeWizardStepper = document.getElementById(
+        "contribute-wizard-stepper",
+      );
+      const contributeWizardStepperList = document.getElementById(
+        "contribute-wizard-stepper-list",
+      );
+      const contributeStepTextPanel = document.getElementById(
+        "contribute-step-text",
+      );
+      const contributeStepTranslationPanel = document.getElementById(
+        "contribute-step-translation",
+      );
+      const contributeStepLanguagesPanel = document.getElementById(
+        "contribute-step-languages",
+      );
+      const contributeStepContactPanel = document.getElementById(
+        "contribute-step-contact",
+      );
+      const contributeTranslationBlock = document.getElementById(
+        "contribute-translation-block",
+      );
+      const contributeReviewBand = document.getElementById(
+        "contribute-review-band",
+      );
+      const contributeTranslationNote = document.getElementById(
+        "contribute-translation-note",
+      );
+      const contributeCheckTranslationBtn = document.getElementById(
+        "contribute-check-translation-btn",
+      );
+      const contributeSourceLangFlag = document.getElementById(
+        "contribute-source-lang-flag",
+      );
+      const contributeSourceLangLabel = document.getElementById(
+        "contribute-source-lang-label",
+      );
+      const contributeNativeTitlePreview = document.getElementById(
+        "contribute-native-title-preview",
+      );
+      const contributeNativeDescriptionPreview = document.getElementById(
+        "contribute-native-description-preview",
+      );
+      const contributeNativeTitleLabel = document.getElementById(
+        "contribute-native-title-label",
+      );
+      const contributeNativeDescriptionLabel = document.getElementById(
+        "contribute-native-description-label",
+      );
+      const contributeEnglishTitlePreview = document.getElementById(
+        "contribute-english-title-preview",
+      );
+      const contributeEnglishDescriptionPreview = document.getElementById(
+        "contribute-english-description-preview",
+      );
+      const contributeEnglishTitleLabel = document.getElementById(
+        "contribute-english-title-label",
+      );
+      const contributeEnglishDescriptionLabel = document.getElementById(
+        "contribute-english-description-label",
+      );
+      const resourceBasicTitle = document.getElementById("resource-basic-title");
+      const resourceLanguagesTitle = document.getElementById(
+        "resource-languages-title",
+      );
+      const resourceLanguagesHelper = document.getElementById(
+        "resource-languages-helper",
+      );
+      const resourceOwnershipTitle = document.getElementById(
+        "resource-ownership-title",
+      );
+      const resourceContactTitle = document.getElementById("resource-contact-title");
+      const resourceContactHelper = document.getElementById(
+        "resource-contact-helper",
+      );
       const contributeConfetti = document.getElementById("contribute-confetti");
       const contributeFormStatus = document.getElementById(
         "contribute-form-status",
@@ -7651,6 +7997,11 @@
       let resourceLanguageUiRenderedLang = "en";
       let contributeInfoUiRenderedLang = "en";
       let resourceValidationTriggered = false;
+      let contributeWizardEnabled = false;
+      let contributeWizardSteps = [];
+      let contributeWizardStepIndex = 0;
+      let contributeTranslationState = null;
+      let contributeAutoTranslationPrimed = false;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
       const REP_FORM_COPY = {
@@ -7679,6 +8030,16 @@
         sendForReview: "Send for review",
         post: "Post",
         remove: "Remove",
+        stepReviewText: "Review text",
+        stepCheckTranslation: "Check translation",
+        stepLanguagesLinks: "Languages & links",
+        stepContactDetails: "Contact details",
+        back: "Back",
+        next: "Next",
+        contentReview: "Content review",
+        translationReview: "Translation review",
+        refreshTranslation: "Refresh translation",
+        checking: "Checking...",
         ownership: "Ownership",
         entityType: "Entity type",
         selectEntityType: "Select entity type",
@@ -7738,6 +8099,20 @@
         completeTitleAndDescription: "Please complete title and description.",
         nativeLanguageWarning:
           "Warning: use the native language for title and description.",
+        translationCheckingNote: "Checking translation...",
+        translationVerifiedNote:
+          "Translation verified for current {language} text.",
+        translationNeedsCheckNote:
+          "Edit title and description in {language} and run Refresh translation before continuing.",
+        checkTranslationBeforeContinuing:
+          "Run Refresh translation before continuing.",
+        translationCheckedToast: "Translation checked.",
+        translationCheckFailedToast: "Could not check translation right now.",
+        addTitleOrDescriptionBeforeCheck:
+          "Add title or description before translation check.",
+        notCheckedYet: "Not checked yet.",
+        noTitleYet: "No title yet.",
+        noDescriptionYet: "No description yet.",
         uploadingResourceData: "Uploading resource data...",
         couldNotLoadEditorData:
           "Could not load editor data. Please close and try again.",
@@ -7770,6 +8145,16 @@
         sendForReview: "Trimite la review",
         post: "Postează",
         remove: "Șterge",
+        stepReviewText: "Revizuiește textul",
+        stepCheckTranslation: "Verifică traducerea",
+        stepLanguagesLinks: "Limbi și linkuri",
+        stepContactDetails: "Date de contact",
+        back: "Înapoi",
+        next: "Următorul",
+        contentReview: "Revizuire conținut",
+        translationReview: "Revizuire traducere",
+        refreshTranslation: "Reactualizează traducerea",
+        checking: "Se verifică...",
         ownership: "Proprietate",
         entityType: "Tip entitate",
         selectEntityType: "Selectează tipul entității",
@@ -7831,6 +8216,21 @@
         completeTitleAndDescription: "Completează titlul și descrierea.",
         nativeLanguageWarning:
           "Scrie titlul și descrierea în limba nativă înainte de trimitere.",
+        translationCheckingNote: "Se verifică traducerea...",
+        translationVerifiedNote:
+          "Traducerea este verificată pentru textul curent în {language}.",
+        translationNeedsCheckNote:
+          "Editează titlul și descrierea în {language} și apasă Reactualizează traducerea înainte de a continua.",
+        checkTranslationBeforeContinuing:
+          "Rulează Reactualizează traducerea înainte de a continua.",
+        translationCheckedToast: "Traducerea a fost verificată.",
+        translationCheckFailedToast:
+          "Traducerea nu a putut fi verificată în acest moment.",
+        addTitleOrDescriptionBeforeCheck:
+          "Adaugă titlu sau descriere înainte de verificarea traducerii.",
+        notCheckedYet: "Nu este verificat încă.",
+        noTitleYet: "Titlul nu este completat.",
+        noDescriptionYet: "Descrierea nu este completată.",
         uploadingResourceData: "Se încarcă datele resursei...",
         couldNotLoadEditorData:
           "Nu am putut încărca datele editorului. Închide și încearcă din nou.",
@@ -7919,6 +8319,16 @@
         sendForReview: "modal",
         post: "modal",
         remove: "modal",
+        stepReviewText: "wizard",
+        stepCheckTranslation: "wizard",
+        stepLanguagesLinks: "wizard",
+        stepContactDetails: "wizard",
+        back: "wizard",
+        next: "wizard",
+        contentReview: "wizard",
+        translationReview: "wizard",
+        refreshTranslation: "wizard",
+        checking: "wizard",
         leadEditEntry: "modal",
         leadDirectPublish: "modal",
         leadSuggest: "modal",
@@ -7975,6 +8385,16 @@
         missingPillarContext: "status",
         completeTitleAndDescription: "status",
         nativeLanguageWarning: "status",
+        translationCheckingNote: "status",
+        translationVerifiedNote: "status",
+        translationNeedsCheckNote: "status",
+        checkTranslationBeforeContinuing: "status",
+        translationCheckedToast: "status",
+        translationCheckFailedToast: "status",
+        addTitleOrDescriptionBeforeCheck: "status",
+        notCheckedYet: "status",
+        noTitleYet: "status",
+        noDescriptionYet: "status",
         uploadingResourceData: "status",
         couldNotLoadEditorData: "status",
         couldNotRemoveArticleRightNow: "status",
@@ -8229,6 +8649,8 @@
           resourceType: RESOURCE_TYPE_OPTIONS[0].value,
           resourcePricing: "free",
           resourceUrl: "",
+          resourceUrlWeb: "",
+          resourceUrlFile: "",
           file: null,
           fileDataUrl: "",
           fileName: "",
@@ -8282,6 +8704,8 @@
             resourceType: item.resourceType,
             resourcePricing: item.resourcePricing || "free",
             resourceUrl: item.resourceUrl,
+            resourceUrlWeb: item.resourceUrlWeb || "",
+            resourceUrlFile: item.resourceUrlFile || "",
             fileName: item.fileName || "",
             isPrimary: Boolean(item.isPrimary),
           })),
@@ -8356,21 +8780,37 @@
                 .toLowerCase();
               const normalizedCode =
                 getResourceLanguageOption(languageCode).code;
+              const normalizedType = getResourceTypeConfig(
+                item.resourceType ||
+                  (String(item.accessType || "")
+                    .trim()
+                    .toLowerCase() === "file"
+                    ? "document"
+                    : "webpage"),
+              ).value;
+              const normalizedTypeConfig = getResourceTypeConfig(normalizedType);
+              const rawUrl = String(item.resourceUrl || "");
+              const urlWeb = String(item.resourceUrlWeb || "");
+              const urlFile = String(item.resourceUrlFile || "");
               return {
                 id: createResourceLanguageItem(normalizedCode, index === 0).id,
                 languageCode: normalizedCode,
-                resourceType: getResourceTypeConfig(
-                  item.resourceType ||
-                    (String(item.accessType || "")
-                      .trim()
-                      .toLowerCase() === "file"
-                      ? "document"
-                      : "webpage"),
-                ).value,
+                resourceType: normalizedType,
                 resourcePricing: getResourcePricingConfig(
                   item.resourcePricing || "free",
                 ).value,
-                resourceUrl: String(item.resourceUrl || ""),
+                resourceUrl:
+                  normalizedTypeConfig.inputMode === "url"
+                    ? urlWeb || rawUrl
+                    : urlFile || rawUrl,
+                resourceUrlWeb:
+                  normalizedTypeConfig.inputMode === "url"
+                    ? urlWeb || rawUrl
+                    : urlWeb,
+                resourceUrlFile:
+                  normalizedTypeConfig.inputMode === "file"
+                    ? urlFile || rawUrl
+                    : urlFile,
                 file: null,
                 fileDataUrl: "",
                 fileName: String(item.fileName || ""),
@@ -8518,7 +8958,18 @@
           ).join("");
           accessSelect.value = typeConfig.value;
           accessSelect.addEventListener("change", () => {
-            item.resourceType = getResourceTypeConfig(accessSelect.value).value;
+            const currentTypeConfig = getResourceTypeConfig(item.resourceType);
+            if (currentTypeConfig.inputMode === "url") {
+              item.resourceUrlWeb = String(item.resourceUrl || "");
+            } else {
+              item.resourceUrlFile = String(item.resourceUrl || "");
+            }
+            const nextTypeConfig = getResourceTypeConfig(accessSelect.value);
+            item.resourceType = nextTypeConfig.value;
+            item.resourceUrl =
+              nextTypeConfig.inputMode === "url"
+                ? String(item.resourceUrlWeb || "")
+                : String(item.resourceUrlFile || "");
             if (item.resourceType !== "webpage") {
               item.resourcePricing = "free";
             } else {
@@ -8557,6 +9008,7 @@
               item.fileName = file && file.name ? file.name : "";
               item.fileDataUrl = "";
               item.resourceUrl = "";
+              item.resourceUrlFile = "";
               if (file instanceof File) {
                 const reader = new FileReader();
                 reader.onload = () => {
@@ -8624,6 +9076,7 @@
             urlInput.setAttribute("data-focus-value", "true");
             urlInput.addEventListener("input", () => {
               item.resourceUrl = String(urlInput.value || "");
+              item.resourceUrlWeb = item.resourceUrl;
               saveResourceDraft();
               validateResourceForm(resourceValidationTriggered);
             });
@@ -8633,6 +9086,7 @@
                 urlInput.value = normalized;
               }
               item.resourceUrl = normalized;
+              item.resourceUrlWeb = normalized;
               saveResourceDraft();
               validateResourceForm(resourceValidationTriggered);
             });
@@ -8781,13 +9235,26 @@
                   ? "document"
                   : "webpage"),
             ).value;
+            const typeConfig = getResourceTypeConfig(typeValue);
+            const rawUrl = String(item.resourceUrl || "").trim();
+            const rawUrlWeb = String(item.resourceUrlWeb || "").trim();
+            const rawUrlFile = String(item.resourceUrlFile || "").trim();
             return {
               id: createResourceLanguageItem(normalizedCode, index === 0).id,
               languageCode: normalizedCode,
               resourceType: typeValue,
               resourcePricing: getResourcePricingConfig(item.resourcePricing)
                 .value,
-              resourceUrl: String(item.resourceUrl || "").trim(),
+              resourceUrl:
+                typeConfig.inputMode === "url"
+                  ? rawUrlWeb || rawUrl
+                  : rawUrlFile || rawUrl,
+              resourceUrlWeb:
+                typeConfig.inputMode === "url" ? rawUrlWeb || rawUrl : rawUrlWeb,
+              resourceUrlFile:
+                typeConfig.inputMode === "file"
+                  ? rawUrlFile || rawUrl
+                  : rawUrlFile,
               file: null,
               fileDataUrl: "",
               fileName: String(item.fileName || "").trim(),
@@ -8806,12 +9273,13 @@
 
         if (resourceTitleInput) {
           resourceTitleInput.value = String(
-            safeEntry.title || safeFallback.title || "",
+            safeEntry.nativeTitle || safeEntry.title || safeFallback.title || "",
           );
         }
         if (resourceDescriptionInput) {
           resourceDescriptionInput.value = String(
-            safeEntry.description ||
+            safeEntry.nativeDescription ||
+              safeEntry.description ||
               safeEntry.summary ||
               safeFallback.description ||
               "",
@@ -8872,56 +9340,72 @@
         }
       }
 
-      function validateResourceForm(showStatus) {
-        if (!contributeForm) return false;
-        const shouldPaintInvalid = Boolean(
-          showStatus || resourceValidationTriggered,
-        );
+      function getResourceTextValues() {
+        return {
+          title: String((resourceTitleInput && resourceTitleInput.value) || "").trim(),
+          description: String(
+            (resourceDescriptionInput && resourceDescriptionInput.value) || "",
+          ).trim(),
+        };
+      }
+
+      function validateResourceTextFields(shouldPaintInvalid) {
         const errors = [];
-        const title = String(
-          (resourceTitleInput && resourceTitleInput.value) || "",
-        ).trim();
+        const title = String((resourceTitleInput && resourceTitleInput.value) || "").trim();
         const description = String(
           (resourceDescriptionInput && resourceDescriptionInput.value) || "",
         ).trim();
-        const ownershipType = String(
-          (resourceOwnershipTypeInput && resourceOwnershipTypeInput.value) ||
-            "",
-        ).trim();
-        const ownershipName = String(
-          (resourceOwnershipNameInput && resourceOwnershipNameInput.value) ||
-            "",
-        ).trim();
-        const contactName = String(
-          (contributeForm.querySelector('[name="contactName"]') || {}).value ||
-            "",
-        ).trim();
-        const contactRole = String(
-          (contributeForm.querySelector('[name="contactRole"]') || {}).value ||
-            "",
-        ).trim();
-        const contactEmail = String(
-          (contributeForm.querySelector('[name="contactEmail"]') || {}).value ||
-            "",
-        ).trim();
-        setFieldError(resourceTitleInput, shouldPaintInvalid && !title);
+        updateResourceCounter(resourceTitleInput, resourceTitleCount, RESOURCE_LIMITS.title);
+        updateResourceCounter(
+          resourceDescriptionInput,
+          resourceDescriptionCount,
+          RESOURCE_LIMITS.description,
+        );
+        setFieldError(resourceTitleInput, Boolean(shouldPaintInvalid && !title));
         setFieldError(
           resourceDescriptionInput,
-          shouldPaintInvalid && !description,
-        );
-        setFieldError(
-          resourceOwnershipTypeInput,
-          shouldPaintInvalid && !ownershipType,
-        );
-        setFieldError(
-          resourceOwnershipNameInput,
-          shouldPaintInvalid && !ownershipName,
+          Boolean(shouldPaintInvalid && !description),
         );
         if (!title) errors.push(getResourceUiText("completeTitle"));
         if (!description) errors.push(getResourceUiText("completeDescription"));
-        if (!ownershipType)
-          errors.push(getResourceUiText("selectEntityTypeError"));
+        if (title && description) {
+          const nativeLanguageCheck = validateNativeContentLanguage(
+            contributeContext && contributeContext.countryId,
+            title,
+            description,
+          );
+          if (!nativeLanguageCheck.ok) {
+            errors.push(
+              nativeLanguageCheck.message || getResourceUiText("nativeLanguageWarning"),
+            );
+          }
+        }
+        return errors;
+      }
+
+      function validateResourceOwnershipFields(shouldPaintInvalid) {
+        const errors = [];
+        const ownershipType = String(
+          (resourceOwnershipTypeInput && resourceOwnershipTypeInput.value) || "",
+        ).trim();
+        const ownershipName = String(
+          (resourceOwnershipNameInput && resourceOwnershipNameInput.value) || "",
+        ).trim();
+        setFieldError(
+          resourceOwnershipTypeInput,
+          Boolean(shouldPaintInvalid && !ownershipType),
+        );
+        setFieldError(
+          resourceOwnershipNameInput,
+          Boolean(shouldPaintInvalid && !ownershipName),
+        );
+        if (!ownershipType) errors.push(getResourceUiText("selectEntityTypeError"));
         if (!ownershipName) errors.push(getResourceUiText("completeEntityName"));
+        return errors;
+      }
+
+      function validateResourceLanguageVersionFields(shouldPaintInvalid) {
+        const errors = [];
         const seenLanguages = new Set();
         resourceLanguageItems.forEach((item) => {
           const card = resourceLanguageList
@@ -8942,14 +9426,14 @@
             .toLowerCase();
           if (!languageCode) {
             errors.push(getResourceUiText("selectLanguageError"));
-            setFieldError(languageSelect, shouldPaintInvalid);
+            setFieldError(languageSelect, Boolean(shouldPaintInvalid));
             return;
           }
           const duplicated = seenLanguages.has(languageCode);
           seenLanguages.add(languageCode);
           if (duplicated) {
             errors.push(getResourceUiText("duplicateLanguage"));
-            setFieldError(languageSelect, shouldPaintInvalid);
+            setFieldError(languageSelect, Boolean(shouldPaintInvalid));
           } else {
             setFieldError(languageSelect, false);
           }
@@ -8957,9 +9441,7 @@
           if (typeConfig.value !== "webpage") {
             item.resourcePricing = "free";
           } else {
-            item.resourcePricing = getResourcePricingConfig(
-              item.resourcePricing,
-            ).value;
+            item.resourcePricing = getResourcePricingConfig(item.resourcePricing).value;
           }
           if (typeConfig.inputMode === "file") {
             const hasFile =
@@ -8967,19 +9449,17 @@
               Boolean(item.fileDataUrl) ||
               Boolean(item.resourceUrl);
             const fileName = String((item.file && item.file.name) || "");
-            const fileSize =
-              item.file instanceof File ? Number(item.file.size || 0) : 0;
-            const fileOk =
-              hasFile && (fileName ? RESOURCE_FILE_RE.test(fileName) : true);
+            const fileSize = item.file instanceof File ? Number(item.file.size || 0) : 0;
+            const fileOk = hasFile && (fileName ? RESOURCE_FILE_RE.test(fileName) : true);
             if (!hasFile) {
               errors.push(getResourceUiText("uploadFilePerLanguageError"));
-              setFieldError(valueInput, shouldPaintInvalid);
+              setFieldError(valueInput, Boolean(shouldPaintInvalid));
             } else if (fileSize > ATTACHMENT_MAX_BYTES) {
               errors.push(getResourceUiText("fileTooLargeError"));
-              setFieldError(valueInput, shouldPaintInvalid);
+              setFieldError(valueInput, Boolean(shouldPaintInvalid));
             } else if (!fileOk) {
               errors.push(getResourceUiText("fileFormatUnsupportedError"));
-              setFieldError(valueInput, shouldPaintInvalid);
+              setFieldError(valueInput, Boolean(shouldPaintInvalid));
             } else {
               setFieldError(valueInput, false);
             }
@@ -8996,48 +9476,737 @@
                   language: languageName,
                 }),
               );
-              setFieldError(valueInput, shouldPaintInvalid);
+              setFieldError(valueInput, Boolean(shouldPaintInvalid));
             } else {
               setFieldError(valueInput, false);
             }
             if (typeConfig.value === "webpage") {
-              const pricingValue = getResourcePricingConfig(
-                item.resourcePricing,
-              ).value;
-              item.resourcePricing = pricingValue;
+              item.resourcePricing = getResourcePricingConfig(item.resourcePricing).value;
             } else {
               item.resourcePricing = "free";
             }
           }
         });
-        const contactNameInput = contributeForm.querySelector(
-          '[name="contactName"]',
-        );
-        const contactRoleInput = contributeForm.querySelector(
-          '[name="contactRole"]',
-        );
-        const contactEmailInput = contributeForm.querySelector(
-          '[name="contactEmail"]',
-        );
-        setFieldError(contactNameInput, shouldPaintInvalid && !contactName);
-        setFieldError(contactRoleInput, shouldPaintInvalid && !contactRole);
-        setFieldError(
-          contactEmailInput,
-          shouldPaintInvalid &&
-            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail),
-        );
+        return errors;
+      }
+
+      function validateResourceContactFields(shouldPaintInvalid) {
+        const errors = [];
+        const contactNameInput = contributeForm
+          ? contributeForm.querySelector('[name="contactName"]')
+          : null;
+        const contactRoleInput = contributeForm
+          ? contributeForm.querySelector('[name="contactRole"]')
+          : null;
+        const contactEmailInput = contributeForm
+          ? contributeForm.querySelector('[name="contactEmail"]')
+          : null;
+        const contactName = String((contactNameInput && contactNameInput.value) || "").trim();
+        const contactRole = String((contactRoleInput && contactRoleInput.value) || "").trim();
+        const contactEmail = String((contactEmailInput && contactEmailInput.value) || "").trim();
+        const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
+        setFieldError(contactNameInput, Boolean(shouldPaintInvalid && !contactName));
+        setFieldError(contactRoleInput, Boolean(shouldPaintInvalid && !contactRole));
+        setFieldError(contactEmailInput, Boolean(shouldPaintInvalid && !emailOk));
         if (!contactName) errors.push(getResourceUiText("completeName"));
         if (!contactRole) errors.push(getResourceUiText("completeRole"));
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
-          errors.push(getResourceUiText("completeEmailValid"));
-        }
+        if (!emailOk) errors.push(getResourceUiText("completeEmailValid"));
+        return errors;
+      }
+
+      function validateResourceForm(showStatus) {
+        if (!contributeForm) return false;
+        const shouldPaintInvalid = Boolean(
+          showStatus || resourceValidationTriggered,
+        );
+        const errors = []
+          .concat(validateResourceTextFields(shouldPaintInvalid))
+          .concat(validateResourceOwnershipFields(shouldPaintInvalid))
+          .concat(validateResourceLanguageVersionFields(shouldPaintInvalid))
+          .concat(validateResourceContactFields(shouldPaintInvalid));
         const valid = errors.length === 0;
         if (valid) {
           setContributeStatus("");
         } else if (showStatus) {
           setContributeStatus(errors[0], "error");
         }
+        updateContributeWizardUi();
         return valid;
+      }
+
+      function focusFirstContributeInvalidField() {
+        if (!contributeForm) return;
+        const invalid = contributeForm.querySelector(
+          ".is-invalid, [aria-invalid='true']",
+        );
+        if (invalid && typeof invalid.focus === "function") {
+          invalid.focus();
+        }
+      }
+
+      function isContributeArticleMode() {
+        return (
+          String((contributeContext && contributeContext.mode) || "")
+            .trim()
+            .toLowerCase() === "article"
+        );
+      }
+
+      function requiresContributeTranslationStep() {
+        if (!isContributeArticleMode()) return false;
+        if (!contributeContext) return false;
+        if (!contributeContext.editEntryTarget && !contributeContext.directPublish) {
+          return false;
+        }
+        const expected = getExpectedNativeLanguage(contributeContext.countryId);
+        return Boolean(expected && expected !== "en");
+      }
+
+      function isEditableContributeNode(node) {
+        return node instanceof HTMLInputElement || node instanceof HTMLTextAreaElement;
+      }
+
+      function readContributeNodeValue(node) {
+        if (!node) return "";
+        if (isEditableContributeNode(node)) return String(node.value || "");
+        return String(node.textContent || "");
+      }
+
+      function writeContributeNodeValue(node, value) {
+        if (!node) return;
+        const nextValue = String(value || "");
+        if (isEditableContributeNode(node)) {
+          if (node.value !== nextValue) node.value = nextValue;
+          return;
+        }
+        node.textContent = nextValue;
+      }
+
+      function setContributeTranslationInputsEditable(isEditable) {
+        const editable = Boolean(isEditable);
+        [
+          contributeNativeTitlePreview,
+          contributeNativeDescriptionPreview,
+          contributeEnglishTitlePreview,
+          contributeEnglishDescriptionPreview,
+        ].forEach((field) => {
+          if (!isEditableContributeNode(field)) return;
+          field.disabled = !editable;
+          field.readOnly = !editable;
+        });
+      }
+
+      function updateContributeTranslationPreview() {
+        const values = getResourceTextValues();
+        writeContributeNodeValue(contributeNativeTitlePreview, values.title);
+        writeContributeNodeValue(
+          contributeNativeDescriptionPreview,
+          values.description,
+        );
+      }
+
+      function updateContributeTranslationUi() {
+        const copy = getResourceUiCopy();
+        const state = contributeTranslationState;
+        const visible = Boolean(state && state.visible);
+        if (contributeTranslationBlock) {
+          contributeTranslationBlock.classList.toggle("is-visible", visible);
+        }
+        setContributeTranslationInputsEditable(visible);
+        if (!visible) {
+          if (contributeCheckTranslationBtn) contributeCheckTranslationBtn.disabled = true;
+          return;
+        }
+        updateContributeTranslationPreview();
+        const checked = Boolean(state.checked);
+        if (contributeReviewBand) {
+          contributeReviewBand.textContent = checked
+            ? copy.translationReview || RESOURCE_UI_BASE.translationReview
+            : copy.contentReview || RESOURCE_UI_BASE.contentReview;
+          contributeReviewBand.classList.toggle("is-passed", checked);
+        }
+        const sourceLanguageLabel = String(state.sourceLanguageLabel || "").trim() || "Language";
+        if (contributeTranslationNote) {
+          if (state.checking) {
+            contributeTranslationNote.textContent =
+              copy.translationCheckingNote || RESOURCE_UI_BASE.translationCheckingNote;
+          } else if (checked) {
+            contributeTranslationNote.textContent = String(
+              copy.translationVerifiedNote || RESOURCE_UI_BASE.translationVerifiedNote,
+            ).replace("{language}", sourceLanguageLabel);
+          } else {
+            contributeTranslationNote.textContent = String(
+              copy.translationNeedsCheckNote ||
+                RESOURCE_UI_BASE.translationNeedsCheckNote,
+            ).replace("{language}", sourceLanguageLabel);
+          }
+        }
+        if (contributeSourceLangFlag) {
+          contributeSourceLangFlag.textContent = String(
+            state.sourceLanguageFlag || "🏳️",
+          );
+        }
+        if (contributeSourceLangLabel) {
+          contributeSourceLangLabel.textContent = sourceLanguageLabel;
+        }
+        if (contributeNativeTitleLabel) {
+          contributeNativeTitleLabel.textContent = copy.title || RESOURCE_UI_BASE.title;
+        }
+        if (contributeNativeDescriptionLabel) {
+          contributeNativeDescriptionLabel.textContent =
+            copy.description || RESOURCE_UI_BASE.description;
+        }
+        if (contributeEnglishTitleLabel) {
+          contributeEnglishTitleLabel.textContent = copy.title || RESOURCE_UI_BASE.title;
+        }
+        if (contributeEnglishDescriptionLabel) {
+          contributeEnglishDescriptionLabel.textContent =
+            copy.description || RESOURCE_UI_BASE.description;
+        }
+        writeContributeNodeValue(
+          contributeEnglishTitlePreview,
+          String(state.englishTitle || ""),
+        );
+        writeContributeNodeValue(
+          contributeEnglishDescriptionPreview,
+          String(state.englishDescription || ""),
+        );
+        if (isEditableContributeNode(contributeNativeTitlePreview)) {
+          contributeNativeTitlePreview.placeholder = checked
+            ? copy.noTitleYet || RESOURCE_UI_BASE.noTitleYet
+            : copy.notCheckedYet || RESOURCE_UI_BASE.notCheckedYet;
+        }
+        if (isEditableContributeNode(contributeNativeDescriptionPreview)) {
+          contributeNativeDescriptionPreview.placeholder = checked
+            ? copy.noDescriptionYet || RESOURCE_UI_BASE.noDescriptionYet
+            : copy.notCheckedYet || RESOURCE_UI_BASE.notCheckedYet;
+        }
+        if (isEditableContributeNode(contributeEnglishTitlePreview)) {
+          contributeEnglishTitlePreview.placeholder = checked
+            ? copy.noTitleYet || RESOURCE_UI_BASE.noTitleYet
+            : copy.notCheckedYet || RESOURCE_UI_BASE.notCheckedYet;
+        }
+        if (isEditableContributeNode(contributeEnglishDescriptionPreview)) {
+          contributeEnglishDescriptionPreview.placeholder = checked
+            ? copy.noDescriptionYet || RESOURCE_UI_BASE.noDescriptionYet
+            : copy.notCheckedYet || RESOURCE_UI_BASE.notCheckedYet;
+        }
+        if (contributeCheckTranslationBtn) {
+          const hasNativeText = Boolean(
+            String((resourceTitleInput && resourceTitleInput.value) || "").trim() ||
+              String((resourceDescriptionInput && resourceDescriptionInput.value) || "").trim(),
+          );
+          contributeCheckTranslationBtn.textContent = state.checking
+            ? copy.checking || "Checking..."
+            : copy.refreshTranslation || RESOURCE_UI_BASE.refreshTranslation;
+          contributeCheckTranslationBtn.disabled = !hasNativeText || state.checking;
+        }
+      }
+
+      function invalidateContributeTranslationOnNativeEdit() {
+        const state = contributeTranslationState;
+        if (!state || !state.required) return;
+        const values = getResourceTextValues();
+        if (
+          values.title === String(state.translationSourceTitle || "") &&
+          values.description === String(state.translationSourceDescription || "")
+        ) {
+          state.checked = true;
+        } else {
+          state.checked = false;
+        }
+      }
+
+      function syncContributeNativeTranslationInputsToMainFields() {
+        const nativeTitle = readContributeNodeValue(contributeNativeTitlePreview);
+        const nativeDescription = readContributeNodeValue(
+          contributeNativeDescriptionPreview,
+        );
+        if (resourceTitleInput && resourceTitleInput.value !== nativeTitle) {
+          resourceTitleInput.value = nativeTitle;
+        }
+        if (resourceDescriptionInput && resourceDescriptionInput.value !== nativeDescription) {
+          resourceDescriptionInput.value = nativeDescription;
+        }
+        updateResourceCounter(resourceTitleInput, resourceTitleCount, RESOURCE_LIMITS.title);
+        updateResourceCounter(
+          resourceDescriptionInput,
+          resourceDescriptionCount,
+          RESOURCE_LIMITS.description,
+        );
+        saveResourceDraft();
+        invalidateContributeTranslationOnNativeEdit();
+        validateResourceForm(resourceValidationTriggered);
+        updateContributeTranslationUi();
+        updateContributeWizardUi();
+      }
+
+      function syncContributeEnglishTranslationInputsToState() {
+        const state = contributeTranslationState;
+        if (!state) return;
+        state.englishTitle = readContributeNodeValue(contributeEnglishTitlePreview);
+        state.englishDescription = readContributeNodeValue(
+          contributeEnglishDescriptionPreview,
+        );
+        if (state.checked && !state.checkedAt) {
+          state.checkedAt = new Date().toISOString();
+        }
+        updateContributeWizardUi();
+      }
+
+      async function runContributeTranslationCheck() {
+        const state = contributeTranslationState;
+        if (!state || !state.required) return;
+        const values = getResourceTextValues();
+        const nativeTitle = values.title;
+        const nativeDescription = values.description;
+        if (!nativeTitle && !nativeDescription) {
+          setContributeStatus(
+            getResourceUiText("addTitleOrDescriptionBeforeCheck"),
+            "error",
+          );
+          return;
+        }
+        state.checking = true;
+        updateContributeTranslationUi();
+        updateContributeWizardUi();
+        try {
+          const response = await fetch("/api/translate-batch", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sourceLang: String(state.sourceLanguageCode || "auto"),
+              targetLang: "en",
+              texts: [nativeTitle, nativeDescription],
+            }),
+          });
+          if (!response.ok) {
+            throw new Error(`translation_status_${response.status}`);
+          }
+          const payload = await response.json().catch(() => null);
+          const translated = Array.isArray(payload && payload.translated)
+            ? payload.translated
+            : [nativeTitle, nativeDescription];
+          state.englishTitle = String(translated[0] || nativeTitle).trim();
+          state.englishDescription = String(translated[1] || nativeDescription).trim();
+          state.translationSourceTitle = nativeTitle;
+          state.translationSourceDescription = nativeDescription;
+          state.checked = true;
+          state.checkedAt = new Date().toISOString();
+          setContributeStatus(getResourceUiText("translationCheckedToast"), "");
+        } catch (_error) {
+          setContributeStatus(getResourceUiText("translationCheckFailedToast"), "error");
+        } finally {
+          state.checking = false;
+          updateContributeTranslationUi();
+          updateContributeWizardUi();
+        }
+      }
+
+      function initializeContributeTranslationState(entryData) {
+        const translationRequired = requiresContributeTranslationStep();
+        const sourceLanguageCode = getExpectedNativeLanguage(
+          contributeContext && contributeContext.countryId,
+        );
+        const sourceLanguageLabel = getLanguageLabelFromCode(sourceLanguageCode || "en");
+        const sourceLanguageFlag = getFlagEmojiByCountryCode(
+          getCanonicalCountryCodeForLanguage(sourceLanguageCode),
+        );
+        const values = getResourceTextValues();
+        const safeEntry = entryData && typeof entryData === "object" ? entryData : {};
+        const englishTitle = String(safeEntry.englishTitle || "").trim();
+        const englishDescription = String(safeEntry.englishDescription || "").trim();
+        const checked = translationRequired
+          ? Boolean(safeEntry.translationChecked)
+          : String(sourceLanguageCode || "").trim().toLowerCase() === "en";
+        const sourceTitle = String(
+          safeEntry.translationSourceTitle || (checked ? values.title : ""),
+        ).trim();
+        const sourceDescription = String(
+          safeEntry.translationSourceDescription || (checked ? values.description : ""),
+        ).trim();
+        contributeTranslationState = {
+          visible: translationRequired,
+          required: translationRequired,
+          checking: false,
+          checked:
+            translationRequired && sourceTitle && sourceDescription
+              ? checked &&
+                sourceTitle === values.title &&
+                sourceDescription === values.description
+              : checked,
+          sourceLanguageCode:
+            String(sourceLanguageCode || "").trim().toLowerCase() || "en",
+          sourceLanguageLabel,
+          sourceLanguageFlag,
+          englishTitle: translationRequired ? englishTitle : englishTitle || values.title,
+          englishDescription: translationRequired
+            ? englishDescription
+            : englishDescription || values.description,
+          translationSourceTitle: sourceTitle,
+          translationSourceDescription: sourceDescription,
+          checkedAt: String(safeEntry.translationCheckedAt || "").trim(),
+        };
+        contributeAutoTranslationPrimed = false;
+        updateContributeTranslationUi();
+      }
+
+      function resetContributeTranslationState() {
+        contributeTranslationState = null;
+        contributeAutoTranslationPrimed = false;
+        writeContributeNodeValue(contributeNativeTitlePreview, "");
+        writeContributeNodeValue(contributeNativeDescriptionPreview, "");
+        writeContributeNodeValue(contributeEnglishTitlePreview, "");
+        writeContributeNodeValue(contributeEnglishDescriptionPreview, "");
+        if (contributeSourceLangFlag) contributeSourceLangFlag.textContent = "🏳️";
+        if (contributeSourceLangLabel) contributeSourceLangLabel.textContent = "Language";
+        updateContributeTranslationUi();
+      }
+
+      function getContributeTranslationPayload(countryId, nativeTitle, nativeDescription) {
+        const normalizedCountryId = String(countryId || "")
+          .trim()
+          .toUpperCase();
+        const nativeTitleValue = String(nativeTitle || "").trim();
+        const nativeDescriptionValue = String(nativeDescription || "").trim();
+        const state =
+          contributeTranslationState && typeof contributeTranslationState === "object"
+            ? contributeTranslationState
+            : null;
+        const translationRequired = Boolean(state && state.required);
+        if (!translationRequired) {
+          if (normalizedCountryId === "GB") {
+            const checkedAt = new Date().toISOString();
+            return {
+              englishTitle: nativeTitleValue,
+              englishDescription: nativeDescriptionValue,
+              translationChecked: true,
+              translationSourceTitle: nativeTitleValue,
+              translationSourceDescription: nativeDescriptionValue,
+              translationCheckedAt: checkedAt,
+            };
+          }
+          return {
+            englishTitle: "",
+            englishDescription: "",
+            translationChecked: false,
+            translationSourceTitle: "",
+            translationSourceDescription: "",
+            translationCheckedAt: "",
+          };
+        }
+        return {
+          englishTitle: String((state && state.englishTitle) || "").trim(),
+          englishDescription: String(
+            (state && state.englishDescription) || "",
+          ).trim(),
+          translationChecked: Boolean(state && state.checked),
+          translationSourceTitle: String(
+            (state && state.translationSourceTitle) || "",
+          ).trim(),
+          translationSourceDescription: String(
+            (state && state.translationSourceDescription) || "",
+          ).trim(),
+          translationCheckedAt:
+            Boolean(state && state.checked) && String((state && state.checkedAt) || "").trim()
+              ? String((state && state.checkedAt) || "").trim()
+              : Boolean(state && state.checked)
+                ? new Date().toISOString()
+                : "",
+        };
+      }
+
+      function validateContributeTextStep(paintInvalid) {
+        const errors = validateResourceTextFields(Boolean(paintInvalid));
+        return errors[0] || "";
+      }
+
+      function validateContributeTranslationStep(_paintInvalid) {
+        const state = contributeTranslationState;
+        if (!state || !state.required) return "";
+        if (state.checking || !state.checked) {
+          return (
+            getResourceUiText("checkTranslationBeforeContinuing") ||
+            RESOURCE_UI_BASE.checkTranslationBeforeContinuing
+          );
+        }
+        return "";
+      }
+
+      function validateContributeLanguagesStep(paintInvalid) {
+        const errors = validateResourceLanguageVersionFields(Boolean(paintInvalid));
+        return errors[0] || "";
+      }
+
+      function validateContributeContactStep(paintInvalid) {
+        const errors = []
+          .concat(validateResourceOwnershipFields(Boolean(paintInvalid)))
+          .concat(validateResourceContactFields(Boolean(paintInvalid)));
+        return errors[0] || "";
+      }
+
+      function getContributeWizardStepDefinitions() {
+        return [
+          {
+            id: "text",
+            label: getResourceUiText("stepReviewText"),
+            panel: contributeStepTextPanel,
+            validate: (paintInvalid) => validateContributeTextStep(paintInvalid),
+          },
+          {
+            id: "translation",
+            label: getResourceUiText("stepCheckTranslation"),
+            panel: contributeStepTranslationPanel,
+            validate: (paintInvalid) =>
+              validateContributeTranslationStep(paintInvalid),
+          },
+          {
+            id: "languages",
+            label: getResourceUiText("stepLanguagesLinks"),
+            panel: contributeStepLanguagesPanel,
+            validate: (paintInvalid) =>
+              validateContributeLanguagesStep(paintInvalid),
+          },
+          {
+            id: "contact",
+            label: getResourceUiText("stepContactDetails"),
+            panel: contributeStepContactPanel,
+            validate: (paintInvalid) => validateContributeContactStep(paintInvalid),
+          },
+        ];
+      }
+
+      function getContributeWizardStepError(stepIndex, paintInvalid) {
+        if (!contributeWizardEnabled) return "";
+        const step = contributeWizardSteps[Number(stepIndex)];
+        if (!step || typeof step.validate !== "function") return "";
+        return String(step.validate(Boolean(paintInvalid)) || "");
+      }
+
+      function getContributeWizardStepIndexById(stepId) {
+        const targetId = String(stepId || "").trim().toLowerCase();
+        if (!targetId) return -1;
+        return contributeWizardSteps.findIndex(
+          (step) =>
+            String((step && step.id) || "")
+              .trim()
+              .toLowerCase() === targetId,
+        );
+      }
+
+      function validateContributeWizardStepsUntil(stepIndex, paintInvalid) {
+        if (!contributeWizardEnabled) return "";
+        const limit = Math.min(Number(stepIndex), contributeWizardSteps.length - 1);
+        for (let index = 0; index <= limit; index += 1) {
+          const message = getContributeWizardStepError(index, paintInvalid);
+          if (message) return message;
+        }
+        return "";
+      }
+
+      function getFirstInvalidContributeWizardStepIndex(paintInvalid) {
+        if (!contributeWizardEnabled) return -1;
+        for (let index = 0; index < contributeWizardSteps.length; index += 1) {
+          const message = getContributeWizardStepError(index, paintInvalid);
+          if (message) return index;
+        }
+        return -1;
+      }
+
+      function canActivateContributeWizardStep(nextIndex) {
+        if (!contributeWizardEnabled) return true;
+        const maxIndex = contributeWizardSteps.length - 1;
+        if (maxIndex < 0) return true;
+        const targetIndex = Math.max(0, Math.min(Number(nextIndex), maxIndex));
+        if (targetIndex <= contributeWizardStepIndex) return true;
+        return !validateContributeWizardStepsUntil(targetIndex - 1, false);
+      }
+
+      function maybePrimeContributeTranslationStep(previousIndex, nextIndex) {
+        if (!contributeWizardEnabled) return;
+        const step =
+          contributeWizardSteps[
+            Math.max(0, Math.min(Number(nextIndex), contributeWizardSteps.length - 1))
+          ] || null;
+        if (!step || String(step.id || "").trim().toLowerCase() !== "translation") {
+          return;
+        }
+        if (Number(previousIndex) === Number(nextIndex)) return;
+        const state = contributeTranslationState;
+        if (!state || !state.required) return;
+        if (state.checking || state.checked) return;
+        if (contributeAutoTranslationPrimed) return;
+        const values = getResourceTextValues();
+        if (!values.title && !values.description) return;
+        contributeAutoTranslationPrimed = true;
+        runContributeTranslationCheck();
+      }
+
+      function renderContributeWizardStepper() {
+        if (!contributeWizardStepperList) return;
+        if (!contributeWizardEnabled || !contributeWizardSteps.length) {
+          contributeWizardStepperList.innerHTML = "";
+          return;
+        }
+        contributeWizardStepperList.style.setProperty(
+          "--contribute-step-count",
+          String(contributeWizardSteps.length),
+        );
+        contributeWizardStepperList.innerHTML = contributeWizardSteps
+          .map((step, index) => {
+            const rawError = getContributeWizardStepError(index, false);
+            const isValid = !rawError;
+            const classes = ["ecva-editor-stepper-item"];
+            if (index < contributeWizardStepIndex && isValid) {
+              classes.push("is-done");
+            } else if (index < contributeWizardStepIndex && !isValid) {
+              classes.push("is-error");
+            } else if (index === contributeWizardStepIndex) {
+              classes.push("is-active");
+            }
+            const dotText =
+              index < contributeWizardStepIndex && isValid
+                ? "✓"
+                : String(index + 1);
+            return `<li class="${classes.join(" ")}" data-contribute-review-step="${index}">
+              <span class="ecva-editor-stepper-dot">${escapeHtml(dotText)}</span>
+              <span class="ecva-editor-stepper-label">${escapeHtml(step.label)}</span>
+            </li>`;
+          })
+          .join("");
+        contributeWizardStepperList
+          .querySelectorAll("[data-contribute-review-step]")
+          .forEach((node) => {
+            node.addEventListener("click", () => {
+              const index = Number(node.getAttribute("data-contribute-review-step"));
+              if (!Number.isFinite(index)) return;
+              if (!canActivateContributeWizardStep(index)) return;
+              setContributeWizardStep(index);
+            });
+          });
+      }
+
+      function updateContributeWizardUi() {
+        const isWizard = Boolean(
+          contributeWizardEnabled && contributeWizardSteps.length && isContributeArticleMode(),
+        );
+        if (contributeWizardStepper) {
+          contributeWizardStepper.hidden = !isWizard;
+        }
+        const panels = [
+          contributeStepTextPanel,
+          contributeStepTranslationPanel,
+          contributeStepLanguagesPanel,
+          contributeStepContactPanel,
+        ];
+        if (!isWizard) {
+          panels.forEach((panel) => {
+            if (!panel) return;
+            panel.hidden = false;
+            panel.classList.add("is-visible");
+          });
+          if (contributeBackBtn) contributeBackBtn.hidden = true;
+          if (contributeNextBtn) contributeNextBtn.hidden = true;
+          if (resourceSubmitBtn) resourceSubmitBtn.hidden = false;
+          renderContributeWizardStepper();
+          return;
+        }
+        contributeWizardSteps.forEach((step, index) => {
+          if (!step || !step.panel) return;
+          const isActive = index === contributeWizardStepIndex;
+          step.panel.hidden = !isActive;
+          step.panel.classList.toggle("is-visible", isActive);
+        });
+        panels.forEach((panel) => {
+          if (!panel) return;
+          const belongs = contributeWizardSteps.some((step) => step.panel === panel);
+          if (!belongs) {
+            panel.hidden = true;
+            panel.classList.remove("is-visible");
+          }
+        });
+        renderContributeWizardStepper();
+        const currentError = getContributeWizardStepError(
+          contributeWizardStepIndex,
+          false,
+        );
+        const maxIndex = Math.max(0, contributeWizardSteps.length - 1);
+        const isFinalStep = contributeWizardStepIndex >= maxIndex;
+        const translationChecking = Boolean(
+          contributeTranslationState && contributeTranslationState.checking,
+        );
+        if (contributeBackBtn) {
+          contributeBackBtn.hidden = contributeWizardStepIndex <= 0;
+          contributeBackBtn.textContent = getResourceUiText("back");
+        }
+        if (contributeNextBtn) {
+          contributeNextBtn.hidden = isFinalStep;
+          contributeNextBtn.textContent = getResourceUiText("next");
+          contributeNextBtn.disabled = Boolean(currentError || translationChecking);
+        }
+        if (resourceSubmitBtn) {
+          resourceSubmitBtn.hidden = !isFinalStep;
+          const firstInvalid = getFirstInvalidContributeWizardStepIndex(false);
+          resourceSubmitBtn.disabled = firstInvalid >= 0 || translationChecking;
+        }
+      }
+
+      function setContributeWizardStep(nextIndex, options = {}) {
+        if (!contributeWizardEnabled) return;
+        const maxIndex = contributeWizardSteps.length - 1;
+        if (maxIndex < 0) return;
+        const targetIndex = Math.max(0, Math.min(Number(nextIndex), maxIndex));
+        if (!options.force && !canActivateContributeWizardStep(targetIndex)) return;
+        const previousIndex = contributeWizardStepIndex;
+        contributeWizardStepIndex = targetIndex;
+        updateContributeWizardUi();
+        maybePrimeContributeTranslationStep(previousIndex, targetIndex);
+      }
+
+      function configureContributeWizard(options = {}) {
+        if (!isContributeArticleMode()) {
+          contributeWizardEnabled = false;
+          contributeWizardStepIndex = 0;
+          contributeWizardSteps = [];
+          updateContributeWizardUi();
+          return;
+        }
+        const base = getContributeWizardStepDefinitions();
+        const translationNeeded = Boolean(
+          contributeTranslationState && contributeTranslationState.required,
+        );
+        contributeWizardSteps = base.filter((step) =>
+          step.id === "translation" ? translationNeeded : true,
+        );
+        contributeWizardEnabled = true;
+        if (options && options.reset) {
+          contributeWizardStepIndex = 0;
+        } else {
+          contributeWizardStepIndex = Math.max(
+            0,
+            Math.min(contributeWizardStepIndex, contributeWizardSteps.length - 1),
+          );
+        }
+        updateContributeWizardUi();
+      }
+
+      function advanceContributeWizardStep() {
+        if (!contributeWizardEnabled) return false;
+        const maxIndex = contributeWizardSteps.length - 1;
+        if (maxIndex < 0) return false;
+        if (contributeWizardStepIndex >= maxIndex) return false;
+        const currentError = getContributeWizardStepError(
+          contributeWizardStepIndex,
+          true,
+        );
+        if (currentError) {
+          setContributeStatus(currentError, "error");
+          focusFirstContributeInvalidField();
+          return false;
+        }
+        setContributeStatus("");
+        setContributeWizardStep(contributeWizardStepIndex + 1, { force: true });
+        return true;
       }
 
       function getExpectedNativeLanguage(countryId) {
@@ -9189,6 +10358,11 @@
           if (!input) return;
           const eventName = input.tagName === "TEXTAREA" ? "input" : "input";
           input.addEventListener(eventName, () => {
+            const isNativeTextInput =
+              input === resourceTitleInput || input === resourceDescriptionInput;
+            if (isNativeTextInput) {
+              invalidateContributeTranslationOnNativeEdit();
+            }
             updateResourceCounter(
               resourceTitleInput,
               resourceTitleCount,
@@ -9201,6 +10375,9 @@
             );
             saveResourceDraft();
             validateResourceForm(resourceValidationTriggered);
+            if (isNativeTextInput) {
+              updateContributeTranslationUi();
+            }
           });
         });
         if (resourceAddLanguageBtn) {
@@ -9239,6 +10416,41 @@
             validateResourceForm(resourceValidationTriggered);
           });
         }
+        if (contributeBackBtn) {
+          contributeBackBtn.addEventListener("click", () => {
+            if (!contributeWizardEnabled) return;
+            setContributeStatus("");
+            setContributeWizardStep(contributeWizardStepIndex - 1, { force: true });
+          });
+        }
+        if (contributeNextBtn) {
+          contributeNextBtn.addEventListener("click", () => {
+            advanceContributeWizardStep();
+          });
+        }
+        if (contributeCheckTranslationBtn) {
+          contributeCheckTranslationBtn.addEventListener("click", () => {
+            runContributeTranslationCheck();
+          });
+        }
+        [
+          contributeNativeTitlePreview,
+          contributeNativeDescriptionPreview,
+        ].forEach((field) => {
+          if (!field) return;
+          field.addEventListener("input", () => {
+            syncContributeNativeTranslationInputsToMainFields();
+          });
+        });
+        [
+          contributeEnglishTitlePreview,
+          contributeEnglishDescriptionPreview,
+        ].forEach((field) => {
+          if (!field) return;
+          field.addEventListener("input", () => {
+            syncContributeEnglishTranslationInputsToState();
+          });
+        });
       }
 
       function buildEmbedCode(langCode) {
@@ -9802,6 +11014,34 @@
         return String(fallback[value] || value || "Free");
       }
 
+      function applyContributePillarThemeClass() {
+        if (!contributeModalDialog) return;
+        const themeClasses = [
+          "is-pillar-default",
+          "is-pillar-resources",
+          "is-pillar-events",
+          "is-pillar-organisations",
+          "is-pillar-research",
+          "is-pillar-government",
+        ];
+        themeClasses.forEach((themeClass) => {
+          contributeModalDialog.classList.remove(themeClass);
+        });
+        const pillarId = String((contributeContext && contributeContext.pillarId) || "")
+          .trim()
+          .toLowerCase();
+        const normalized = [
+          "resources",
+          "events",
+          "organisations",
+          "research",
+          "government",
+        ].includes(pillarId)
+          ? pillarId
+          : "default";
+        contributeModalDialog.classList.add(`is-pillar-${normalized}`);
+      }
+
       function applyContributeModeCopy() {
         if (!contributeModal) return;
         const mode = String((contributeContext && contributeContext.mode) || "article")
@@ -9918,18 +11158,29 @@
         if (!contributeForm) return;
         const copy = getResourceUiCopy();
         applyContributeModeCopy();
-        const segmentTitles = contributeForm.querySelectorAll(
-          ".contribute-form-segment-title",
-        );
-        if (segmentTitles[0]) segmentTitles[0].textContent = copy.ownership;
-        if (segmentTitles[1]) segmentTitles[1].textContent = copy.resourceBasicInfo;
-        if (segmentTitles[2]) segmentTitles[2].textContent = copy.availableLanguages;
-        if (segmentTitles[3]) segmentTitles[3].textContent = copy.contactHeader;
-        const sectionTitles = contributeForm.querySelectorAll(
-          ".contribute-form-section-title",
-        );
-        if (sectionTitles[0]) sectionTitles[0].textContent = copy.addOneVersion;
-        if (sectionTitles[1]) sectionTitles[1].textContent = copy.contactHelper;
+        if (resourceBasicTitle) {
+          resourceBasicTitle.textContent =
+            copy.resourceBasicInfo || RESOURCE_UI_BASE.resourceBasicInfo;
+        }
+        if (resourceLanguagesTitle) {
+          resourceLanguagesTitle.textContent =
+            copy.availableLanguages || RESOURCE_UI_BASE.availableLanguages;
+        }
+        if (resourceOwnershipTitle) {
+          resourceOwnershipTitle.textContent = copy.ownership || RESOURCE_UI_BASE.ownership;
+        }
+        if (resourceContactTitle) {
+          resourceContactTitle.textContent =
+            copy.contactHeader || RESOURCE_UI_BASE.contactHeader;
+        }
+        if (resourceLanguagesHelper) {
+          resourceLanguagesHelper.textContent =
+            copy.addOneVersion || RESOURCE_UI_BASE.addOneVersion;
+        }
+        if (resourceContactHelper) {
+          resourceContactHelper.textContent =
+            copy.contactHelper || RESOURCE_UI_BASE.contactHelper;
+        }
         const setLabelPrefix = (selector, text) => {
           const field =
             typeof selector === "string"
@@ -10030,18 +11281,24 @@
         }
         if (resourceAddLanguageBtn) resourceAddLanguageBtn.textContent = copy.addLanguage;
         if (contributeCancelBtn) contributeCancelBtn.textContent = copy.cancel;
+        if (contributeBackBtn) contributeBackBtn.textContent = copy.back;
+        if (contributeNextBtn) contributeNextBtn.textContent = copy.next;
         if (contributeRemoveBtn) {
           contributeRemoveBtn.setAttribute("aria-label", copy.remove || "Remove");
           contributeRemoveBtn.setAttribute("title", copy.remove || "Remove");
         }
-        const submitBtn = contributeForm.querySelector('[type="submit"]');
-        if (submitBtn) {
-          submitBtn.textContent = contributeContext.editEntryTarget
+        if (resourceSubmitBtn) {
+          resourceSubmitBtn.textContent = contributeContext.editEntryTarget
             ? copy.saveChanges
             : contributeContext.directPublish
               ? copy.post
               : copy.sendForReview;
         }
+        if (isContributeArticleMode()) {
+          configureContributeWizard();
+        }
+        updateContributeTranslationUi();
+        updateContributeWizardUi();
       }
 
       function localizeContributePlaceholders(targetLang) {
@@ -10408,6 +11665,7 @@
                 }
               : null,
         };
+        applyContributePillarThemeClass();
         const infoKey = mode === "representative" ? "representative" : pillarId;
         const infoSource =
           activeLangBase === "ro" && contributeInfoByPillarRo[infoKey]
@@ -10445,8 +11703,7 @@
               mode === "representative"
                 ? "Representatives"
                 : pillarLabel || "Pillar";
-          const articleSubmitBtn =
-            contributeForm.querySelector('[type="submit"]');
+          const articleSubmitBtn = resourceSubmitBtn;
           if (articleSubmitBtn) {
             const ui = getResourceUiCopy();
             articleSubmitBtn.textContent = contributeContext.editEntryTarget
@@ -10477,9 +11734,20 @@
               } else {
                 initializeResourceFormForCountry(countryId);
               }
+              initializeContributeTranslationState(
+                config && config.entryData && typeof config.entryData === "object"
+                  ? config.entryData
+                  : {},
+              );
+              configureContributeWizard({ reset: true });
             } catch (_resourceInitError) {
               setContributeStatus(getResourceUiText("couldNotLoadEditorData"), "error");
+              resetContributeTranslationState();
+              configureContributeWizard({ reset: true });
             }
+          } else {
+            resetContributeTranslationState();
+            configureContributeWizard({ reset: true });
           }
         }
         if (contributeRepForm) {
@@ -10527,6 +11795,11 @@
           window.clearTimeout(contributeSuccessFlowTimer);
           contributeSuccessFlowTimer = null;
         }
+        resetContributeTranslationState();
+        contributeWizardEnabled = false;
+        contributeWizardSteps = [];
+        contributeWizardStepIndex = 0;
+        updateContributeWizardUi();
         contributeContext.editEntryTarget = null;
         contributeContext.directPublish = false;
         resetContributeRemoveConfirm();
@@ -11046,6 +12319,31 @@
         contributeForm.addEventListener("submit", async (event) => {
           event.preventDefault();
           resourceValidationTriggered = true;
+          if (contributeWizardEnabled && contributeWizardSteps.length) {
+            const maxStepIndex = contributeWizardSteps.length - 1;
+            const isFinalStep = contributeWizardStepIndex >= maxStepIndex;
+            if (!isFinalStep) {
+              advanceContributeWizardStep();
+              return;
+            }
+            const wizardError = validateContributeWizardStepsUntil(
+              maxStepIndex,
+              true,
+            );
+            if (wizardError) {
+              const firstInvalidStepIndex =
+                getFirstInvalidContributeWizardStepIndex(true);
+              if (
+                Number.isInteger(firstInvalidStepIndex) &&
+                firstInvalidStepIndex >= 0
+              ) {
+                setContributeWizardStep(firstInvalidStepIndex, { force: true });
+              }
+              setContributeStatus(wizardError, "error");
+              focusFirstContributeInvalidField();
+              return;
+            }
+          }
           if (!validateResourceForm(true)) {
             const invalid = contributeForm.querySelector(
               ".is-invalid, [aria-invalid='true']",
@@ -11093,8 +12391,26 @@
             );
             return;
           }
+          const translationState = contributeTranslationState;
+          if (
+            translationState &&
+            translationState.required &&
+            (translationState.checking || !translationState.checked)
+          ) {
+            const translationStepIndex = getContributeWizardStepIndexById(
+              "translation",
+            );
+            if (translationStepIndex >= 0) {
+              setContributeWizardStep(translationStepIndex, { force: true });
+            }
+            setContributeStatus(
+              getResourceUiText("checkTranslationBeforeContinuing"),
+              "error",
+            );
+            return;
+          }
           setContributeStatus(getResourceUiText("uploadingResourceData"), "");
-          const submitBtn = contributeForm.querySelector('[type="submit"]');
+          const submitBtn = resourceSubmitBtn;
           if (submitBtn) submitBtn.disabled = true;
           try {
             const resourceLanguages = [];
@@ -11205,6 +12521,11 @@
             const contactEmail = String(
               formData.get("contactEmail") || "",
             ).trim();
+            const translationPayload = getContributeTranslationPayload(
+              countryId,
+              title,
+              description,
+            );
             if (contributeContext.editEntryTarget) {
               const editTarget = contributeContext.editEntryTarget;
               if (
@@ -11228,6 +12549,16 @@
                     title,
                     summary: description,
                     description,
+                    nativeTitle: title,
+                    nativeDescription: description,
+                    englishTitle: translationPayload.englishTitle,
+                    englishDescription: translationPayload.englishDescription,
+                    translationChecked: translationPayload.translationChecked,
+                    translationSourceTitle:
+                      translationPayload.translationSourceTitle,
+                    translationSourceDescription:
+                      translationPayload.translationSourceDescription,
+                    translationCheckedAt: translationPayload.translationCheckedAt,
                     languages: [...new Set(languageFlags)],
                     ownership: {
                       type: ownershipType,
@@ -11261,6 +12592,16 @@
                       title,
                       summary: description,
                       description,
+                      nativeTitle: title,
+                      nativeDescription: description,
+                      englishTitle: translationPayload.englishTitle,
+                      englishDescription: translationPayload.englishDescription,
+                      translationChecked: translationPayload.translationChecked,
+                      translationSourceTitle:
+                        translationPayload.translationSourceTitle,
+                      translationSourceDescription:
+                        translationPayload.translationSourceDescription,
+                      translationCheckedAt: translationPayload.translationCheckedAt,
                       languages: [...new Set(languageFlags)],
                       ownership: {
                         type: ownershipType,
@@ -11296,14 +12637,15 @@
                   pillarLabel: pillarLabel || "Pillar",
                   title,
                   nativeTitle: title,
-                  englishTitle: "",
+                  englishTitle: translationPayload.englishTitle,
                   description,
                   nativeDescription: description,
-                  englishDescription: "",
-                  translationChecked: false,
-                  translationSourceTitle: "",
-                  translationSourceDescription: "",
-                  translationCheckedAt: "",
+                  englishDescription: translationPayload.englishDescription,
+                  translationChecked: translationPayload.translationChecked,
+                  translationSourceTitle: translationPayload.translationSourceTitle,
+                  translationSourceDescription:
+                    translationPayload.translationSourceDescription,
+                  translationCheckedAt: translationPayload.translationCheckedAt,
                   ownership: {
                     type: ownershipType,
                     name: ownershipName,
@@ -11351,15 +12693,15 @@
                 pillarLabel: pillarLabel || "Pillar",
                 title,
                 nativeTitle: title,
-                englishTitle: countryId === "GB" ? title : "",
+                englishTitle: translationPayload.englishTitle,
                 description,
                 nativeDescription: description,
-                englishDescription: countryId === "GB" ? description : "",
-                translationChecked: countryId === "GB",
-                translationSourceTitle: countryId === "GB" ? title : "",
-                translationSourceDescription: countryId === "GB" ? description : "",
-                translationCheckedAt:
-                  countryId === "GB" ? new Date().toISOString() : "",
+                englishDescription: translationPayload.englishDescription,
+                translationChecked: translationPayload.translationChecked,
+                translationSourceTitle: translationPayload.translationSourceTitle,
+                translationSourceDescription:
+                  translationPayload.translationSourceDescription,
+                translationCheckedAt: translationPayload.translationCheckedAt,
                 ownership: {
                   type: ownershipType,
                   name: ownershipName,
