@@ -7032,15 +7032,15 @@
         <div class="legend-row">
           <span class="legend-item">
             <span class="legend-swatch legend-leading">1</span>
-            <span>Leading</span>
+            <span id="mobile-legend-leading-label">Leading</span>
           </span>
           <span class="legend-item">
             <span class="legend-swatch legend-momentum">4</span>
-            <span>High Momentum</span>
+            <span id="mobile-legend-momentum-label">High Momentum</span>
           </span>
           <span class="legend-item">
             <span class="legend-swatch legend-development">8</span>
-            <span>In Development</span>
+            <span id="mobile-legend-development-label">In Development</span>
           </span>
         </div>
       </section>
@@ -7725,9 +7725,10 @@
       const labelOverridesByLang = {};
 
       function getStatusLabel(statusClass) {
-        if (statusClass === "leading") return "Leading";
-        if (statusClass === "momentum") return "High Momentum";
-        return "In Development";
+        if (statusClass === "leading") return getResourceUiText("statusLeading");
+        if (statusClass === "momentum")
+          return getResourceUiText("statusHighMomentum");
+        return getResourceUiText("statusInDevelopment");
       }
 
       function isMobileViewport() {
@@ -7844,6 +7845,18 @@
         }
       }
 
+      function updateMobileLegendStatusLabels() {
+        if (mobileLegendLeadingLabel) {
+          mobileLegendLeadingLabel.textContent = getStatusLabel("leading");
+        }
+        if (mobileLegendMomentumLabel) {
+          mobileLegendMomentumLabel.textContent = getStatusLabel("momentum");
+        }
+        if (mobileLegendDevelopmentLabel) {
+          mobileLegendDevelopmentLabel.textContent = getStatusLabel("dev");
+        }
+      }
+
       function buildMobileExplorer() {
         if (!mobileExplorer || !mobileCountryChips || !mobileCountryGrid)
           return;
@@ -7881,6 +7894,7 @@
             `;
           })
           .join("");
+        updateMobileLegendStatusLabels();
         translateElementText(mobileExplorer, activeLangBase);
       }
 
@@ -7888,6 +7902,15 @@
       const modalContent = document.getElementById("country-modal-content");
       const modalClose = document.getElementById("country-modal-close");
       const legendLogo = document.querySelector(".legend-logo");
+      const mobileLegendLeadingLabel = document.getElementById(
+        "mobile-legend-leading-label",
+      );
+      const mobileLegendMomentumLabel = document.getElementById(
+        "mobile-legend-momentum-label",
+      );
+      const mobileLegendDevelopmentLabel = document.getElementById(
+        "mobile-legend-development-label",
+      );
       const embedLaunchBtn = document.getElementById("embed-launch-btn");
       const languageSwitch = document.getElementById("language-switch");
       const languageSwitchToast = document.getElementById(
@@ -8279,6 +8302,9 @@
         notCheckedYet: "Not checked yet.",
         noTitleYet: "No title yet.",
         noDescriptionYet: "No description yet.",
+        statusLeading: "Leading",
+        statusHighMomentum: "High Momentum",
+        statusInDevelopment: "In Development",
         uploadingResourceData: "Uploading resource data...",
         couldNotLoadEditorData:
           "Could not load editor data. Please close and try again.",
@@ -8402,6 +8428,9 @@
         notCheckedYet: "Nu este verificat încă.",
         noTitleYet: "Titlul nu este completat.",
         noDescriptionYet: "Descrierea nu este completată.",
+        statusLeading: "Conducere",
+        statusHighMomentum: "Cu momentum",
+        statusInDevelopment: "În dezvoltare",
         uploadingResourceData: "Se încarcă datele resursei...",
         couldNotLoadEditorData:
           "Nu am putut încărca datele editorului. Închide și încearcă din nou.",
@@ -8569,6 +8598,9 @@
         notCheckedYet: "status",
         noTitleYet: "status",
         noDescriptionYet: "status",
+        statusLeading: "status",
+        statusHighMomentum: "status",
+        statusInDevelopment: "status",
         uploadingResourceData: "status",
         couldNotLoadEditorData: "status",
         couldNotRemoveArticleRightNow: "status",
@@ -11151,9 +11183,13 @@
 
       function getResourceUiText(key, replacements) {
         const copy = getResourceUiCopy();
+        const activeLabelOverrides = getLabelOverridesForLang(activeLangBase);
+        const fromOverrides = String(
+          (activeLabelOverrides && activeLabelOverrides[key]) || "",
+        ).trim();
         const fromCopy = String((copy && copy[key]) || "").trim();
         const base = String((RESOURCE_UI_BASE && RESOURCE_UI_BASE[key]) || "").trim();
-        let template = fromCopy || base || String(key || "").trim();
+        let template = fromOverrides || fromCopy || base || String(key || "").trim();
         if (replacements && typeof replacements === "object") {
           Object.entries(replacements).forEach(([token, value]) => {
             const needle = `{${String(token || "").trim()}}`;
@@ -12393,6 +12429,9 @@
               ? payload.labels
               : {};
           labelOverridesByLang[lang] = { ...labels };
+          if (normalizeUiLangCode(activeLangBase) === lang && mobileExplorer) {
+            buildMobileExplorer();
+          }
           if (contributeModal && contributeModal.classList.contains("is-visible")) {
             localizeContributeFormUi(activeLangBase);
           }

@@ -375,12 +375,33 @@
         group: "general",
         english: String(RESOURCE_UI_BASE_SOURCE[key] || ""),
       }));
+  const RESOURCE_LABEL_GROUP_ORDER = [
+    "wizard",
+    "form",
+    "language_card",
+    "options",
+    "validation",
+    "status",
+    "modal",
+    "general",
+  ];
   const RESOURCE_LABEL_GROUP_LABELS = {
     modal: "Modal",
+    wizard: "Wizard",
     form: "Form",
-    language_card: "Language Card",
+    language_card: "Languages & links",
     options: "Options",
     validation: "Validation",
+    status: "Status",
+    general: "General",
+  };
+  const RESOURCE_LABEL_GROUP_LABELS_RO = {
+    modal: "Modal",
+    wizard: "Pași",
+    form: "Formular",
+    language_card: "Limbi și linkuri",
+    options: "Opțiuni",
+    validation: "Validare",
     status: "Status",
     general: "General",
   };
@@ -394,12 +415,19 @@
   })
     .filter((item) => item.key)
     .sort((a, b) => {
-      const groupA = RESOURCE_LABEL_GROUP_LABELS[a.group] || a.group;
-      const groupB = RESOURCE_LABEL_GROUP_LABELS[b.group] || b.group;
-      const byGroup = String(groupA).localeCompare(String(groupB));
+      const indexA = RESOURCE_LABEL_GROUP_ORDER.indexOf(a.group);
+      const indexB = RESOURCE_LABEL_GROUP_ORDER.indexOf(b.group);
+      const groupRankA = indexA >= 0 ? indexA : RESOURCE_LABEL_GROUP_ORDER.length + 1;
+      const groupRankB = indexB >= 0 ? indexB : RESOURCE_LABEL_GROUP_ORDER.length + 1;
+      const byGroup = groupRankA - groupRankB;
       if (byGroup !== 0) return byGroup;
-      return String(a.key).localeCompare(String(b.key));
+      return String(a.english || a.key).localeCompare(String(b.english || b.key));
     });
+  const STATUS_VALUE_TO_LABEL_KEY = {
+    leading: "statusLeading",
+    high_momentum: "statusHighMomentum",
+    development: "statusInDevelopment",
+  };
 
   function getCurrentLang() {
     const query = new URLSearchParams(window.location.search);
@@ -629,27 +657,6 @@
     return "•".repeat(Math.max(8, code.length));
   }
 
-  function normalizeStatus(rawStatus) {
-    const value = String(rawStatus || "")
-      .trim()
-      .toLowerCase();
-    if (value.includes("lead"))
-      return { label: "Leading", className: "is-leading" };
-    if (value.includes("moment")) {
-      return { label: "High Momentum", className: "is-momentum" };
-    }
-    if (value.includes("pending"))
-      return { label: "Pending", className: "is-pending" };
-    if (
-      value.includes("no data") ||
-      value === "no_data" ||
-      value === "nodata"
-    ) {
-      return { label: "No data", className: "is-no-data" };
-    }
-    return { label: "In Development", className: "is-development" };
-  }
-
   function normalizeStatusValue(rawStatus) {
     const value = String(rawStatus || "")
       .trim()
@@ -676,13 +683,43 @@
     return "no_data";
   }
 
-  function getStatusLabelFromValue(statusValue) {
+  function getStatusMeta(statusValue, rawLang) {
     const value = normalizeStatusValue(statusValue);
-    if (value === "leading") return "Leading";
-    if (value === "high_momentum") return "High Momentum";
-    if (value === "development") return "In Development";
-    if (value === "pending") return "Pending";
-    return "No data";
+    const lang = normalizeLanguageCode(rawLang || resolveEditorUiLanguageCode());
+    const key = STATUS_VALUE_TO_LABEL_KEY[value] || "";
+    const overrides = getLabelOverridesForLang(lang);
+    const fallbackByValue = {
+      leading: "Leading",
+      high_momentum: "High Momentum",
+      development: "In Development",
+      pending: "Pending",
+      no_data: "No data",
+    };
+    const fallback = fallbackByValue[value] || fallbackByValue.no_data;
+    const label = key
+      ? String(overrides[key] || RESOURCE_UI_BASE_SOURCE[key] || fallback).trim() ||
+        fallback
+      : fallback;
+    const classNameByValue = {
+      leading: "is-leading",
+      high_momentum: "is-momentum",
+      development: "is-development",
+      pending: "is-pending",
+      no_data: "is-no-data",
+    };
+    return {
+      value,
+      label,
+      className: classNameByValue[value] || classNameByValue.no_data,
+    };
+  }
+
+  function normalizeStatus(rawStatus) {
+    return getStatusMeta(rawStatus);
+  }
+
+  function getStatusLabelFromValue(statusValue) {
+    return getStatusMeta(statusValue).label;
   }
 
   function isActiveStatusValue(statusValue) {
@@ -796,13 +833,20 @@
   let labelManageBtn = null;
   let labelManageModal = null;
   let labelManageCloseBtn = null;
-  let labelManageLangSelect = null;
+  let labelManageFootCloseBtn = null;
+  let labelManageTitle = null;
+  let labelManageSearchLabel = null;
   let labelManageSearchInput = null;
+  let labelManageCategoryList = null;
   let labelManageList = null;
   let labelManageSaveBtn = null;
   let labelManageResetBtn = null;
+  let labelManageResetLabel = null;
   let labelManageNotice = null;
   let labelManageLanguage = "en";
+  let labelManageCategory = "all";
+  let labelManageResetArmed = false;
+  let labelManageResetTimer = null;
   let labelOverridesByLang = {};
   let labelDraftByLang = {};
   let pendingLabelOverrideRequests = new Map();
@@ -1235,7 +1279,7 @@
         );
         const nextStatus = normalizeStatusValue(selectEl.value);
         if (!countryId) return;
-        const statusMeta = normalizeStatus(getStatusLabelFromValue(nextStatus));
+        const statusMeta = getStatusMeta(nextStatus);
         selectEl.classList.remove(
           "is-leading",
           "is-momentum",
@@ -1255,13 +1299,16 @@
   function buildStatusSelectHtml(countryId, currentStatus, variant) {
     const value = normalizeStatusValue(currentStatus);
     const country = normalizeManageCountryCode(countryId);
-    const statusMeta = normalizeStatus(getStatusLabelFromValue(value));
+    const statusMeta = getStatusMeta(value);
     const allOptions = [
-      { value: "leading", label: "Leading" },
-      { value: "high_momentum", label: "High Momentum" },
-      { value: "development", label: "In Development" },
-      { value: "pending", label: "Pending" },
-      { value: "no_data", label: "No data" },
+      { value: "leading", label: getStatusLabelFromValue("leading") },
+      {
+        value: "high_momentum",
+        label: getStatusLabelFromValue("high_momentum"),
+      },
+      { value: "development", label: getStatusLabelFromValue("development") },
+      { value: "pending", label: getStatusLabelFromValue("pending") },
+      { value: "no_data", label: getStatusLabelFromValue("no_data") },
     ];
     const options = allOptions;
     const optionsHtml = options
@@ -1657,7 +1704,7 @@
     style.textContent = `
       .ecva-version-modal{position:fixed;inset:0;z-index:3300;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
       .ecva-version-modal.is-visible{display:flex}
-      .ecva-version-dialog{--ecva-version-target-height:min(800px,calc(100dvh - clamp(40px,13vh,118px)));width:min(760px,calc(100vw - 28px));height:var(--ecva-version-target-height);max-height:var(--ecva-version-target-height);overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:0}
+      .ecva-version-dialog{--ecva-version-target-height:min(600px,calc(100dvh - clamp(40px,13vh,118px)));width:min(760px,calc(100vw - 28px));height:var(--ecva-version-target-height);max-height:var(--ecva-version-target-height);overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:0}
       .ecva-version-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
       .ecva-version-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
       .ecva-version-sub{margin:0 0 10px;color:#45616f;font:600 13px/1.4 "Alexandria",sans-serif}
@@ -1732,84 +1779,257 @@
     syncAdminOverlayScrollLock();
   }
 
-  function getResourceLabelSchemaRows(rawLang, searchText) {
+  function getLabelManageUiCopy() {
+    const lang = normalizeLanguageCode(resolveEditorUiLanguageCode());
+    if (lang === "ro") {
+      return {
+        title: "Traduceri etichete",
+        close: "Închide",
+        searchLabel: "Caută cuvinte sau sintagme",
+        searchPlaceholder: "Caută cuvinte sau sintagme",
+        allCategories: "Toate categoriile",
+        resetAll: "Resetare completă",
+        resetConfirm: "Apasă din nou pentru resetare",
+        resetConfirmNotice: "Apasă încă o dată pentru resetare completă.",
+        save: "Salvează traducerile",
+        englishColumn: "Engleză",
+        nativePlaceholder: "Traducere personalizată",
+        loading: "Se încarcă traducerile...",
+        empty: "Nu există etichete pentru această căutare.",
+        sourceReadOnly:
+          "Engleza este text sursă și nu poate fi personalizată.",
+        sourceNoReset: "Engleza este text sursă și nu poate fi resetată.",
+        savedNotice: "Traducerile au fost salvate.",
+        savedToast: "Traducerile au fost salvate.",
+        resetDoneNotice: "Suprascrierile limbii au fost resetate.",
+        resetDoneToast: "Suprascrierile limbii au fost resetate.",
+        noCountryLanguage: "Nu există limbă de țară disponibilă.",
+        syncedNotice: "Traducerile au fost sincronizate.",
+      };
+    }
+    return {
+      title: "Label translations",
+      close: "Close",
+      searchLabel: "Search words or phrases",
+      searchPlaceholder: "Search words or phrases",
+      allCategories: "All categories",
+      resetAll: "Full reset",
+      resetConfirm: "Press again to confirm reset",
+      resetConfirmNotice: "Press once more to confirm full reset.",
+      save: "Save translations",
+      englishColumn: "English",
+      nativePlaceholder: "Custom translation",
+      loading: "Loading translations...",
+      empty: "No labels match this search.",
+      sourceReadOnly: "English is source text and cannot be overridden.",
+      sourceNoReset: "English is source text and cannot be reset.",
+      savedNotice: "Translations saved.",
+      savedToast: "Label translations saved.",
+      resetDoneNotice: "Language overrides were reset.",
+      resetDoneToast: "Language overrides reset.",
+      noCountryLanguage: "No country language available.",
+      syncedNotice: "Translations synced.",
+    };
+  }
+
+  function getLabelManageGroupLabel(rawGroup) {
+    const group = String(rawGroup || "general")
+      .trim()
+      .toLowerCase();
+    const lang = normalizeLanguageCode(resolveEditorUiLanguageCode());
+    const labels =
+      lang === "ro"
+        ? RESOURCE_LABEL_GROUP_LABELS_RO
+        : RESOURCE_LABEL_GROUP_LABELS;
+    return String(
+      labels[group] ||
+        RESOURCE_LABEL_GROUP_LABELS[group] ||
+        RESOURCE_LABEL_GROUP_LABELS.general,
+    );
+  }
+
+  function getLabelManageGroupList() {
+    const groupSet = new Set(
+      RESOURCE_LABEL_SCHEMA.map((item) =>
+        String(item && item.group ? item.group : "general")
+          .trim()
+          .toLowerCase(),
+      ),
+    );
+    const ordered = RESOURCE_LABEL_GROUP_ORDER.filter((group) =>
+      groupSet.has(group),
+    );
+    const rest = Array.from(groupSet).filter(
+      (group) => !ordered.includes(group),
+    );
+    return ordered.concat(
+      rest.sort((a, b) =>
+        getLabelManageGroupLabel(a).localeCompare(getLabelManageGroupLabel(b)),
+      ),
+    );
+  }
+
+  function updateLabelManageNotice(message, isError) {
+    if (!labelManageNotice) return;
+    labelManageNotice.textContent = String(message || "");
+    labelManageNotice.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function setLabelManageResetButtonArmed(isArmed) {
+    if (labelManageResetTimer) {
+      window.clearTimeout(labelManageResetTimer);
+      labelManageResetTimer = null;
+    }
+    labelManageResetArmed = Boolean(isArmed);
+    if (labelManageResetBtn) {
+      labelManageResetBtn.classList.toggle("is-armed", labelManageResetArmed);
+    }
+    if (labelManageResetLabel) {
+      const copy = getLabelManageUiCopy();
+      labelManageResetLabel.textContent = labelManageResetArmed
+        ? copy.resetConfirm
+        : copy.resetAll;
+    }
+    if (labelManageResetArmed) {
+      labelManageResetTimer = window.setTimeout(() => {
+        setLabelManageResetButtonArmed(false);
+      }, 2400);
+    }
+  }
+
+  function applyLabelManageUiCopy() {
+    const copy = getLabelManageUiCopy();
+    if (labelManageTitle) labelManageTitle.textContent = copy.title;
+    if (labelManageCloseBtn) labelManageCloseBtn.textContent = copy.close;
+    if (labelManageFootCloseBtn) labelManageFootCloseBtn.textContent = copy.close;
+    if (labelManageSearchLabel) labelManageSearchLabel.textContent = copy.searchLabel;
+    if (labelManageSearchInput) {
+      labelManageSearchInput.placeholder = copy.searchPlaceholder;
+    }
+    if (labelManageSaveBtn) labelManageSaveBtn.textContent = copy.save;
+    if (labelManageResetLabel) {
+      labelManageResetLabel.textContent = labelManageResetArmed
+        ? copy.resetConfirm
+        : copy.resetAll;
+    }
+  }
+
+  function getResourceLabelSchemaRows(rawLang, searchText, rawCategory) {
     const lang = normalizeLanguageCode(rawLang);
     const draft = ensureLabelDraft(lang);
     const term = String(searchText || "")
       .trim()
       .toLowerCase();
+    const category = String(rawCategory || "all")
+      .trim()
+      .toLowerCase();
     return RESOURCE_LABEL_SCHEMA.filter((item) => {
+      const group = String(item.group || "general")
+        .trim()
+        .toLowerCase();
+      if (category && category !== "all" && group !== category) return false;
       if (!term) return true;
       const key = String(item.key || "").toLowerCase();
       const english = String(item.english || "").toLowerCase();
       const draftValue = String(draft[item.key] || "").toLowerCase();
-      const group = String(
-        RESOURCE_LABEL_GROUP_LABELS[item.group] || item.group || "",
-      ).toLowerCase();
+      const groupLabel = String(getLabelManageGroupLabel(group)).toLowerCase();
       return (
         key.includes(term) ||
         english.includes(term) ||
         draftValue.includes(term) ||
-        group.includes(term)
+        groupLabel.includes(term)
       );
     });
   }
 
+  function renderLabelManageCategoryFilters() {
+    if (!labelManageCategoryList) return;
+    const copy = getLabelManageUiCopy();
+    const groups = getLabelManageGroupList();
+    if (
+      labelManageCategory !== "all" &&
+      !groups.includes(labelManageCategory)
+    ) {
+      labelManageCategory = "all";
+    }
+    labelManageCategoryList.innerHTML = [
+      `<button type="button" class="ecva-label-manage-category${labelManageCategory === "all" ? " is-active" : ""}" data-label-category="all">${escapeHtml(copy.allCategories)}</button>`,
+      ...groups.map((group) => {
+        const label = getLabelManageGroupLabel(group);
+        const isActive = group === labelManageCategory;
+        return `<button type="button" class="ecva-label-manage-category${isActive ? " is-active" : ""}" data-label-category="${escapeHtml(group)}">${escapeHtml(label)}</button>`;
+      }),
+    ].join("");
+    labelManageCategoryList
+      .querySelectorAll("[data-label-category]")
+      .forEach((buttonEl) => {
+        buttonEl.addEventListener("click", () => {
+          labelManageCategory = String(
+            buttonEl.getAttribute("data-label-category") || "all",
+          )
+            .trim()
+            .toLowerCase();
+          renderLabelManageCategoryFilters();
+          renderLabelManageList();
+        });
+      });
+  }
+
   function renderLabelManageList() {
-    if (!labelManageList || !labelManageLangSelect) return;
-    const lang = normalizeLanguageCode(
-      labelManageLangSelect.value || labelManageLanguage,
-    );
+    if (!labelManageList) return;
+    const lang = normalizeLanguageCode(labelManageLanguage || "en");
     labelManageLanguage = lang;
+    const copy = getLabelManageUiCopy();
     const draft = ensureLabelDraft(lang);
-    const rows = getResourceLabelSchemaRows(
-      lang,
+    const searchTerm =
       labelManageSearchInput && labelManageSearchInput.value
         ? labelManageSearchInput.value
-        : "",
-    );
+        : "";
+    const rows = getResourceLabelSchemaRows(lang, searchTerm, labelManageCategory);
     const langLabel = getLanguageDisplayLabel(lang);
+    const isEditable = lang !== "en";
+    if (labelManageSaveBtn) {
+      labelManageSaveBtn.disabled = !isEditable;
+    }
     if (!rows.length) {
-      labelManageList.innerHTML =
-        '<p class="ecva-label-manage-empty">No labels match this search.</p>';
+      labelManageList.innerHTML = `<p class="ecva-label-manage-empty">${escapeHtml(copy.empty)}</p>`;
       return;
     }
-    labelManageList.innerHTML = rows
-      .map((item) => {
-        const key = String(item.key || "");
-        const group = String(item.group || "general");
-        const groupLabel = String(
-          RESOURCE_LABEL_GROUP_LABELS[group] || group || "General",
-        );
-        const english = String(item.english || "");
-        const value = String(draft[key] || "");
-        return `
-          <article class="ecva-label-manage-row" data-label-key="${escapeHtml(key)}">
-            <header class="ecva-label-manage-row-head">
-              <span class="ecva-label-manage-group">${escapeHtml(groupLabel)}</span>
-              <code>${escapeHtml(key)}</code>
-            </header>
-            <div class="ecva-label-manage-row-grid">
-              <label>
-                <span>English</span>
-                <textarea readonly>${escapeHtml(english)}</textarea>
-              </label>
-              <label>
-                <span>${escapeHtml(langLabel)}</span>
-                <textarea data-label-input="${escapeHtml(key)}" placeholder="Custom translation">${escapeHtml(value)}</textarea>
-              </label>
-            </div>
-          </article>
-        `;
-      })
-      .join("");
+    labelManageList.innerHTML = `
+      <section class="ecva-label-manage-grid">
+        <header class="ecva-label-manage-grid-head">
+          <span class="ecva-label-manage-col">${escapeHtml(copy.englishColumn)}</span>
+          <span class="ecva-label-manage-col">${escapeHtml(langLabel)}</span>
+        </header>
+        <div class="ecva-label-manage-items">
+          ${rows
+            .map((item) => {
+              const key = String(item.key || "");
+              const english = String(item.english || "").trim();
+              const value = String(draft[key] || "");
+              return `
+                <div class="ecva-label-manage-item" data-label-key="${escapeHtml(key)}">
+                  <span class="ecva-label-manage-english" title="${escapeHtml(english)}">${escapeHtml(english)}</span>
+                  <input
+                    type="text"
+                    class="ecva-label-manage-native-input"
+                    data-label-input="${escapeHtml(key)}"
+                    value="${escapeHtml(value)}"
+                    placeholder="${escapeHtml(copy.nativePlaceholder)}"
+                    ${isEditable ? "" : 'readonly tabindex="-1"'}
+                  />
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      </section>
+    `;
     labelManageList
-      .querySelectorAll("textarea[data-label-input]")
+      .querySelectorAll("input[data-label-input]")
       .forEach((inputEl) => {
         inputEl.addEventListener("input", () => {
-          const key = String(
-            inputEl.getAttribute("data-label-input") || "",
-          ).trim();
+          const key = String(inputEl.getAttribute("data-label-input") || "").trim();
           if (!key) return;
           const nextValue = String(inputEl.value || "").trim();
           if (!nextValue) {
@@ -1821,75 +2041,72 @@
       });
   }
 
-  function updateLabelManageNotice(message, isError) {
-    if (!labelManageNotice) return;
-    labelManageNotice.textContent = String(message || "");
-    labelManageNotice.classList.toggle("is-error", Boolean(isError));
-  }
-
-  function populateLabelManageLanguageOptions() {
-    if (!labelManageLangSelect) return;
-    const langs = getAvailableLanguageCodes();
-    const preferred = getDefaultLabelManageLanguage();
-    if (preferred && preferred !== "en" && !langs.includes(preferred)) {
-      langs.unshift(preferred);
-    }
-    const uniqueLangs = Array.from(new Set(langs.filter(Boolean)));
-    labelManageLangSelect.innerHTML = uniqueLangs
-      .map(
-        (lang) =>
-          `<option value="${escapeHtml(lang)}">${escapeHtml(getLanguageDisplayLabel(lang))}</option>`,
-      )
-      .join("");
-    const selectedCandidate = normalizeLanguageCode(
-      labelManageLanguage || preferred,
-    );
-    labelManageLanguage = uniqueLangs.includes(selectedCandidate)
-      ? selectedCandidate
-      : uniqueLangs[0] || preferred || "ro";
-    labelManageLangSelect.value = labelManageLanguage;
-  }
-
   function saveLabelOverridesFromModal() {
-    if (!labelManageLangSelect) return;
-    const lang = normalizeLanguageCode(labelManageLangSelect.value);
+    const lang = normalizeLanguageCode(labelManageLanguage || "en");
     labelManageLanguage = lang;
+    const copy = getLabelManageUiCopy();
     if (lang === "en") {
-      updateLabelManageNotice("English is source text and cannot be overridden.", true);
+      updateLabelManageNotice(copy.sourceReadOnly, true);
       return;
     }
     const draft = sanitizeLabelOverrides(ensureLabelDraft(lang));
     labelDraftByLang[lang] = { ...draft };
     setLabelOverridesForLang(lang, draft);
     postToMap("ecva-editor-update-label-overrides", { lang, labels: draft });
-    updateLabelManageNotice("Translations saved.", false);
-    showToast("Label translations saved.");
+    updateLabelManageNotice(copy.savedNotice, false);
+    showToast(copy.savedToast);
   }
 
   function resetLabelOverridesForCurrentLanguage() {
-    if (!labelManageLangSelect) return;
-    const lang = normalizeLanguageCode(labelManageLangSelect.value);
+    const lang = normalizeLanguageCode(labelManageLanguage || "en");
+    labelManageLanguage = lang;
+    const copy = getLabelManageUiCopy();
+    if (!labelManageResetArmed) {
+      setLabelManageResetButtonArmed(true);
+      updateLabelManageNotice(copy.resetConfirmNotice, false);
+      return;
+    }
+    setLabelManageResetButtonArmed(false);
     if (lang === "en") {
-      updateLabelManageNotice("English is source text and cannot be reset.", true);
+      updateLabelManageNotice(copy.sourceNoReset, true);
       return;
     }
     labelDraftByLang[lang] = {};
     setLabelOverridesForLang(lang, {});
     postToMap("ecva-editor-update-label-overrides", { lang, labels: {} });
     renderLabelManageList();
-    updateLabelManageNotice("Language overrides were reset.", false);
-    showToast("Language overrides reset.");
+    updateLabelManageNotice(copy.resetDoneNotice, false);
+    showToast(copy.resetDoneToast);
   }
 
   async function loadLabelOverridesIntoModal(rawLang) {
-    const lang = normalizeLanguageCode(rawLang);
+    const lang = normalizeLanguageCode(rawLang || getDefaultLabelManageLanguage());
     labelManageLanguage = lang;
-    updateLabelManageNotice("Loading translations...", false);
+    applyLabelManageUiCopy();
+    updateLabelManageNotice(getLabelManageUiCopy().loading, false);
     const labels = await requestLabelOverrides(lang).catch(() => ({}));
     setLabelOverridesForLang(lang, labels);
     labelDraftByLang[lang] = { ...getLabelOverridesForLang(lang) };
+    renderLabelManageCategoryFilters();
     renderLabelManageList();
-    updateLabelManageNotice("", false);
+    if (lang === "en") {
+      updateLabelManageNotice(getLabelManageUiCopy().sourceReadOnly, false);
+    } else {
+      updateLabelManageNotice("", false);
+    }
+  }
+
+  async function syncLabelManageLanguageWithContext() {
+    const nextLang = normalizeLanguageCode(getDefaultLabelManageLanguage());
+    if (!nextLang) return;
+    if (!labelDraftByLang[nextLang]) {
+      await loadLabelOverridesIntoModal(nextLang);
+      return;
+    }
+    labelManageLanguage = nextLang;
+    applyLabelManageUiCopy();
+    renderLabelManageCategoryFilters();
+    renderLabelManageList();
   }
 
   function ensureLabelManageUi() {
@@ -1898,31 +2115,38 @@
     style.textContent = `
       .ecva-label-manage-modal{position:fixed;inset:0;z-index:3340;display:none;align-items:flex-start;justify-content:center;background:rgba(15,26,34,.52);padding:clamp(14px,3vw,26px);padding-top:var(--overlay-top,clamp(20px,8vh,72px));padding-bottom:clamp(14px,4vh,32px);overflow:hidden}
       .ecva-label-manage-modal.is-visible{display:flex}
-      .ecva-label-manage-dialog{width:min(980px,calc(100vw - 28px));max-height:calc(100dvh - clamp(40px,13vh,118px));overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;gap:12px}
+      .ecva-label-manage-dialog{--ecva-label-manage-target-height:min(600px,calc(100dvh - clamp(40px,13vh,118px)));width:min(980px,calc(100vw - 28px));height:var(--ecva-label-manage-target-height);max-height:var(--ecva-label-manage-target-height);overflow:hidden;border-radius:16px;border:1px solid rgba(128,149,161,.45);background:#f5fbfd;box-shadow:0 18px 46px rgba(21,38,49,.3);padding:16px;display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;gap:10px}
       .ecva-label-manage-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .ecva-label-manage-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
       .ecva-label-manage-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
-      .ecva-label-manage-filters{display:grid;grid-template-columns:minmax(180px,240px) minmax(220px,1fr) auto auto;gap:8px;align-items:end}
-      .ecva-label-manage-filters label{display:grid;gap:4px;font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
-      .ecva-label-manage-filters select,.ecva-label-manage-filters input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 13px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
-      .ecva-label-manage-list{overflow:auto;display:grid;gap:8px;align-content:start;padding-right:2px}
-      .ecva-label-manage-row{border:1px solid rgba(141,161,172,.38);border-radius:12px;background:#fff;padding:10px;display:grid;gap:8px}
-      .ecva-label-manage-row-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
-      .ecva-label-manage-row-head code{font:700 12px/1.2 "IBM Plex Mono",monospace;color:#2a4552;background:#eef5f8;padding:3px 6px;border-radius:7px}
-      .ecva-label-manage-group{display:inline-flex;min-height:20px;align-items:center;padding:0 8px;border-radius:999px;border:1px solid rgba(121,145,157,.45);font:800 10px/1 "Alexandria",sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#2b4451;background:rgba(236,245,250,.9)}
-      .ecva-label-manage-row-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-      .ecva-label-manage-row-grid label{display:grid;gap:4px}
-      .ecva-label-manage-row-grid label>span{font:700 11px/1.2 "Alexandria",sans-serif;color:#4c6a79}
-      .ecva-label-manage-row-grid textarea{min-height:64px;max-height:180px;resize:vertical;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 12px/1.4 "Alexandria",sans-serif;padding:8px 10px;box-sizing:border-box}
-      .ecva-label-manage-row-grid textarea[readonly]{background:#f0f5f8;color:#44606e}
+      .ecva-label-manage-filters{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+      .ecva-label-manage-search-wrap{display:grid;gap:4px;min-width:min(380px,100%);flex:1 1 420px}
+      .ecva-label-manage-search-wrap>span{font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
+      .ecva-label-manage-search-wrap input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 13px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
+      .ecva-label-manage-btn{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
+      .ecva-label-manage-btn.primary{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
+      .ecva-label-manage-btn:disabled{opacity:.45;cursor:not-allowed}
+      .ecva-label-manage-reset{display:inline-flex;align-items:center;gap:8px}
+      .ecva-label-manage-reset-icon{font:800 15px/1 "Alexandria",sans-serif}
+      .ecva-label-manage-reset.is-armed{border-color:rgba(167,91,91,.58);background:#fff4f4;color:#813737}
+      .ecva-label-manage-categories{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
+      .ecva-label-manage-category{height:34px;padding:0 11px;border-radius:999px;border:1px solid rgba(117,141,154,.5);background:#eef5f8;color:#2f4b58;font:800 12px "Alexandria",sans-serif;cursor:pointer;white-space:nowrap}
+      .ecva-label-manage-category.is-active{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
+      .ecva-label-manage-list{overflow:auto;min-height:0;border:1px solid rgba(141,161,172,.38);border-radius:12px;background:#fff;padding:10px}
+      .ecva-label-manage-grid{display:grid;gap:8px;align-content:start}
+      .ecva-label-manage-grid-head{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:0 2px}
+      .ecva-label-manage-col{font:800 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b;text-transform:uppercase;letter-spacing:.02em}
+      .ecva-label-manage-items{display:grid;gap:6px;align-content:start}
+      .ecva-label-manage-item{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:center}
+      .ecva-label-manage-english{display:flex;align-items:center;min-height:38px;padding:0 11px;border-radius:10px;border:1px solid rgba(130,152,164,.45);background:#f3f7f9;color:#405d6b;font:700 12px/1.2 "Alexandria",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .ecva-label-manage-native-input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#223f4c;font:700 12px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
+      .ecva-label-manage-native-input[readonly]{background:#f0f4f7;color:#587180;cursor:not-allowed}
       .ecva-label-manage-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .ecva-label-manage-notice{min-height:18px;font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
       .ecva-label-manage-notice.is-error{color:#b42318}
+      .ecva-label-manage-actions{display:flex;align-items:center;gap:8px}
       .ecva-label-manage-empty{margin:0;padding:12px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
-      .ecva-label-manage-btn{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
-      .ecva-label-manage-btn.primary{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
-      .ecva-label-manage-btn.danger{background:#fff0f0;color:#7d2d2d;border-color:rgba(160,93,93,.55)}
-      @media (max-width:900px){.ecva-label-manage-dialog{width:min(980px,calc(100vw - 14px));padding:12px}.ecva-label-manage-row-grid{grid-template-columns:1fr}.ecva-label-manage-filters{grid-template-columns:1fr 1fr}}
+      @media (max-width:900px){.ecva-label-manage-dialog{width:min(980px,calc(100vw - 14px));padding:12px}.ecva-label-manage-search-wrap{min-width:100%;flex:1 1 100%}.ecva-label-manage-filters{align-items:stretch}.ecva-label-manage-grid-head{display:none}.ecva-label-manage-item{grid-template-columns:1fr}}
     `;
     document.head.appendChild(style);
 
@@ -1936,21 +2160,23 @@
           <button type="button" class="ecva-label-manage-close">Close</button>
         </header>
         <section class="ecva-label-manage-filters">
-          <label>
-            <span>Language</span>
-            <select class="ecva-label-manage-lang"></select>
+          <label class="ecva-label-manage-search-wrap">
+            <span>Caută cuvinte sau sintagme</span>
+            <input type="search" class="ecva-label-manage-search" placeholder="Caută cuvinte sau sintagme" />
           </label>
-          <label>
-            <span>Search labels</span>
-            <input type="search" class="ecva-label-manage-search" placeholder="Search key or text" />
-          </label>
-          <button type="button" class="ecva-label-manage-btn danger">Reset language</button>
-          <button type="button" class="ecva-label-manage-btn primary">Save translations</button>
+          <button type="button" class="ecva-label-manage-btn ecva-label-manage-reset">
+            <span class="ecva-label-manage-reset-icon" aria-hidden="true">↻</span>
+            <span class="ecva-label-manage-reset-label">Resetare completă</span>
+          </button>
         </section>
+        <div class="ecva-label-manage-categories"></div>
         <div class="ecva-label-manage-list"></div>
         <footer class="ecva-label-manage-foot">
           <p class="ecva-label-manage-notice" aria-live="polite"></p>
-          <button type="button" class="ecva-label-manage-btn">Close</button>
+          <div class="ecva-label-manage-actions">
+            <button type="button" class="ecva-label-manage-btn primary">Save translations</button>
+            <button type="button" class="ecva-label-manage-btn" data-label-close="1">Close</button>
+          </div>
         </footer>
       </section>
     `;
@@ -1958,37 +2184,32 @@
 
     labelManageModal = modal;
     labelManageCloseBtn = modal.querySelector(".ecva-label-manage-close");
-    labelManageLangSelect = modal.querySelector(".ecva-label-manage-lang");
+    labelManageFootCloseBtn = modal.querySelector('[data-label-close="1"]');
+    labelManageTitle = modal.querySelector(".ecva-label-manage-title");
+    labelManageSearchLabel = modal.querySelector(".ecva-label-manage-search-wrap > span");
     labelManageSearchInput = modal.querySelector(".ecva-label-manage-search");
+    labelManageCategoryList = modal.querySelector(".ecva-label-manage-categories");
     labelManageList = modal.querySelector(".ecva-label-manage-list");
     labelManageSaveBtn = modal.querySelector(".ecva-label-manage-btn.primary");
-    labelManageResetBtn = modal.querySelector(".ecva-label-manage-btn.danger");
+    labelManageResetBtn = modal.querySelector(".ecva-label-manage-reset");
+    labelManageResetLabel = modal.querySelector(".ecva-label-manage-reset-label");
     labelManageNotice = modal.querySelector(".ecva-label-manage-notice");
-    const footCloseBtn = modal.querySelector(".ecva-label-manage-foot .ecva-label-manage-btn");
 
     labelManageCloseBtn?.addEventListener("click", closeLabelManageModal);
-    footCloseBtn?.addEventListener("click", closeLabelManageModal);
+    labelManageFootCloseBtn?.addEventListener("click", closeLabelManageModal);
     labelManageModal.addEventListener("click", (event) => {
       if (event.target === labelManageModal) closeLabelManageModal();
     });
     labelManageSearchInput?.addEventListener("input", () => {
       renderLabelManageList();
     });
-    labelManageLangSelect?.addEventListener("change", async () => {
-      const lang = normalizeLanguageCode(labelManageLangSelect.value);
-      labelManageLanguage = lang;
-      if (!labelDraftByLang[lang]) {
-        await loadLabelOverridesIntoModal(lang);
-      } else {
-        renderLabelManageList();
-      }
-      updateLabelManageNotice("", false);
-    });
     labelManageSaveBtn?.addEventListener("click", saveLabelOverridesFromModal);
     labelManageResetBtn?.addEventListener(
       "click",
       resetLabelOverridesForCurrentLanguage,
     );
+    applyLabelManageUiCopy();
+    renderLabelManageCategoryFilters();
   }
 
   function ensureLabelManageButton() {
@@ -2012,15 +2233,16 @@
 
   async function openLabelManageModal() {
     ensureLabelManageUi();
-    if (!labelManageModal || !labelManageLangSelect) return;
-    labelManageLanguage = getDefaultLabelManageLanguage();
-    populateLabelManageLanguageOptions();
-    if (!labelManageLangSelect.value) {
-      updateLabelManageNotice("No country language available.", true);
+    if (!labelManageModal) return;
+    labelManageLanguage = normalizeLanguageCode(getDefaultLabelManageLanguage());
+    labelManageCategory = "all";
+    setLabelManageResetButtonArmed(false);
+    applyLabelManageUiCopy();
+    if (!labelManageLanguage) {
+      updateLabelManageNotice(getLabelManageUiCopy().noCountryLanguage, true);
       return;
     }
-    const targetLang = normalizeLanguageCode(labelManageLangSelect.value);
-    await loadLabelOverridesIntoModal(targetLang);
+    await loadLabelOverridesIntoModal(labelManageLanguage);
     jumpToCountryWindowTopAcrossContexts();
     setAdminOverlayTopOffset(labelManageModal, 24);
     labelManageModal.classList.add("is-visible");
@@ -2028,6 +2250,7 @@
     syncAdminOverlayScrollLock();
     if (labelManageSearchInput) {
       labelManageSearchInput.value = "";
+      renderLabelManageCategoryFilters();
       renderLabelManageList();
       labelManageSearchInput.focus({ preventScroll: true });
     }
@@ -2035,6 +2258,7 @@
 
   function closeLabelManageModal() {
     if (!labelManageModal) return;
+    setLabelManageResetButtonArmed(false);
     releaseFocusBeforeHide(labelManageModal, closeManageBtn || manageBtn);
     labelManageModal.classList.remove("is-visible");
     labelManageModal.setAttribute("aria-hidden", "true");
@@ -6657,6 +6881,7 @@
           labelManageModal &&
           labelManageModal.classList.contains("is-visible")
         ) {
+          renderLabelManageCategoryFilters();
           renderLabelManageList();
         }
       }
@@ -6681,8 +6906,9 @@
           labelManageModal &&
           labelManageModal.classList.contains("is-visible")
         ) {
+          renderLabelManageCategoryFilters();
           renderLabelManageList();
-          updateLabelManageNotice("Translations synced.", false);
+          updateLabelManageNotice(getLabelManageUiCopy().syncedNotice, false);
         }
       }
       return;
@@ -6711,8 +6937,7 @@
       ensureSelectedCountryIsAllowed();
       renderCountryTabs();
       if (labelManageModal && labelManageModal.classList.contains("is-visible")) {
-        populateLabelManageLanguageOptions();
-        renderLabelManageList();
+        syncLabelManageLanguageWithContext().catch(() => {});
       }
       resolveActiveCountriesWaiters();
       if (selectedCountryId) {
