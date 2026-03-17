@@ -1065,6 +1065,14 @@
     if (manageBody) manageBody.innerHTML = "";
     syncAdminOverlayScrollLock();
     postToMap("ecva-reset-embed-height");
+    try {
+      window.postMessage({ type: "ecva-reset-embed-height" }, "*");
+      window.setTimeout(() => {
+        window.postMessage({ type: "ecva-reset-embed-height" }, "*");
+      }, 180);
+    } catch (_error) {
+      // no-op
+    }
   }
 
   function openEditorModal() {
