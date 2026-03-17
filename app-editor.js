@@ -101,6 +101,9 @@
   const editorBackBtn = document.getElementById("ecva-editor-back-btn");
   const editorCancelBtn = document.getElementById("ecva-editor-cancel-btn");
   const editorRemoveBtn = document.getElementById("ecva-editor-remove-btn");
+  const editorRemoveConfirmText = editorModal
+    ? editorModal.querySelector(".ecva-editor-remove-confirm-text")
+    : null;
   const editorSaveBtn = document.getElementById("ecva-editor-save-btn");
 
   const toast = document.getElementById("ecva-toast");
@@ -229,6 +232,8 @@
     stepContactDetails: "Contact details",
     back: "Back",
     cancel: "Cancel",
+    removeItem: "Delete",
+    confirmAction: "Confirm",
     next: "Next",
     save: "Save",
     checking: "Checking...",
@@ -266,6 +271,8 @@
       stepContactDetails: "Date de contact",
       back: "Înapoi",
       cancel: "Anulează",
+      removeItem: "Șterge",
+      confirmAction: "Confirmă",
       next: "Următorul",
       save: "Salvează",
       checking: "Se verifică...",
@@ -757,9 +764,15 @@
 
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
+    const copy = getEditorUiCopy(editorUiCopyLang);
     editorRemoveBtn.classList.remove("is-confirm");
-    editorRemoveBtn.setAttribute("aria-label", "Remove item");
-    editorRemoveBtn.setAttribute("title", "Remove item");
+    const removeText = copy.removeItem || EDITOR_UI_COPY_BASE.removeItem;
+    editorRemoveBtn.setAttribute("aria-label", removeText);
+    editorRemoveBtn.setAttribute("title", removeText);
+    if (editorRemoveConfirmText) {
+      editorRemoveConfirmText.textContent =
+        copy.confirmAction || EDITOR_UI_COPY_BASE.confirmAction;
+    }
     if (removeConfirmTimer) {
       window.clearTimeout(removeConfirmTimer);
       removeConfirmTimer = null;
@@ -2426,6 +2439,15 @@
     }
     if (editorCancelBtn) {
       editorCancelBtn.textContent = copy.cancel || EDITOR_UI_COPY_BASE.cancel;
+    }
+    if (editorRemoveBtn) {
+      const removeText = copy.removeItem || EDITOR_UI_COPY_BASE.removeItem;
+      editorRemoveBtn.setAttribute("aria-label", removeText);
+      editorRemoveBtn.setAttribute("title", removeText);
+    }
+    if (editorRemoveConfirmText) {
+      editorRemoveConfirmText.textContent =
+        copy.confirmAction || EDITOR_UI_COPY_BASE.confirmAction;
     }
     if (editorCheckTranslationBtn) {
       const state = submissionTranslationState;

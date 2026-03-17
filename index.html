@@ -4920,15 +4920,7 @@
       }
 
       .ecva-editor-stepper-item:not(:last-child)::after {
-        content: "";
-        position: absolute;
-        top: 16px;
-        right: -8px;
-        width: calc(100% - 34px);
-        height: 2px;
-        background: rgba(150, 168, 178, 0.52);
-        transform: translateX(22px);
-        pointer-events: none;
+        display: none;
       }
 
       .ecva-editor-stepper-dot {
@@ -5248,10 +5240,23 @@
       .ecva-editor-actions {
         display: flex;
         align-items: center;
-        justify-content: flex-end;
-        gap: 10px;
+        justify-content: space-between;
+        gap: 12px;
         margin-top: 6px;
         flex-wrap: wrap;
+      }
+
+      .ecva-editor-actions-left,
+      .ecva-editor-actions-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .ecva-editor-actions-right {
+        margin-left: auto;
+        justify-content: flex-end;
       }
 
       .ecva-editor-remove-btn {
@@ -5301,6 +5306,22 @@
       .ecva-editor-save-btn {
         min-width: 188px;
         padding: 0 28px;
+      }
+
+      @media (max-width: 700px) {
+        .ecva-editor-actions {
+          gap: 10px;
+        }
+
+        .ecva-editor-actions-left,
+        .ecva-editor-actions-right {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .ecva-editor-actions-right {
+          justify-content: flex-end;
+        }
       }
 
       .ecva-editor-image-cropper {
@@ -6353,43 +6374,47 @@
             </section>
           </div>
           <div class="ecva-editor-actions">
-            <button
-              id="ecva-editor-remove-btn"
-              class="ecva-admin-btn danger ecva-editor-remove-btn"
-              type="button"
-              aria-label="Remove representative"
-              title="Remove representative"
-              style="display: none"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path
-                  d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"
-                ></path>
-              </svg>
-              <span class="ecva-editor-remove-confirm-text">Confirm</span>
-            </button>
-            <button
-              id="ecva-editor-back-btn"
-              class="ecva-admin-btn secondary ecva-editor-back-btn"
-              type="button"
-              style="display: none"
-            >
-              Back
-            </button>
-            <button
-              id="ecva-editor-cancel-btn"
-              class="ecva-admin-btn secondary ecva-editor-cancel-btn"
-              type="button"
-            >
-              Cancel
-            </button>
-            <button
-              id="ecva-editor-save-btn"
-              class="ecva-admin-btn primary ecva-editor-save-btn"
-              type="submit"
-            >
-              Save
-            </button>
+            <div class="ecva-editor-actions-left">
+              <button
+                id="ecva-editor-remove-btn"
+                class="ecva-admin-btn danger ecva-editor-remove-btn"
+                type="button"
+                aria-label="Remove representative"
+                title="Remove representative"
+                style="display: none"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path
+                    d="M9 3h6a1 1 0 0 1 1 1v1h3a1 1 0 1 1 0 2h-1v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7H5a1 1 0 1 1 0-2h3V4a1 1 0 0 1 1-1Zm1 2v0h4V5h-4Zm-2 2v12h8V7H8Zm2 2a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Zm4 0a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0v-6a1 1 0 0 1 1-1Z"
+                  ></path>
+                </svg>
+                <span class="ecva-editor-remove-confirm-text">Confirm</span>
+              </button>
+              <button
+                id="ecva-editor-cancel-btn"
+                class="ecva-admin-btn secondary ecva-editor-cancel-btn"
+                type="button"
+              >
+                Cancel
+              </button>
+            </div>
+            <div class="ecva-editor-actions-right">
+              <button
+                id="ecva-editor-back-btn"
+                class="ecva-admin-btn secondary ecva-editor-back-btn"
+                type="button"
+                style="display: none"
+              >
+                Back
+              </button>
+              <button
+                id="ecva-editor-save-btn"
+                class="ecva-admin-btn primary ecva-editor-save-btn"
+                type="submit"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </form>
       </section>
