@@ -4779,6 +4779,108 @@
         margin-top: 10px;
       }
 
+      .ecva-editor-stepper {
+        margin-top: 6px;
+      }
+
+      .ecva-editor-stepper-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0;
+      }
+
+      .ecva-editor-stepper-item {
+        position: relative;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .ecva-editor-stepper-item:not(:last-child)::after {
+        content: "";
+        position: absolute;
+        top: 10px;
+        right: 0;
+        width: calc(100% - 28px);
+        height: 2px;
+        background: rgba(150, 168, 178, 0.52);
+        transform: translateX(50%);
+      }
+
+      .ecva-editor-stepper-dot {
+        width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(128, 148, 159, 0.58);
+        background: #f3f8fa;
+        color: #2f4a57;
+        font-size: 11px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex: 0 0 auto;
+      }
+
+      .ecva-editor-stepper-label {
+        min-width: 0;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #587180;
+        line-height: 1.2;
+      }
+
+      .ecva-editor-stepper-item.is-active .ecva-editor-stepper-dot {
+        border-color: rgba(63, 117, 171, 0.72);
+        background: #dfeefc;
+        color: #245179;
+      }
+
+      .ecva-editor-stepper-item.is-active .ecva-editor-stepper-label {
+        color: #2b4b62;
+      }
+
+      .ecva-editor-stepper-item.is-done .ecva-editor-stepper-dot {
+        border-color: rgba(52, 131, 97, 0.7);
+        background: #d8f0e4;
+        color: #1f6b49;
+      }
+
+      .ecva-editor-stepper-item.is-done .ecva-editor-stepper-label {
+        color: #2b6650;
+      }
+
+      .ecva-editor-stepper-item.is-done:not(:last-child)::after {
+        background: rgba(69, 149, 112, 0.62);
+      }
+
+      .ecva-editor-stepper-item.is-error .ecva-editor-stepper-dot {
+        border-color: rgba(172, 64, 64, 0.72);
+        background: #f8dfdf;
+        color: #8f3232;
+      }
+
+      .ecva-editor-stepper-item.is-error .ecva-editor-stepper-label {
+        color: #8f3232;
+      }
+
+      @media (max-width: 860px) {
+        .ecva-editor-stepper-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 8px 14px;
+        }
+
+        .ecva-editor-stepper-item::after {
+          display: none;
+        }
+      }
+
       .ecva-editor-section {
         display: none;
         gap: 10px;
@@ -4796,7 +4898,17 @@
         display: grid !important;
       }
 
-      .ecva-editor-form > .ecva-editor-section > label {
+      .ecva-editor-step-panel {
+        display: none;
+        gap: 10px;
+      }
+
+      .ecva-editor-step-panel.is-visible {
+        display: grid;
+      }
+
+      .ecva-editor-form > .ecva-editor-section > label,
+      .ecva-editor-step-panel > label {
         display: grid;
         gap: 6px;
         font-size: 13px;
@@ -5021,6 +5133,11 @@
       .ecva-editor-cancel-btn {
         min-width: 136px;
         padding: 0 22px;
+      }
+
+      .ecva-editor-back-btn {
+        min-width: 124px;
+        padding: 0 20px;
       }
 
       .ecva-editor-save-btn {
@@ -5877,84 +5994,112 @@
         aria-label="Review Entry"
       >
         <h3 id="ecva-editor-heading">Review Entry</h3>
+        <nav
+          id="ecva-editor-stepper"
+          class="ecva-editor-stepper"
+          aria-label="Review progress"
+          hidden
+        >
+          <ol id="ecva-editor-stepper-list" class="ecva-editor-stepper-list"></ol>
+        </nav>
         <form id="ecva-editor-form" class="ecva-editor-form">
           <div
             id="ecva-editor-entry-fields"
             class="ecva-editor-section is-visible"
           >
-            <label>
-              Title
-              <input id="ecva-editor-title" type="text" />
-            </label>
-            <label>
-              Description
-              <textarea id="ecva-editor-description"></textarea>
-            </label>
+            <section id="ecva-editor-step-text" class="ecva-editor-step-panel">
+              <label>
+                Title
+                <input id="ecva-editor-title" type="text" />
+              </label>
+              <label>
+                Description
+                <textarea id="ecva-editor-description"></textarea>
+              </label>
+            </section>
             <section
-              id="ecva-editor-translation-block"
-              class="ecva-editor-translation-block"
+              id="ecva-editor-step-translation"
+              class="ecva-editor-step-panel"
             >
-              <div class="ecva-editor-review-head">
-                <span id="ecva-editor-review-band" class="ecva-editor-review-band"
-                  >Content review</span
-                >
-                <button
-                  id="ecva-editor-check-translation-btn"
-                  class="ecva-editor-check-translation-btn"
-                  type="button"
-                >
-                  Check translation
-                </button>
-              </div>
-              <p id="ecva-editor-translation-note" class="ecva-editor-translation-note"></p>
-              <div class="ecva-editor-translation-grid">
-                <article class="ecva-editor-translation-col">
-                  <h6>
-                    <span id="ecva-editor-source-lang-flag" class="ecva-editor-lang-flag" aria-hidden="true">🏳️</span>
-                    <span id="ecva-editor-source-lang-label">Language</span>
-                  </h6>
-                  <div class="ecva-editor-translation-field">
-                    <strong id="ecva-editor-native-title-label">Title</strong>
-                    <p
-                      id="ecva-editor-native-title-preview"
-                      class="ecva-editor-translation-preview"
-                    ></p>
-                  </div>
-                  <div class="ecva-editor-translation-field">
-                    <strong id="ecva-editor-native-description-label">Description</strong>
-                    <p
-                      id="ecva-editor-native-description-preview"
-                      class="ecva-editor-translation-preview"
-                    ></p>
-                  </div>
-                </article>
-                <div class="ecva-editor-translation-bridge" aria-hidden="true">
-                  <span>→</span>
-                  <span>←</span>
+              <div
+                id="ecva-editor-translation-block"
+                class="ecva-editor-translation-block"
+              >
+                <div class="ecva-editor-review-head">
+                  <span id="ecva-editor-review-band" class="ecva-editor-review-band"
+                    >Content review</span
+                  >
+                  <button
+                    id="ecva-editor-check-translation-btn"
+                    class="ecva-editor-check-translation-btn"
+                    type="button"
+                  >
+                    Check translation
+                  </button>
                 </div>
-                <article class="ecva-editor-translation-col">
-                  <h6>
-                    <span class="ecva-editor-lang-flag" aria-hidden="true">🇬🇧</span>
-                    <span>English</span>
-                  </h6>
-                  <div class="ecva-editor-translation-field">
-                    <strong>Title</strong>
-                    <p
-                      id="ecva-editor-english-title-preview"
-                      class="ecva-editor-translation-preview"
-                    ></p>
+                <p
+                  id="ecva-editor-translation-note"
+                  class="ecva-editor-translation-note"
+                ></p>
+                <div class="ecva-editor-translation-grid">
+                  <article class="ecva-editor-translation-col">
+                    <h6>
+                      <span
+                        id="ecva-editor-source-lang-flag"
+                        class="ecva-editor-lang-flag"
+                        aria-hidden="true"
+                        >🏳️</span
+                      >
+                      <span id="ecva-editor-source-lang-label">Language</span>
+                    </h6>
+                    <div class="ecva-editor-translation-field">
+                      <strong id="ecva-editor-native-title-label">Title</strong>
+                      <p
+                        id="ecva-editor-native-title-preview"
+                        class="ecva-editor-translation-preview"
+                      ></p>
+                    </div>
+                    <div class="ecva-editor-translation-field">
+                      <strong id="ecva-editor-native-description-label"
+                        >Description</strong
+                      >
+                      <p
+                        id="ecva-editor-native-description-preview"
+                        class="ecva-editor-translation-preview"
+                      ></p>
+                    </div>
+                  </article>
+                  <div class="ecva-editor-translation-bridge" aria-hidden="true">
+                    <span>→</span>
+                    <span>←</span>
                   </div>
-                  <div class="ecva-editor-translation-field">
-                    <strong>Description</strong>
-                    <p
-                      id="ecva-editor-english-description-preview"
-                      class="ecva-editor-translation-preview"
-                    ></p>
-                  </div>
-                </article>
+                  <article class="ecva-editor-translation-col">
+                    <h6>
+                      <span class="ecva-editor-lang-flag" aria-hidden="true">🇬🇧</span>
+                      <span>English</span>
+                    </h6>
+                    <div class="ecva-editor-translation-field">
+                      <strong>Title</strong>
+                      <p
+                        id="ecva-editor-english-title-preview"
+                        class="ecva-editor-translation-preview"
+                      ></p>
+                    </div>
+                    <div class="ecva-editor-translation-field">
+                      <strong>Description</strong>
+                      <p
+                        id="ecva-editor-english-description-preview"
+                        class="ecva-editor-translation-preview"
+                      ></p>
+                    </div>
+                  </article>
+                </div>
               </div>
             </section>
-            <section class="ecva-editor-submission-field contribute-form contribute-form-segment">
+            <section
+              id="ecva-editor-step-languages"
+              class="ecva-editor-step-panel ecva-editor-submission-field contribute-form contribute-form-segment"
+            >
               <p class="contribute-form-segment-title">Available languages</p>
               <p class="contribute-form-section-title">
                 Add one resource version per language
@@ -5973,7 +6118,10 @@
                 </button>
               </div>
             </section>
-            <section class="ecva-editor-submission-field contribute-form contribute-form-segment">
+            <section
+              id="ecva-editor-step-contact"
+              class="ecva-editor-step-panel ecva-editor-submission-field contribute-form contribute-form-segment"
+            >
               <p class="contribute-form-segment-title">
                 For more informations, contact:
               </p>
@@ -6061,6 +6209,14 @@
                 ></path>
               </svg>
               <span class="ecva-editor-remove-confirm-text">Confirm</span>
+            </button>
+            <button
+              id="ecva-editor-back-btn"
+              class="ecva-admin-btn secondary ecva-editor-back-btn"
+              type="button"
+              style="display: none"
+            >
+              Back
             </button>
             <button
               id="ecva-editor-cancel-btn"

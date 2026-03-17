@@ -16,8 +16,20 @@
   const editorModal = document.getElementById("ecva-editor-modal");
   const editorForm = document.getElementById("ecva-editor-form");
   const editorHeading = document.getElementById("ecva-editor-heading");
+  const editorStepper = document.getElementById("ecva-editor-stepper");
+  const editorStepperList = document.getElementById("ecva-editor-stepper-list");
   const entryFieldsWrap = document.getElementById("ecva-editor-entry-fields");
   const repFieldsWrap = document.getElementById("ecva-editor-rep-fields");
+  const editorStepTextPanel = document.getElementById("ecva-editor-step-text");
+  const editorStepTranslationPanel = document.getElementById(
+    "ecva-editor-step-translation",
+  );
+  const editorStepLanguagesPanel = document.getElementById(
+    "ecva-editor-step-languages",
+  );
+  const editorStepContactPanel = document.getElementById(
+    "ecva-editor-step-contact",
+  );
   const editorTitle = document.getElementById("ecva-editor-title");
   const editorDescription = document.getElementById("ecva-editor-description");
   const editorTranslationBlock = document.getElementById(
@@ -77,6 +89,7 @@
   const editorCropFrame = document.getElementById("ecva-editor-crop-frame");
   const editorCropHandle = document.getElementById("ecva-editor-crop-handle");
   const editorCropStatus = document.getElementById("ecva-editor-crop-status");
+  const editorBackBtn = document.getElementById("ecva-editor-back-btn");
   const editorCancelBtn = document.getElementById("ecva-editor-cancel-btn");
   const editorRemoveBtn = document.getElementById("ecva-editor-remove-btn");
   const editorSaveBtn = document.getElementById("ecva-editor-save-btn");
@@ -573,6 +586,9 @@
   let submissionTranslationState = null;
   let editorResourceLanguageItems = [];
   let editorResourceLangUid = 0;
+  let editorReviewWizardEnabled = false;
+  let editorReviewStepIndex = 0;
+  let editorReviewSteps = [];
   const nativeFieldLabelPending = new Map();
   const nativeFieldLabelCache = {
     en: { title: "Title", description: "Description" },
@@ -2194,12 +2210,197 @@
       editorRemoveBtn.style.display = canRemove ? "inline-flex" : "none";
       resetEditorRemoveState();
     }
-    updateEditorSaveAvailability();
+    configureEditorReviewWizard();
   }
 
   function setSubmissionEntryFieldsVisible(isVisible) {
     if (!entryFieldsWrap) return;
     entryFieldsWrap.classList.toggle("is-submission", Boolean(isVisible));
+  }
+
+  function getEditorReviewStepDefinitions() {
+    return [
+      {
+        id: "text",
+        label: "Review text",
+        panel: editorStepTextPanel,
+        validate: (paintInvalid) => validateEditorTextStep(paintInvalid),
+      },
+      {
+        id: "translation",
+        label: "Check translation",
+        panel: editorStepTranslationPanel,
+        validate: (paintInvalid) =>
+          validateEditorTranslationStep(paintInvalid),
+      },
+      {
+        id: "languages",
+        label: "Languages & links",
+        panel: editorStepLanguagesPanel,
+        validate: (paintInvalid) =>
+          validateEditorLanguageAndLinkFields(paintInvalid),
+      },
+      {
+        id: "contact",
+        label: "Contact details",
+        panel: editorStepContactPanel,
+        validate: (paintInvalid) => validateEditorContactFields(paintInvalid),
+      },
+    ];
+  }
+
+  function isEditorSubmissionArticleTarget() {
+    return Boolean(
+      editorMode === "entry" &&
+        editorTarget &&
+        typeof editorTarget === "object" &&
+        editorTarget.type === "submission-article",
+    );
+  }
+
+  function getEditorReviewStepError(stepIndex, paintInvalid) {
+    if (!editorReviewWizardEnabled) return "";
+    const step = editorReviewSteps[Number(stepIndex)];
+    if (!step || typeof step.validate !== "function") return "";
+    return String(step.validate(Boolean(paintInvalid)) || "");
+  }
+
+  function validateEditorReviewStepsUntil(stepIndex, paintInvalid) {
+    if (!editorReviewWizardEnabled) return "";
+    const limit = Math.min(Number(stepIndex), editorReviewSteps.length - 1);
+    for (let index = 0; index <= limit; index += 1) {
+      const message = getEditorReviewStepError(index, paintInvalid);
+      if (message) return message;
+    }
+    return "";
+  }
+
+  function getFirstInvalidEditorReviewStepIndex(paintInvalid) {
+    if (!editorReviewWizardEnabled) return -1;
+    for (let index = 0; index < editorReviewSteps.length; index += 1) {
+      const message = getEditorReviewStepError(index, paintInvalid);
+      if (message) return index;
+    }
+    return -1;
+  }
+
+  function canActivateEditorReviewStep(nextIndex) {
+    if (!editorReviewWizardEnabled) return true;
+    const maxIndex = editorReviewSteps.length - 1;
+    if (maxIndex < 0) return true;
+    const targetIndex = Math.max(0, Math.min(Number(nextIndex), maxIndex));
+    if (targetIndex <= editorReviewStepIndex) return true;
+    return !validateEditorReviewStepsUntil(targetIndex - 1, false);
+  }
+
+  function setEditorReviewStep(nextIndex, options = {}) {
+    if (!editorReviewWizardEnabled) return;
+    const maxIndex = editorReviewSteps.length - 1;
+    if (maxIndex < 0) return;
+    const targetIndex = Math.max(0, Math.min(Number(nextIndex), maxIndex));
+    if (!options.force && !canActivateEditorReviewStep(targetIndex)) return;
+    editorReviewStepIndex = targetIndex;
+    updateEditorReviewUi();
+  }
+
+  function renderEditorReviewStepper() {
+    if (!editorStepperList) return;
+    if (!editorReviewWizardEnabled || !editorReviewSteps.length) {
+      editorStepperList.innerHTML = "";
+      return;
+    }
+    editorStepperList.innerHTML = editorReviewSteps
+      .map((step, index) => {
+        const rawMessage = getEditorReviewStepError(index, false);
+        const isValid = !rawMessage;
+        const classes = ["ecva-editor-stepper-item"];
+        if (index < editorReviewStepIndex && isValid) {
+          classes.push("is-done");
+        } else if (index < editorReviewStepIndex && !isValid) {
+          classes.push("is-error");
+        } else if (index === editorReviewStepIndex) {
+          classes.push("is-active");
+        }
+        const dotText = index < editorReviewStepIndex && isValid ? "✓" : String(index + 1);
+        return `<li class="${classes.join(" ")}" data-editor-review-step="${index}">
+          <span class="ecva-editor-stepper-dot">${escapeHtml(dotText)}</span>
+          <span class="ecva-editor-stepper-label">${escapeHtml(step.label)}</span>
+        </li>`;
+      })
+      .join("");
+    editorStepperList
+      .querySelectorAll("[data-editor-review-step]")
+      .forEach((node) => {
+        node.addEventListener("click", () => {
+          const index = Number(node.getAttribute("data-editor-review-step"));
+          if (!Number.isFinite(index)) return;
+          if (!canActivateEditorReviewStep(index)) return;
+          setEditorReviewStep(index);
+        });
+      });
+  }
+
+  function updateEditorReviewUi() {
+    const isWizard = Boolean(editorReviewWizardEnabled && editorReviewSteps.length);
+    if (editorStepper) {
+      editorStepper.hidden = !isWizard;
+    }
+    if (!isWizard) {
+      [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
+        if (!panel) return;
+        panel.classList.add("is-visible");
+      });
+      if (editorBackBtn) editorBackBtn.style.display = "none";
+      renderEditorReviewStepper();
+      updateEditorSaveAvailability();
+      return;
+    }
+    editorReviewSteps.forEach((step, index) => {
+      if (!step || !step.panel) return;
+      step.panel.classList.toggle("is-visible", index === editorReviewStepIndex);
+    });
+    [editorStepTextPanel, editorStepTranslationPanel, editorStepLanguagesPanel, editorStepContactPanel].forEach((panel) => {
+      if (!panel) return;
+      const belongsToWizard = editorReviewSteps.some((step) => step.panel === panel);
+      if (!belongsToWizard) {
+        panel.classList.remove("is-visible");
+      }
+    });
+    if (editorBackBtn) {
+      editorBackBtn.style.display = editorReviewStepIndex > 0 ? "inline-flex" : "none";
+    }
+    renderEditorReviewStepper();
+    updateEditorSaveAvailability();
+  }
+
+  function configureEditorReviewWizard() {
+    if (!isEditorSubmissionArticleTarget()) {
+      editorReviewWizardEnabled = false;
+      editorReviewStepIndex = 0;
+      editorReviewSteps = [];
+      updateEditorReviewUi();
+      return;
+    }
+    const base = getEditorReviewStepDefinitions();
+    const translationNeeded = Boolean(
+      submissionTranslationState && submissionTranslationState.required,
+    );
+    editorReviewSteps = base.filter((step) =>
+      step.id === "translation" ? translationNeeded : true,
+    );
+    editorReviewWizardEnabled = true;
+    editorReviewStepIndex = Math.max(
+      0,
+      Math.min(editorReviewStepIndex, editorReviewSteps.length - 1),
+    );
+    updateEditorReviewUi();
+  }
+
+  function refreshEditorReviewProgress() {
+    if (editorReviewWizardEnabled) {
+      renderEditorReviewStepper();
+    }
+    updateEditorSaveAvailability();
   }
 
   function toHeadingLanguageLabel(rawValue) {
@@ -2402,6 +2603,7 @@
     setInputValidity(editorContactName, true);
     setInputValidity(editorContactRole, true);
     setInputValidity(editorContactEmail, true);
+    refreshEditorReviewProgress();
   }
 
   function renderEditorResourceLanguageItems(focusItemId) {
@@ -2662,9 +2864,43 @@
         });
       }
     }
+    refreshEditorReviewProgress();
   }
 
-  function validateEditorResourceAndContactFields() {
+  function validateEditorTextStep(paintInvalid) {
+    const shouldPaint = Boolean(paintInvalid);
+    const title = String((editorTitle && editorTitle.value) || "").trim();
+    const description = String((editorDescription && editorDescription.value) || "").trim();
+    if (editorTitle && (shouldPaint || title)) {
+      setInputValidity(editorTitle, Boolean(title));
+    }
+    if (editorDescription && (shouldPaint || description)) {
+      setInputValidity(editorDescription, Boolean(description));
+    }
+    if (!title) return "Complete title.";
+    if (!description) return "Complete description.";
+    return "";
+  }
+
+  function validateEditorTranslationStep(_paintInvalid) {
+    const target = editorTarget;
+    const translationRequired = requiresSubmissionTranslation(
+      target && target.countryId,
+      "article",
+    );
+    if (!translationRequired) return "";
+    const state = submissionTranslationState;
+    if (!state || state.checking) {
+      return "Check translation before continuing.";
+    }
+    if (!state.checked) {
+      return "Check translation before continuing.";
+    }
+    return "";
+  }
+
+  function validateEditorLanguageAndLinkFields(paintInvalid) {
+    const shouldPaint = Boolean(paintInvalid);
     const seenLanguages = new Set();
     for (const item of editorResourceLanguageItems) {
       const card = editorResourceLanguageList
@@ -2677,11 +2913,11 @@
         .trim()
         .toLowerCase();
       if (!languageCode) {
-        setInputValidity(languageSelect, false);
+        if (shouldPaint) setInputValidity(languageSelect, false);
         return "Select a language for each resource version.";
       }
       if (seenLanguages.has(languageCode)) {
-        setInputValidity(languageSelect, false);
+        if (shouldPaint) setInputValidity(languageSelect, false);
         return "This language was already added.";
       }
       seenLanguages.add(languageCode);
@@ -2694,17 +2930,17 @@
         const hasStoredFile = Boolean(String(item.resourceUrl || "").trim());
         const hasNewFile = item.file instanceof File;
         if (!hasStoredFile && !hasNewFile) {
-          setInputValidity(fileNode, false);
+          if (shouldPaint) setInputValidity(fileNode, false);
           return "Upload a file for each selected file-based resource type.";
         }
         if (hasNewFile) {
           const size = Number(item.file.size || 0);
           if (size > ATTACHMENT_MAX_BYTES) {
-            setInputValidity(fileNode, false);
+            if (shouldPaint) setInputValidity(fileNode, false);
             return "File too large. Maximum allowed size is 15MB per file.";
           }
           if (!ATTACHMENT_FILE_RE.test(String(item.file.name || ""))) {
-            setInputValidity(fileNode, false);
+            if (shouldPaint) setInputValidity(fileNode, false);
             return "File format is not supported.";
           }
         }
@@ -2715,18 +2951,29 @@
       const normalized = normalizeLikelyUrl(item.resourceUrl);
       item.resourceUrl = normalized;
       if (!isLikelyValidUrl(normalized)) {
-        setInputValidity(urlNode, false);
+        if (shouldPaint) setInputValidity(urlNode, false);
         return "Use a valid link (https://...) for each resource language.";
       }
       setInputValidity(urlNode, true);
     }
+    return "";
+  }
+
+  function validateEditorContactFields(paintInvalid) {
+    const shouldPaint = Boolean(paintInvalid);
     const contactName = String((editorContactName && editorContactName.value) || "").trim();
     const contactRole = String((editorContactRole && editorContactRole.value) || "").trim();
     const contactEmail = String((editorContactEmail && editorContactEmail.value) || "").trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
-    setInputValidity(editorContactName, Boolean(contactName));
-    setInputValidity(editorContactRole, Boolean(contactRole));
-    setInputValidity(editorContactEmail, emailOk);
+    if (editorContactName && (shouldPaint || contactName)) {
+      setInputValidity(editorContactName, Boolean(contactName));
+    }
+    if (editorContactRole && (shouldPaint || contactRole)) {
+      setInputValidity(editorContactRole, Boolean(contactRole));
+    }
+    if (editorContactEmail && (shouldPaint || contactEmail)) {
+      setInputValidity(editorContactEmail, emailOk);
+    }
     if (!contactName) return "Complete contact name.";
     if (!contactRole) return "Complete contact role.";
     if (!emailOk) return "Complete contact email in valid format.";
@@ -2947,16 +3194,32 @@
   function updateEditorSaveAvailability() {
     if (!editorSaveBtn) return;
     const state = submissionTranslationState;
+    const checking = Boolean(state && state.checking);
+    if (isEditorSubmissionArticleTarget() && editorReviewWizardEnabled) {
+      const maxIndex = editorReviewSteps.length - 1;
+      const isFinalStep = editorReviewStepIndex >= maxIndex;
+      const currentStep =
+        editorReviewSteps[editorReviewStepIndex] ||
+        editorReviewSteps[maxIndex] ||
+        null;
+      const currentError = getEditorReviewStepError(editorReviewStepIndex, false);
+      if (
+        checking &&
+        currentStep &&
+        String(currentStep.id || "").trim().toLowerCase() === "translation"
+      ) {
+        editorSaveBtn.textContent = "Checking...";
+        editorSaveBtn.disabled = true;
+        return;
+      }
+      editorSaveBtn.textContent = isFinalStep ? "Save" : "Next";
+      editorSaveBtn.disabled = Boolean(currentError) || checking;
+      return;
+    }
     const needsCheck = Boolean(state && state.required);
     const ready = !needsCheck || (state.checked && !state.checking);
     editorSaveBtn.disabled = !ready;
-    if (state && state.checking) {
-      editorSaveBtn.textContent = "Checking...";
-    } else if (needsCheck && !ready) {
-      editorSaveBtn.textContent = "Save (translation required)";
-    } else {
-      editorSaveBtn.textContent = "Save";
-    }
+    editorSaveBtn.textContent = "Save";
   }
 
   function updateSubmissionTranslationPreview() {
@@ -2981,7 +3244,11 @@
       editorTranslationBlock.classList.toggle("is-visible", visible);
     }
     if (!visible) {
-      updateEditorSaveAvailability();
+      if (editorReviewWizardEnabled) {
+        updateEditorReviewUi();
+      } else {
+        updateEditorSaveAvailability();
+      }
       return;
     }
     updateSubmissionTranslationPreview();
@@ -3024,7 +3291,11 @@
         ? "Checking..."
         : "Check translation";
     }
-    updateEditorSaveAvailability();
+    if (editorReviewWizardEnabled) {
+      updateEditorReviewUi();
+    } else {
+      updateEditorSaveAvailability();
+    }
   }
 
   function resetSubmissionTranslationState() {
@@ -3148,6 +3419,9 @@
 
   function clearEditorFields() {
     resetSubmissionTranslationState();
+    editorReviewWizardEnabled = false;
+    editorReviewStepIndex = 0;
+    editorReviewSteps = [];
     if (editorTitle) editorTitle.value = "";
     if (editorDescription) editorDescription.value = "";
     if (editorContactName) editorContactName.value = "";
@@ -5714,6 +5988,7 @@
     editorTitle.addEventListener("input", () => {
       updateSubmissionTranslationPreview();
       invalidateSubmissionTranslationOnNativeEdit();
+      refreshEditorReviewProgress();
     });
   }
 
@@ -5721,6 +5996,7 @@
     editorDescription.addEventListener("input", () => {
       updateSubmissionTranslationPreview();
       invalidateSubmissionTranslationOnNativeEdit();
+      refreshEditorReviewProgress();
     });
   }
 
@@ -5729,6 +6005,21 @@
       runSubmissionTranslationCheck();
     });
   }
+
+  if (editorBackBtn) {
+    editorBackBtn.addEventListener("click", () => {
+      if (!editorReviewWizardEnabled) return;
+      setEditorReviewStep(editorReviewStepIndex - 1, { force: true });
+    });
+  }
+
+  [editorContactName, editorContactRole, editorContactEmail].forEach((field) => {
+    if (!field) return;
+    field.addEventListener("input", () => {
+      validateEditorContactFields(false);
+      refreshEditorReviewProgress();
+    });
+  });
 
   if (editorResourceAddLanguageBtn) {
     editorResourceAddLanguageBtn.addEventListener("click", () => {
@@ -5777,10 +6068,30 @@
           "article",
         );
         const state = submissionTranslationState;
-        if (
-          translationRequired &&
-          (!state || !state.checked || state.checking)
-        ) {
+        if (editorReviewWizardEnabled) {
+          const currentIndex = Math.max(
+            0,
+            Math.min(editorReviewStepIndex, editorReviewSteps.length - 1),
+          );
+          const currentError = getEditorReviewStepError(currentIndex, true);
+          if (currentError) {
+            showToast(currentError, true);
+            return;
+          }
+          const lastStepIndex = Math.max(0, editorReviewSteps.length - 1);
+          if (currentIndex < lastStepIndex) {
+            setEditorReviewStep(currentIndex + 1, { force: true });
+            return;
+          }
+          const firstInvalidStep = getFirstInvalidEditorReviewStepIndex(true);
+          if (firstInvalidStep >= 0) {
+            const message = getEditorReviewStepError(firstInvalidStep, true);
+            setEditorReviewStep(firstInvalidStep, { force: true });
+            showToast(message || "Complete all review steps before saving.", true);
+            return;
+          }
+        }
+        if (translationRequired && (!state || !state.checked || state.checking)) {
           showToast("Run Check translation before saving.", true);
           return;
         }
@@ -5788,9 +6099,14 @@
         const nativeDescription = editorDescription
           ? editorDescription.value
           : "";
-        const formError = validateEditorResourceAndContactFields();
-        if (formError) {
-          showToast(formError, true);
+        const languageError = validateEditorLanguageAndLinkFields(true);
+        if (languageError) {
+          showToast(languageError, true);
+          return;
+        }
+        const contactError = validateEditorContactFields(true);
+        if (contactError) {
+          showToast(contactError, true);
           return;
         }
         let resourcePayload = null;
