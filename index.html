@@ -1435,6 +1435,15 @@
         color: #8d2d33;
       }
 
+      .contribute-form-status.is-warning {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #8d2d33;
+        margin-top: 12px;
+        margin-bottom: 12px;
+      }
+
       .contribute-form-status.is-success {
         color: #1f7f4b;
       }
@@ -8341,7 +8350,7 @@
         missingPillarContext: "Missing pillar context.",
         completeTitleAndDescription: "Please complete title and description.",
         nativeLanguageWarning:
-          "Warning: use the native language for title and description.",
+          "Write title and description in {language} before submitting.",
         translationCheckingNote: "Checking translation...",
         translationVerifiedNote:
           "Translation verified for current {language} text.",
@@ -8467,7 +8476,7 @@
         missingPillarContext: "Lipsește contextul pillar-ului.",
         completeTitleAndDescription: "Completează titlul și descrierea.",
         nativeLanguageWarning:
-          "Scrie titlul și descrierea în limba nativă înainte de trimitere.",
+          "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
         translationCheckingNote: "Se verifică traducerea...",
         translationVerifiedNote:
           "Traducerea este verificată pentru textul curent în {language}.",
@@ -9640,7 +9649,7 @@
           if (!nativeLanguageCheck.ok) {
             wrongLanguage = true;
             errors.push(
-              nativeLanguageCheck.message || getResourceUiText("nativeLanguageWarning"),
+              nativeLanguageCheck.message || getNativeLanguageWarningMessage(),
             );
           }
         }
@@ -9796,7 +9805,11 @@
         if (valid) {
           setContributeStatus("");
         } else if (showStatus) {
-          setContributeStatus(errors[0], "error");
+          const firstError = String(errors[0] || "");
+          const tone = firstError.trim().startsWith("⚠")
+            ? "warning"
+            : "error";
+          setContributeStatus(firstError, tone);
         }
         updateContributeWizardUi();
         return valid;
@@ -10503,6 +10516,29 @@
         return value || fallback;
       }
 
+      function getContributeNativeLanguageLabelForWarning() {
+        const label = String(getContributeNativeLanguageLabel() || "").trim();
+        if (!label) return "";
+        return label.charAt(0).toLowerCase() + label.slice(1);
+      }
+
+      function getNativeLanguageWarningMessage() {
+        const languageLabel =
+          getContributeNativeLanguageLabelForWarning() || "native language";
+        let message = String(
+          getResourceUiText("nativeLanguageWarning", {
+            language: languageLabel,
+          }) || "",
+        ).trim();
+        if (!message) {
+          message = `Write title and description in ${languageLabel} before submitting.`;
+        }
+        message = message
+          .replace(/limba nativ[ăa]/gi, `limba ${languageLabel}`)
+          .replace(/native language/gi, languageLabel);
+        return `⚠ ${message}`;
+      }
+
       function isClearlyEnglishText(text) {
         const value = String(text || "")
           .trim()
@@ -10570,15 +10606,27 @@
             .replace(/[\u0300-\u036f]/g, "");
           const words = normalized.split(/[^a-z]+/).filter(Boolean);
           const roMarkers = new Set([
+            "de",
+            "in",
+            "cu",
+            "la",
+            "pe",
+            "din",
+            "pentru",
+            "un",
+            "o",
             "si",
+            "sau",
             "este",
             "sunt",
-            "pentru",
             "romana",
             "educatie",
             "scoala",
             "resursa",
             "resurse",
+            "descriere",
+            "titlu",
+            "articol",
             "caracter",
             "profesor",
             "profesori",
@@ -10608,13 +10656,12 @@
           const roHits = countLanguageMarkers(words, roMarkers);
           const enHits = countLanguageMarkers(words, enMarkers);
           const wrongLanguage =
-            roHits === 0 ||
-            enHits > roHits ||
+            (enHits >= 2 && enHits > roHits + 1) ||
             isClearlyEnglishText(normalized);
           if (wrongLanguage) {
             return {
               ok: false,
-              message: getResourceUiText("nativeLanguageWarning"),
+              message: getNativeLanguageWarningMessage(),
             };
           }
           return { ok: true, message: "" };
@@ -10622,7 +10669,7 @@
         if (isClearlyEnglishText(combined)) {
           return {
             ok: false,
-            message: getResourceUiText("nativeLanguageWarning"),
+            message: getNativeLanguageWarningMessage(),
           };
         }
         return { ok: true, message: "" };
@@ -11192,9 +11239,15 @@
       function setContributeStatus(message, tone) {
         if (!contributeFormStatus) return;
         contributeFormStatus.textContent = String(message || "");
-        contributeFormStatus.classList.remove("is-error", "is-success");
+        contributeFormStatus.classList.remove(
+          "is-error",
+          "is-success",
+          "is-warning",
+        );
         if (tone === "error") {
           contributeFormStatus.classList.add("is-error");
+        } else if (tone === "warning") {
+          contributeFormStatus.classList.add("is-warning");
         } else if (tone === "success") {
           contributeFormStatus.classList.add("is-success");
         }
@@ -12703,9 +12756,12 @@
             description,
           );
           if (!nativeLanguageCheck.ok) {
+            const warningMessage = String(
+              nativeLanguageCheck.message || getNativeLanguageWarningMessage(),
+            );
             setContributeStatus(
-              nativeLanguageCheck.message || getResourceUiText("nativeLanguageWarning"),
-              "error",
+              warningMessage,
+              warningMessage.trim().startsWith("⚠") ? "warning" : "error",
             );
             return;
           }
