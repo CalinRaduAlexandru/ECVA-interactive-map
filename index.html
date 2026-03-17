@@ -5405,9 +5405,39 @@
         gap: 4px;
       }
 
+      .ecva-editor-translation-field-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
       .ecva-editor-translation-field strong {
         font-size: 11px;
         color: #405c6a;
+      }
+
+      .ecva-editor-sync-field-btn {
+        width: 28px;
+        min-width: 28px;
+        height: 28px;
+        border-radius: 999px;
+        border: 1px solid rgba(106, 131, 144, 0.58);
+        background: linear-gradient(180deg, #eff5f8, #e3edf2);
+        color: #284451;
+        font-family: "Alexandria", sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        line-height: 1;
+      }
+
+      .ecva-editor-sync-field-btn:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
       }
 
       .ecva-editor-translation-preview {
@@ -6600,18 +6630,6 @@
                 id="ecva-editor-translation-block"
                 class="ecva-editor-translation-block"
               >
-                <div class="ecva-editor-review-head">
-                  <span id="ecva-editor-review-band" class="ecva-editor-review-band"
-                    >Content review</span
-                  >
-                  <button
-                    id="ecva-editor-check-translation-btn"
-                    class="ecva-editor-check-translation-btn"
-                    type="button"
-                  >
-                    Check translation
-                  </button>
-                </div>
                 <p
                   id="ecva-editor-translation-note"
                   class="ecva-editor-translation-note"
@@ -6628,7 +6646,18 @@
                       <span id="ecva-editor-source-lang-label">Language</span>
                     </h6>
                     <div class="ecva-editor-translation-field">
-                      <strong id="ecva-editor-native-title-label">Title</strong>
+                      <div class="ecva-editor-translation-field-head">
+                        <strong id="ecva-editor-native-title-label">Title</strong>
+                        <button
+                          id="ecva-editor-sync-native-title"
+                          class="ecva-editor-sync-field-btn"
+                          type="button"
+                          aria-label="Sync from English"
+                          title="Sync from English"
+                        >
+                          ↻
+                        </button>
+                      </div>
                       <input
                         id="ecva-editor-native-title-preview"
                         class="ecva-editor-translation-input"
@@ -6637,9 +6666,20 @@
                       />
                     </div>
                     <div class="ecva-editor-translation-field">
-                      <strong id="ecva-editor-native-description-label"
-                        >Description</strong
-                      >
+                      <div class="ecva-editor-translation-field-head">
+                        <strong id="ecva-editor-native-description-label"
+                          >Description</strong
+                        >
+                        <button
+                          id="ecva-editor-sync-native-description"
+                          class="ecva-editor-sync-field-btn"
+                          type="button"
+                          aria-label="Sync from English"
+                          title="Sync from English"
+                        >
+                          ↻
+                        </button>
+                      </div>
                       <textarea
                         id="ecva-editor-native-description-preview"
                         class="ecva-editor-translation-textarea"
@@ -6657,7 +6697,18 @@
                       <span>English</span>
                     </h6>
                     <div class="ecva-editor-translation-field">
-                      <strong id="ecva-editor-english-title-label">Title</strong>
+                      <div class="ecva-editor-translation-field-head">
+                        <strong id="ecva-editor-english-title-label">Title</strong>
+                        <button
+                          id="ecva-editor-sync-english-title"
+                          class="ecva-editor-sync-field-btn"
+                          type="button"
+                          aria-label="Sync from source language"
+                          title="Sync from source language"
+                        >
+                          ↻
+                        </button>
+                      </div>
                       <input
                         id="ecva-editor-english-title-preview"
                         class="ecva-editor-translation-input"
@@ -6666,9 +6717,20 @@
                       />
                     </div>
                     <div class="ecva-editor-translation-field">
-                      <strong id="ecva-editor-english-description-label"
-                        >Description</strong
-                      >
+                      <div class="ecva-editor-translation-field-head">
+                        <strong id="ecva-editor-english-description-label"
+                          >Description</strong
+                        >
+                        <button
+                          id="ecva-editor-sync-english-description"
+                          class="ecva-editor-sync-field-btn"
+                          type="button"
+                          aria-label="Sync from source language"
+                          title="Sync from source language"
+                        >
+                          ↻
+                        </button>
+                      </div>
                       <textarea
                         id="ecva-editor-english-description-preview"
                         class="ecva-editor-translation-textarea"

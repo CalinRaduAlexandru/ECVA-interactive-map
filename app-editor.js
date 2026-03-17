@@ -46,12 +46,8 @@
   const editorTranslationBlock = document.getElementById(
     "ecva-editor-translation-block",
   );
-  const editorReviewBand = document.getElementById("ecva-editor-review-band");
   const editorTranslationNote = document.getElementById(
     "ecva-editor-translation-note",
-  );
-  const editorCheckTranslationBtn = document.getElementById(
-    "ecva-editor-check-translation-btn",
   );
   const editorNativeTitlePreview = document.getElementById(
     "ecva-editor-native-title-preview",
@@ -88,6 +84,18 @@
   );
   const editorEnglishDescriptionLabel = document.getElementById(
     "ecva-editor-english-description-label",
+  );
+  const editorSyncNativeTitleBtn = document.getElementById(
+    "ecva-editor-sync-native-title",
+  );
+  const editorSyncNativeDescriptionBtn = document.getElementById(
+    "ecva-editor-sync-native-description",
+  );
+  const editorSyncEnglishTitleBtn = document.getElementById(
+    "ecva-editor-sync-english-title",
+  );
+  const editorSyncEnglishDescriptionBtn = document.getElementById(
+    "ecva-editor-sync-english-description",
   );
   const editorResourceLanguageList = document.getElementById(
     "ecva-editor-resource-language-list",
@@ -273,9 +281,9 @@
     noTitleYet: "No title yet.",
     noDescriptionYet: "No description yet.",
     notCheckedYet: "Not checked yet.",
-    translationCheckingNote: "Checking translation...",
+    translationCheckingNote: "Updating translation...",
     translationVerifiedNote:
-      "Translation verified for current {language} text.",
+      "Edit both columns freely. Use ↻ to sync any field from the opposite column.",
     translationNeedsCheckNote:
       "Edit title and description in {language} and run Check translation before saving.",
     checkTranslationBeforeContinuing:
@@ -324,9 +332,9 @@
       noTitleYet: "Titlul nu este completat.",
       noDescriptionYet: "Descrierea nu este completată.",
       notCheckedYet: "Nu este verificat încă.",
-      translationCheckingNote: "Se verifică traducerea...",
+      translationCheckingNote: "Se actualizează traducerea...",
       translationVerifiedNote:
-        "Traducerea este verificată pentru textul curent în {language}.",
+        "Poți edita ambele coloane. Folosește ↻ ca să sincronizezi orice câmp din coloana opusă.",
       translationNeedsCheckNote:
         "Editează titlul și descrierea în {language} și apasă Verifică traducerea înainte de salvare.",
       checkTranslationBeforeContinuing:
@@ -2517,17 +2525,6 @@
       editorRemoveConfirmText.textContent =
         copy.confirmAction || EDITOR_UI_COPY_BASE.confirmAction;
     }
-    if (editorCheckTranslationBtn) {
-      const state = submissionTranslationState;
-      if (state && state.checking) {
-        editorCheckTranslationBtn.textContent =
-          copy.checking || EDITOR_UI_COPY_BASE.checking;
-      } else {
-        editorCheckTranslationBtn.textContent =
-          copy.checkTranslationButton ||
-          EDITOR_UI_COPY_BASE.checkTranslationButton;
-      }
-    }
     if (editorPendingBtn) {
       editorPendingBtn.textContent =
         copy.pendingAction || EDITOR_UI_COPY_BASE.pendingAction;
@@ -2666,7 +2663,12 @@
     if (Number(previousIndex) === Number(nextIndex)) return;
     const state = submissionTranslationState;
     if (!state || !state.required) return;
-    if (state.checking || state.checked) return;
+    if (state.checking) return;
+    const hasEnglishText = Boolean(
+      String(state.englishTitle || "").trim() ||
+        String(state.englishDescription || "").trim(),
+    );
+    if (hasEnglishText) return;
     if (editorAutoTranslationPrimed) return;
     const hasNativeText = Boolean(
       String((editorTitle && editorTitle.value) || "").trim() ||
@@ -3463,26 +3465,6 @@
   }
 
   function validateEditorTranslationStep(_paintInvalid) {
-    const copy = getEditorUiCopy(editorUiCopyLang);
-    const target = editorTarget;
-    const translationRequired = requiresSubmissionTranslation(
-      target && target.countryId,
-      "article",
-    );
-    if (!translationRequired) return "";
-    const state = submissionTranslationState;
-    if (!state || state.checking) {
-      return (
-        copy.checkTranslationBeforeContinuing ||
-        EDITOR_UI_COPY_BASE.checkTranslationBeforeContinuing
-      );
-    }
-    if (!state.checked) {
-      return (
-        copy.checkTranslationBeforeContinuing ||
-        EDITOR_UI_COPY_BASE.checkTranslationBeforeContinuing
-      );
-    }
     return "";
   }
 
@@ -3858,29 +3840,12 @@
     if (isEditorSubmissionArticleTarget() && editorReviewWizardEnabled) {
       const maxIndex = editorReviewSteps.length - 1;
       const isFinalStep = editorReviewStepIndex >= maxIndex;
-      const currentStep =
-        editorReviewSteps[editorReviewStepIndex] ||
-        editorReviewSteps[maxIndex] ||
-        null;
       const currentError = getEditorReviewStepError(editorReviewStepIndex, false);
-      if (
-        checking &&
-        currentStep &&
-        String(currentStep.id || "").trim().toLowerCase() === "translation"
-      ) {
-        if (editorSaveBtn) {
-          editorSaveBtn.style.display = "inline-flex";
-          editorSaveBtn.textContent = copy.checking || EDITOR_UI_COPY_BASE.checking;
-          editorSaveBtn.disabled = true;
-        }
-        setDecisionButtonsVisible(false);
-        return;
-      }
       if (!isFinalStep) {
         if (editorSaveBtn) {
           editorSaveBtn.style.display = "inline-flex";
           editorSaveBtn.textContent = copy.next || EDITOR_UI_COPY_BASE.next;
-          editorSaveBtn.disabled = Boolean(currentError) || checking;
+          editorSaveBtn.disabled = Boolean(currentError);
         }
         setDecisionButtonsVisible(false);
         return;
@@ -3890,7 +3855,7 @@
       }
       setDecisionButtonsVisible(true);
       const firstInvalidStep = getFirstInvalidEditorReviewStepIndex(false);
-      const disableFinalActions = firstInvalidStep >= 0 || checking;
+      const disableFinalActions = firstInvalidStep >= 0;
       if (editorPendingBtn) {
         editorPendingBtn.textContent =
           copy.pendingAction || EDITOR_UI_COPY_BASE.pendingAction;
@@ -3905,7 +3870,7 @@
     }
     setDecisionButtonsVisible(false);
     const needsCheck = Boolean(state && state.required);
-    const ready = !needsCheck || (state.checked && !state.checking);
+    const ready = !needsCheck || !checking;
     if (editorSaveBtn) {
       editorSaveBtn.style.display = "inline-flex";
       editorSaveBtn.disabled = !ready;
@@ -3935,11 +3900,21 @@
     const state = submissionTranslationState;
     const visible = Boolean(state && state.visible);
     syncSubmissionSourceLanguageHeading();
+    const syncButtons = [
+      editorSyncNativeTitleBtn,
+      editorSyncNativeDescriptionBtn,
+      editorSyncEnglishTitleBtn,
+      editorSyncEnglishDescriptionBtn,
+    ];
     if (editorTranslationBlock) {
       editorTranslationBlock.classList.toggle("is-visible", visible);
     }
     if (!visible) {
       setSubmissionTranslationInputsEditable(false);
+      syncButtons.forEach((button) => {
+        if (!button) return;
+        button.disabled = true;
+      });
       if (editorReviewWizardEnabled) {
         updateEditorReviewUi();
       } else {
@@ -3949,39 +3924,26 @@
     }
     setSubmissionTranslationInputsEditable(true);
     updateSubmissionTranslationPreview();
-    const checked = Boolean(state.checked);
-    if (editorReviewBand) {
-      editorReviewBand.textContent = checked
-        ? copy.translationReview || EDITOR_UI_COPY_BASE.translationReview
-        : copy.contentReview || EDITOR_UI_COPY_BASE.contentReview;
-      editorReviewBand.classList.toggle("is-passed", checked);
-    }
+    const sourceLabel = toHeadingLanguageLabel(
+      String((state && state.sourceLanguageLabel) || "source language"),
+    );
     if (editorTranslationNote) {
-      const sourceLabel = toHeadingLanguageLabel(
-        String((state && state.sourceLanguageLabel) || "source language"),
-      );
       if (state.checking) {
         editorTranslationNote.textContent =
           copy.translationCheckingNote ||
           EDITOR_UI_COPY_BASE.translationCheckingNote;
-      } else if (checked) {
+      } else {
         editorTranslationNote.textContent = String(
           copy.translationVerifiedNote ||
             EDITOR_UI_COPY_BASE.translationVerifiedNote,
-        ).replace("{language}", sourceLabel);
-      } else {
-        editorTranslationNote.textContent = String(
-          copy.translationNeedsCheckNote ||
-            EDITOR_UI_COPY_BASE.translationNeedsCheckNote,
         ).replace("{language}", sourceLabel);
       }
     }
     if (editorEnglishTitlePreview) {
       writeTextNodeValue(editorEnglishTitlePreview, String(state.englishTitle || ""));
       if (isEditableTextNode(editorEnglishTitlePreview)) {
-        editorEnglishTitlePreview.placeholder = checked
-          ? copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet
-          : copy.notCheckedYet || EDITOR_UI_COPY_BASE.notCheckedYet;
+        editorEnglishTitlePreview.placeholder =
+          copy.noTitleYet || EDITOR_UI_COPY_BASE.noTitleYet;
       }
     }
     if (editorEnglishDescriptionPreview) {
@@ -3990,21 +3952,49 @@
         String(state.englishDescription || ""),
       );
       if (isEditableTextNode(editorEnglishDescriptionPreview)) {
-        editorEnglishDescriptionPreview.placeholder = checked
-          ? copy.noDescriptionYet || EDITOR_UI_COPY_BASE.noDescriptionYet
-          : copy.notCheckedYet || EDITOR_UI_COPY_BASE.notCheckedYet;
+        editorEnglishDescriptionPreview.placeholder =
+          copy.noDescriptionYet || EDITOR_UI_COPY_BASE.noDescriptionYet;
       }
     }
-    if (editorCheckTranslationBtn) {
-      const canCheck =
-        !state.checking &&
-        (String((editorTitle && editorTitle.value) || "").trim() ||
-          String((editorDescription && editorDescription.value) || "").trim());
-      editorCheckTranslationBtn.disabled = !canCheck;
-      editorCheckTranslationBtn.textContent = state.checking
-        ? copy.checking || EDITOR_UI_COPY_BASE.checking
-        : copy.checkTranslationButton || EDITOR_UI_COPY_BASE.checkTranslationButton;
-    }
+    const canUseEnglishTitleSync = Boolean(
+      String(readTextNodeValue(editorNativeTitlePreview) || "").trim(),
+    );
+    const canUseEnglishDescriptionSync = Boolean(
+      String(readTextNodeValue(editorNativeDescriptionPreview) || "").trim(),
+    );
+    const canUseNativeTitleSync = Boolean(
+      String(readTextNodeValue(editorEnglishTitlePreview) || "").trim(),
+    );
+    const canUseNativeDescriptionSync = Boolean(
+      String(readTextNodeValue(editorEnglishDescriptionPreview) || "").trim(),
+    );
+    const setSyncButtonState = (button, enabled, label) => {
+      if (!button) return;
+      const title = `↻ ${label}`;
+      button.disabled = Boolean(state.checking) || !enabled;
+      button.title = title;
+      button.setAttribute("aria-label", title);
+    };
+    setSyncButtonState(
+      editorSyncNativeTitleBtn,
+      canUseNativeTitleSync,
+      "English → " + sourceLabel,
+    );
+    setSyncButtonState(
+      editorSyncNativeDescriptionBtn,
+      canUseNativeDescriptionSync,
+      "English → " + sourceLabel,
+    );
+    setSyncButtonState(
+      editorSyncEnglishTitleBtn,
+      canUseEnglishTitleSync,
+      sourceLabel + " → English",
+    );
+    setSyncButtonState(
+      editorSyncEnglishDescriptionBtn,
+      canUseEnglishDescriptionSync,
+      sourceLabel + " → English",
+    );
     if (editorReviewWizardEnabled) {
       updateEditorReviewUi();
     } else {
@@ -4034,7 +4024,7 @@
     }
     updateSubmissionTranslationPreview();
     invalidateSubmissionTranslationOnNativeEdit();
-    refreshEditorReviewProgress();
+    updateSubmissionTranslationUi();
   }
 
   function syncEnglishTranslationInputsToState() {
@@ -4045,25 +4035,88 @@
     if (state.checked && !state.checkedAt) {
       state.checkedAt = new Date().toISOString();
     }
-    refreshEditorReviewProgress();
+    updateSubmissionTranslationUi();
   }
 
   function invalidateSubmissionTranslationOnNativeEdit() {
     const state = submissionTranslationState;
     if (!state || !state.required) return;
-    const nativeTitle = String((editorTitle && editorTitle.value) || "").trim();
-    const nativeDescription = String(
+    state.translationSourceTitle = String((editorTitle && editorTitle.value) || "").trim();
+    state.translationSourceDescription = String(
       (editorDescription && editorDescription.value) || "",
     ).trim();
-    if (
-      nativeTitle === String(state.translationSourceTitle || "") &&
-      nativeDescription === String(state.translationSourceDescription || "")
-    ) {
-      state.checked = true;
-    } else {
-      state.checked = false;
+    state.checked = true;
+    if (!state.checkedAt) {
+      state.checkedAt = new Date().toISOString();
     }
+  }
+
+  async function translateSubmissionText(sourceLang, targetLang, text) {
+    const sourceText = String(text || "").trim();
+    if (!sourceText) return "";
+    const response = await fetch(TRANSLATE_BATCH_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceLang: String(sourceLang || "auto").trim() || "auto",
+        targetLang: String(targetLang || "en").trim() || "en",
+        texts: [sourceText],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`translation_status_${response.status}`);
+    }
+    const payload = await response.json().catch(() => null);
+    const translated = Array.isArray(payload && payload.translated)
+      ? payload.translated
+      : null;
+    const translatedText = translated && translated.length
+      ? String(translated[0] || "").trim()
+      : "";
+    return translatedText || sourceText;
+  }
+
+  async function syncSubmissionTranslationField(options) {
+    const state = submissionTranslationState;
+    if (!state || !state.required || state.checking) return;
+    const sourceNode = options && options.sourceNode;
+    const targetNode = options && options.targetNode;
+    const sourceLang = options && options.sourceLang;
+    const targetLang = options && options.targetLang;
+    const afterSync =
+      options && typeof options.afterSync === "function"
+        ? options.afterSync
+        : null;
+    const sourceText = String(readTextNodeValue(sourceNode) || "").trim();
+    if (!sourceText) {
+      writeTextNodeValue(targetNode, "");
+      if (afterSync) afterSync();
+      updateSubmissionTranslationUi();
+      return;
+    }
+    state.checking = true;
     updateSubmissionTranslationUi();
+    try {
+      const translatedText = await translateSubmissionText(
+        sourceLang,
+        targetLang,
+        sourceText,
+      );
+      writeTextNodeValue(targetNode, translatedText);
+      if (afterSync) afterSync();
+      state.checked = true;
+      state.checkedAt = new Date().toISOString();
+    } catch (_error) {
+      const copy = getEditorUiCopy(editorUiCopyLang);
+      showToast(
+        copy.translationCheckFailedToast ||
+          EDITOR_UI_COPY_BASE.translationCheckFailedToast,
+        true,
+      );
+    } finally {
+      state.checking = false;
+      updateSubmissionTranslationUi();
+    }
   }
 
   async function runSubmissionTranslationCheck() {
@@ -6832,9 +6885,59 @@
     });
   }
 
-  if (editorCheckTranslationBtn) {
-    editorCheckTranslationBtn.addEventListener("click", () => {
-      runSubmissionTranslationCheck();
+  if (editorSyncEnglishTitleBtn) {
+    editorSyncEnglishTitleBtn.addEventListener("click", () => {
+      const state = submissionTranslationState;
+      if (!state) return;
+      syncSubmissionTranslationField({
+        sourceNode: editorNativeTitlePreview,
+        targetNode: editorEnglishTitlePreview,
+        sourceLang: state.sourceLanguageCode || "auto",
+        targetLang: "en",
+        afterSync: syncEnglishTranslationInputsToState,
+      });
+    });
+  }
+
+  if (editorSyncEnglishDescriptionBtn) {
+    editorSyncEnglishDescriptionBtn.addEventListener("click", () => {
+      const state = submissionTranslationState;
+      if (!state) return;
+      syncSubmissionTranslationField({
+        sourceNode: editorNativeDescriptionPreview,
+        targetNode: editorEnglishDescriptionPreview,
+        sourceLang: state.sourceLanguageCode || "auto",
+        targetLang: "en",
+        afterSync: syncEnglishTranslationInputsToState,
+      });
+    });
+  }
+
+  if (editorSyncNativeTitleBtn) {
+    editorSyncNativeTitleBtn.addEventListener("click", () => {
+      const state = submissionTranslationState;
+      if (!state) return;
+      syncSubmissionTranslationField({
+        sourceNode: editorEnglishTitlePreview,
+        targetNode: editorNativeTitlePreview,
+        sourceLang: "en",
+        targetLang: state.sourceLanguageCode || "auto",
+        afterSync: syncNativeTranslationInputsToMainFields,
+      });
+    });
+  }
+
+  if (editorSyncNativeDescriptionBtn) {
+    editorSyncNativeDescriptionBtn.addEventListener("click", () => {
+      const state = submissionTranslationState;
+      if (!state) return;
+      syncSubmissionTranslationField({
+        sourceNode: editorEnglishDescriptionPreview,
+        targetNode: editorNativeDescriptionPreview,
+        sourceLang: "en",
+        targetLang: state.sourceLanguageCode || "auto",
+        afterSync: syncNativeTranslationInputsToMainFields,
+      });
     });
   }
 
@@ -6969,15 +7072,6 @@
             return;
           }
         }
-        if (translationRequired && (!state || !state.checked || state.checking)) {
-          const copy = getEditorUiCopy(editorUiCopyLang);
-          showToast(
-            copy.runCheckTranslationBeforeSaving ||
-              EDITOR_UI_COPY_BASE.runCheckTranslationBeforeSaving,
-            true,
-          );
-          return;
-        }
         const nativeTitle = editorTitle ? editorTitle.value : "";
         const nativeDescription = editorDescription
           ? editorDescription.value
@@ -7026,16 +7120,12 @@
           englishDescription: translationRequired
             ? String((state && state.englishDescription) || "").trim()
             : String(nativeDescription || "").trim(),
-          translationChecked: translationRequired
-            ? Boolean(state && state.checked)
-            : true,
+          translationChecked: true,
           translationSourceTitle: translationRequired
-            ? String((state && state.translationSourceTitle) || "").trim()
+            ? String(nativeTitle || "").trim()
             : String(nativeTitle || "").trim(),
           translationSourceDescription: translationRequired
-            ? String(
-                (state && state.translationSourceDescription) || "",
-              ).trim()
+            ? String(nativeDescription || "").trim()
             : String(nativeDescription || "").trim(),
           translationCheckedAt: translationRequired
             ? String((state && state.checkedAt) || new Date().toISOString())
