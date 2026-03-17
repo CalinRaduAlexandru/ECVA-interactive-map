@@ -5496,6 +5496,22 @@
     return "Article";
   }
 
+  function getSubmissionCompactPillClass(item) {
+    const mode = String(item && item.type ? item.type : "")
+      .trim()
+      .toLowerCase();
+    if (mode === "representative") return "";
+    const pillarId = String(item && item.pillarId ? item.pillarId : "")
+      .trim()
+      .toLowerCase();
+    if (pillarId === "resources") return "is-resources";
+    if (pillarId === "events") return "is-events";
+    if (pillarId === "research") return "is-research";
+    if (pillarId === "organisations") return "is-organisations";
+    if (pillarId === "government") return "is-government";
+    return "";
+  }
+
   function getFlagFromLanguageCode(languageCode) {
     const code = String(languageCode || "")
       .trim()
@@ -6184,10 +6200,11 @@
       .map((next) => String(next || "").trim())
       .filter(Boolean)
       .join(" • ");
+    const compactPillClass = getSubmissionCompactPillClass(item);
     return `
       <article class="ecva-inbox-card ecva-inbox-item" data-submission-id="${escapeHtml(item.id)}">
         <div class="ecva-inbox-summary">
-          <span class="ecva-inbox-type">${escapeHtml(getSubmissionCompactPillLabel(item))}</span>
+          <span class="ecva-inbox-type${compactPillClass ? ` ${compactPillClass}` : ""}">${escapeHtml(getSubmissionCompactPillLabel(item))}</span>
           <span class="ecva-inbox-summary-title" title="${escapeHtml(title)}">${escapeHtml(title)}</span>
           ${
             canManage
