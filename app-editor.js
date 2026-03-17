@@ -260,6 +260,8 @@
     reviewEntry: "Review Entry",
     editRepresentative: "Edit representative",
     stepWord: "Step",
+    stepWriteNativeBeforeSubmit:
+      "Write title and description in {language} before submitting.",
     stepReviewText: "Review text",
     stepCheckTranslation: "Check translation",
     stepLanguagesLinks: "Languages & links",
@@ -311,6 +313,8 @@
       reviewEntry: "Revizuire intrare",
       editRepresentative: "Editează reprezentantul",
       stepWord: "Pasul",
+      stepWriteNativeBeforeSubmit:
+        "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
       stepReviewText: "Revizuiește textul",
       stepCheckTranslation: "Verifică traducerea",
       stepLanguagesLinks: "Limbi și linkuri",
@@ -2577,7 +2581,7 @@
     return [
       {
         id: "text",
-        label: copy.stepReviewText || EDITOR_UI_COPY_BASE.stepReviewText,
+        label: getEditorStepOneLabel(),
         panel: editorStepTextPanel,
         validate: (paintInvalid) => validateEditorTextStep(paintInvalid),
       },
@@ -2812,6 +2816,30 @@
     const value = String(rawValue || "").trim();
     if (!value) return "Language";
     return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
+  function getEditorNativeLanguageLabel() {
+    const countryId = normalizeManageCountryCode(
+      (editorTarget && editorTarget.countryId) || selectedCountryId || "",
+    );
+    const sourceLanguageCode = normalizeLanguageCode(
+      (submissionTranslationState && submissionTranslationState.sourceLanguageCode) ||
+        getCountryPrimaryLanguage(countryId),
+    );
+    return toHeadingLanguageLabel(getLanguageDisplayLabel(sourceLanguageCode || "en"));
+  }
+
+  function getEditorStepOneLabel() {
+    const copy = getEditorUiCopy(editorUiCopyLang);
+    const template = String(
+      copy.stepWriteNativeBeforeSubmit ||
+        EDITOR_UI_COPY_BASE.stepWriteNativeBeforeSubmit ||
+        copy.stepReviewText ||
+        EDITOR_UI_COPY_BASE.stepReviewText ||
+        "",
+    );
+    const languageLabel = String(getEditorNativeLanguageLabel() || "English").trim();
+    return template.split("{language}").join(languageLabel);
   }
 
   function getEditorResourceLanguageOptions() {

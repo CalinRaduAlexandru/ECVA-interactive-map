@@ -8123,6 +8123,8 @@
         sendForReview: "Send for review",
         post: "Post",
         remove: "Remove",
+        stepWriteNativeBeforeSubmit:
+          "Write title and description in {language} before submitting.",
         stepReviewText: "Review text",
         stepDescribeResource: "Describe resource",
         stepCheckTranslation: "Check translation",
@@ -8239,6 +8241,8 @@
         sendForReview: "Trimite la review",
         post: "Postează",
         remove: "Șterge",
+        stepWriteNativeBeforeSubmit:
+          "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
         stepReviewText: "Revizuiește textul",
         stepDescribeResource: "Descrie resursa",
         stepCheckTranslation: "Verifică traducerea",
@@ -8415,6 +8419,7 @@
         sendForReview: "modal",
         post: "modal",
         remove: "modal",
+        stepWriteNativeBeforeSubmit: "wizard",
         stepReviewText: "wizard",
         stepDescribeResource: "wizard",
         stepCheckTranslation: "wizard",
@@ -10060,9 +10065,7 @@
         return [
           {
             id: "text",
-            label: isContributeSuggestionMode()
-              ? getResourceUiText("stepDescribeResource")
-              : getResourceUiText("stepReviewText"),
+            label: getContributeStepOneLabel(),
             panel: contributeStepTextPanel,
             validate: (paintInvalid) => validateContributeTextStep(paintInvalid),
           },
@@ -10324,6 +10327,23 @@
         return String(COUNTRY_PRIMARY_LANGUAGE[code] || "en")
           .trim()
           .toLowerCase();
+      }
+
+      function getContributeNativeLanguageLabel() {
+        const langCode = getExpectedNativeLanguage(
+          contributeContext && contributeContext.countryId,
+        );
+        return getLanguageLabelFromCode(langCode || "en");
+      }
+
+      function getContributeStepOneLabel() {
+        const fallback = getResourceUiText("stepReviewText");
+        const languageLabel = String(getContributeNativeLanguageLabel() || "English").trim();
+        const localized = getResourceUiText("stepWriteNativeBeforeSubmit", {
+          language: languageLabel,
+        });
+        const value = String(localized || "").trim();
+        return value || fallback;
       }
 
       function isClearlyEnglishText(text) {
