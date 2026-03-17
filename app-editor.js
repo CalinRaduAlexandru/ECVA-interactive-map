@@ -3401,20 +3401,20 @@
     const canManage = currentStatus === "new";
     if (currentStatus === "new") {
       actions.push(
-        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
+        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
       );
       actions.push(
         '<button type="button" class="ecva-inbox-action is-pending" data-action-status="pending">Pending</button>',
       );
       actions.push(
-        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
+        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
       );
     } else if (currentStatus === "pending") {
       actions.push(
-        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
+        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
       );
       actions.push(
-        '<button type="button" class="ecva-inbox-action is-delete" data-action-delete-inline="true">Delete</button>',
+        '<button type="button" class="ecva-inbox-action is-accept" data-action-status="archived" data-action-accept="true">Accept</button>',
       );
     }
     const useTrashDelete = actions.length === 0;
