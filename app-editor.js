@@ -36,6 +36,12 @@
   const editorNativeDescriptionPreview = document.getElementById(
     "ecva-editor-native-description-preview",
   );
+  const editorNativeTitleLabel = document.getElementById(
+    "ecva-editor-native-title-label",
+  );
+  const editorNativeDescriptionLabel = document.getElementById(
+    "ecva-editor-native-description-label",
+  );
   const editorSourceLangFlag = document.getElementById(
     "ecva-editor-source-lang-flag",
   );
@@ -567,6 +573,11 @@
   let submissionTranslationState = null;
   let editorResourceLanguageItems = [];
   let editorResourceLangUid = 0;
+  const nativeFieldLabelPending = new Map();
+  const nativeFieldLabelCache = {
+    en: { title: "Title", description: "Description" },
+    ro: { title: "Titlu", description: "Descriere" },
+  };
 
   function resetEditorRemoveState() {
     if (!editorRemoveBtn) return;
@@ -2766,11 +2777,88 @@
     return { resourceLanguages, languageAvailability, links, attachments };
   }
 
+  function setNativeFieldLabels(titleText, descriptionText) {
+    if (editorNativeTitleLabel) {
+      editorNativeTitleLabel.textContent = String(titleText || "Title").trim() || "Title";
+    }
+    if (editorNativeDescriptionLabel) {
+      editorNativeDescriptionLabel.textContent =
+        String(descriptionText || "Description").trim() || "Description";
+    }
+  }
+
+  function syncSubmissionNativeFieldLabels() {
+    const state = submissionTranslationState;
+    if (!state) {
+      setNativeFieldLabels("Title", "Description");
+      return;
+    }
+    const langCode = normalizeLanguageCode(
+      (state && state.sourceLanguageCode) || "en",
+    );
+    const overrides = getLabelOverridesForLang(langCode);
+    const overrideTitle = String((overrides && overrides.title) || "").trim();
+    const overrideDescription = String(
+      (overrides && overrides.description) || "",
+    ).trim();
+    if (overrideTitle || overrideDescription) {
+      setNativeFieldLabels(
+        overrideTitle || "Title",
+        overrideDescription || "Description",
+      );
+      return;
+    }
+    const cached = nativeFieldLabelCache[langCode];
+    if (cached && cached.title && cached.description) {
+      setNativeFieldLabels(cached.title, cached.description);
+      return;
+    }
+    setNativeFieldLabels("Title", "Description");
+    if (nativeFieldLabelPending.has(langCode)) return;
+    const request = fetch(TRANSLATE_BATCH_API, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        sourceLang: "en",
+        targetLang: langCode,
+        texts: ["Title", "Description"],
+      }),
+    })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        const data = await response.json().catch(() => null);
+        const translated = Array.isArray(data && data.translated)
+          ? data.translated
+          : null;
+        if (!translated || translated.length < 2) return null;
+        const nextLabels = {
+          title: String(translated[0] || "Title").trim() || "Title",
+          description:
+            String(translated[1] || "Description").trim() || "Description",
+        };
+        nativeFieldLabelCache[langCode] = nextLabels;
+        const currentLangCode = normalizeLanguageCode(
+          (submissionTranslationState && submissionTranslationState.sourceLanguageCode) ||
+            "en",
+        );
+        if (currentLangCode === langCode) {
+          setNativeFieldLabels(nextLabels.title, nextLabels.description);
+        }
+        return nextLabels;
+      })
+      .catch(() => null)
+      .finally(() => {
+        nativeFieldLabelPending.delete(langCode);
+      });
+    nativeFieldLabelPending.set(langCode, request);
+  }
+
   function syncSubmissionSourceLanguageHeading() {
     const state = submissionTranslationState;
     if (!state) {
       if (editorSourceLangLabel) editorSourceLangLabel.textContent = "Language";
       if (editorSourceLangFlag) editorSourceLangFlag.textContent = "🏳️";
+      setNativeFieldLabels("Title", "Description");
       return;
     }
     const langCode = normalizeLanguageCode(
@@ -2785,6 +2873,7 @@
       "🏳️";
     if (editorSourceLangLabel) editorSourceLangLabel.textContent = langLabel;
     if (editorSourceLangFlag) editorSourceLangFlag.textContent = langFlag;
+    syncSubmissionNativeFieldLabels();
   }
 
   function isSubmissionArticleTarget(target) {

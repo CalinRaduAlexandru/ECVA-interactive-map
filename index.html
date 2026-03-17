@@ -4921,57 +4921,26 @@
 
       .ecva-editor-translation-bridge {
         display: none;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 5px;
-        min-width: 34px;
+        gap: 4px;
+        min-width: 24px;
       }
 
       .ecva-editor-translation-bridge span {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 20px;
-        border-radius: 999px;
-        border: 1px solid rgba(112, 136, 149, 0.45);
-        background: rgba(242, 248, 251, 0.95);
+        width: auto;
+        height: auto;
+        border: 0;
+        background: transparent;
         color: #375463;
-        font-size: 12px;
+        font-size: 18px;
         font-weight: 900;
-        opacity: 0.3;
-      }
-
-      .ecva-editor-translation-bridge .is-forward {
-        animation: ecva-translation-forward 1.2s ease-in-out infinite;
-      }
-
-      .ecva-editor-translation-bridge .is-backward {
-        animation: ecva-translation-backward 1.2s ease-in-out infinite;
-      }
-
-      @keyframes ecva-translation-forward {
-        0%,
-        100% {
-          opacity: 0.3;
-          transform: translateX(-5px);
-        }
-        46% {
-          opacity: 1;
-          transform: translateX(5px);
-        }
-      }
-
-      @keyframes ecva-translation-backward {
-        0%,
-        100% {
-          opacity: 0.3;
-          transform: translateX(5px);
-        }
-        46% {
-          opacity: 1;
-          transform: translateX(-5px);
-        }
+        line-height: 1;
+        opacity: 0.82;
       }
 
       @media (min-width: 760px) {
@@ -6157,14 +6126,14 @@
                     <span id="ecva-editor-source-lang-label">Language</span>
                   </h6>
                   <div class="ecva-editor-translation-field">
-                    <strong>Title</strong>
+                    <strong id="ecva-editor-native-title-label">Title</strong>
                     <p
                       id="ecva-editor-native-title-preview"
                       class="ecva-editor-translation-preview"
                     ></p>
                   </div>
                   <div class="ecva-editor-translation-field">
-                    <strong>Description</strong>
+                    <strong id="ecva-editor-native-description-label">Description</strong>
                     <p
                       id="ecva-editor-native-description-preview"
                       class="ecva-editor-translation-preview"
@@ -6172,8 +6141,8 @@
                   </div>
                 </article>
                 <div class="ecva-editor-translation-bridge" aria-hidden="true">
-                  <span class="is-forward">⚡</span>
-                  <span class="is-backward">⚡</span>
+                  <span>→</span>
+                  <span>←</span>
                 </div>
                 <article class="ecva-editor-translation-col">
                   <h6>
