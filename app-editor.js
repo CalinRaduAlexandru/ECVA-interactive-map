@@ -455,16 +455,22 @@
   }
 
   function resolveEditorUiLanguageCode() {
+    const activeLang = normalizeLanguageCode(getCurrentLang());
+    const targetCountry = normalizeManageCountryCode(
+      editorTarget && editorTarget.countryId,
+    );
+    if (targetCountry) {
+      const nativeLang = getCountryPrimaryLanguage(targetCountry);
+      if (activeLang && activeLang === nativeLang) return nativeLang;
+      if (activeLang) return activeLang;
+      return nativeLang || "en";
+    }
     const stateLang = normalizeLanguageCode(
       (submissionTranslationState && submissionTranslationState.sourceLanguageCode) ||
         "",
     );
     if (stateLang) return stateLang;
-    const targetCountry = normalizeManageCountryCode(
-      editorTarget && editorTarget.countryId,
-    );
-    if (targetCountry) return getCountryPrimaryLanguage(targetCountry);
-    return normalizeLanguageCode(getCurrentLang());
+    return activeLang || "en";
   }
 
   function getEditorUiCopy(rawLang) {
