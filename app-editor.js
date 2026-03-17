@@ -86,6 +86,12 @@
   const editorContactEmail = document.getElementById(
     "ecva-editor-contact-email",
   );
+  const editorOwnershipType = document.getElementById(
+    "ecva-editor-ownership-type",
+  );
+  const editorOwnershipName = document.getElementById(
+    "ecva-editor-ownership-name",
+  );
   const editorRepName = document.getElementById("ecva-editor-rep-name");
   const editorRepTitle = document.getElementById("ecva-editor-rep-title");
   const editorRepOrganisation = document.getElementById(
@@ -2928,6 +2934,8 @@
   }
 
   function markSubmissionContactFieldsValid() {
+    setInputValidity(editorOwnershipType, true);
+    setInputValidity(editorOwnershipName, true);
     setInputValidity(editorContactName, true);
     setInputValidity(editorContactRole, true);
     setInputValidity(editorContactEmail, true);
@@ -3296,10 +3304,22 @@
 
   function validateEditorContactFields(paintInvalid) {
     const shouldPaint = Boolean(paintInvalid);
+    const ownershipType = String(
+      (editorOwnershipType && editorOwnershipType.value) || "",
+    ).trim();
+    const ownershipName = String(
+      (editorOwnershipName && editorOwnershipName.value) || "",
+    ).trim();
     const contactName = String((editorContactName && editorContactName.value) || "").trim();
     const contactRole = String((editorContactRole && editorContactRole.value) || "").trim();
     const contactEmail = String((editorContactEmail && editorContactEmail.value) || "").trim();
     const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail);
+    if (editorOwnershipType && (shouldPaint || ownershipType)) {
+      setInputValidity(editorOwnershipType, Boolean(ownershipType));
+    }
+    if (editorOwnershipName && (shouldPaint || ownershipName)) {
+      setInputValidity(editorOwnershipName, Boolean(ownershipName));
+    }
     if (editorContactName && (shouldPaint || contactName)) {
       setInputValidity(editorContactName, Boolean(contactName));
     }
@@ -3309,6 +3329,8 @@
     if (editorContactEmail && (shouldPaint || contactEmail)) {
       setInputValidity(editorContactEmail, emailOk);
     }
+    if (!ownershipType) return "Select entity type.";
+    if (!ownershipName) return "Complete entity name.";
     if (!contactName) return "Complete contact name.";
     if (!contactRole) return "Complete contact role.";
     if (!emailOk) return "Complete contact email in valid format.";
@@ -3802,6 +3824,8 @@
     editorAutoTranslationPrimed = false;
     if (editorTitle) editorTitle.value = "";
     if (editorDescription) editorDescription.value = "";
+    if (editorOwnershipType) editorOwnershipType.value = "";
+    if (editorOwnershipName) editorOwnershipName.value = "";
     if (editorContactName) editorContactName.value = "";
     if (editorContactRole) editorContactRole.value = "";
     if (editorContactEmail) editorContactEmail.value = "";
@@ -5568,6 +5592,26 @@
       ).trim();
     }
     loadEditorResourceLanguageItems(code, item);
+    const ownership =
+      item.ownership && typeof item.ownership === "object" ? item.ownership : {};
+    const ownershipTypeValue = String(ownership.type || "").trim();
+    if (editorOwnershipType) {
+      const hasOption = Array.from(editorOwnershipType.options || []).some(
+        (option) =>
+          String(option && option.value ? option.value : "").trim() ===
+          ownershipTypeValue,
+      );
+      if (ownershipTypeValue && !hasOption) {
+        const customOption = document.createElement("option");
+        customOption.value = ownershipTypeValue;
+        customOption.textContent = ownershipTypeValue;
+        editorOwnershipType.appendChild(customOption);
+      }
+      editorOwnershipType.value = ownershipTypeValue;
+    }
+    if (editorOwnershipName) {
+      editorOwnershipName.value = String(ownership.name || "").trim();
+    }
     const contact =
       item.representativeContact &&
       typeof item.representativeContact === "object"
@@ -6395,13 +6439,20 @@
     });
   }
 
-  [editorContactName, editorContactRole, editorContactEmail].forEach((field) => {
+  [editorOwnershipName, editorContactName, editorContactRole, editorContactEmail].forEach((field) => {
     if (!field) return;
     field.addEventListener("input", () => {
       validateEditorContactFields(false);
       refreshEditorReviewProgress();
     });
   });
+
+  if (editorOwnershipType) {
+    editorOwnershipType.addEventListener("change", () => {
+      validateEditorContactFields(false);
+      refreshEditorReviewProgress();
+    });
+  }
 
   if (editorResourceAddLanguageBtn) {
     editorResourceAddLanguageBtn.addEventListener("click", () => {
@@ -6563,6 +6614,14 @@
             )
               ? resourcePayload.resourceLanguages
               : [],
+            ownership: {
+              type: String(
+                (editorOwnershipType && editorOwnershipType.value) || "",
+              ).trim(),
+              name: String(
+                (editorOwnershipName && editorOwnershipName.value) || "",
+              ).trim(),
+            },
             representativeContact: {
               name: editorContactName ? editorContactName.value : "",
               role: editorContactRole ? editorContactRole.value : "",
