@@ -192,10 +192,10 @@
     { value: "image", label: "Image", inputMode: "file" },
   ];
   const EDITOR_RESOURCE_PRICING_OPTIONS = [
-    { value: "free", label: "Free" },
-    { value: "paid", label: "Paid" },
-    { value: "freemium", label: "Freemium" },
-    { value: "subscription", label: "Subscription" },
+    { value: "free", label: "Free", icon: "gift" },
+    { value: "paid", label: "Paid", icon: "coin" },
+    { value: "freemium", label: "Freemium", icon: "trophy" },
+    { value: "subscription", label: "Subscription", icon: "calendar" },
   ];
   const RESOURCE_UI_BASE_SOURCE =
     window.__ECVA_RESOURCE_UI_BASE &&
@@ -2285,6 +2285,9 @@
 
   function setInputValidity(input, isValid) {
     if (!input) return;
+    if (input.classList) {
+      input.classList.toggle("is-invalid", !isValid);
+    }
     if (isValid) {
       input.removeAttribute("aria-invalid");
     } else {
@@ -2406,19 +2409,19 @@
     editorResourceLanguageList.innerHTML = "";
     const usedLanguages = new Set();
     editorResourceLanguageItems.forEach((item) => {
+      const typeConfig = getEditorResourceTypeConfig(item.resourceType);
       const duplicate = usedLanguages.has(item.languageCode);
       if (item.languageCode) usedLanguages.add(item.languageCode);
-      const typeConfig = getEditorResourceTypeConfig(item.resourceType);
       const card = document.createElement("section");
-      card.className = "ecva-editor-resource-item";
-      card.setAttribute("data-editor-resource-id", item.id);
+      card.className = "contribute-language-item";
+      card.setAttribute("data-resource-lang-id", item.id);
 
       const head = document.createElement("div");
-      head.className = "ecva-editor-resource-item-head";
+      head.className = "contribute-language-item-head";
       if (!item.isPrimary) {
         const removeBtn = document.createElement("button");
         removeBtn.type = "button";
-        removeBtn.className = "ecva-editor-resource-remove";
+        removeBtn.className = "contribute-language-remove";
         removeBtn.textContent = "Remove";
         removeBtn.addEventListener("click", () => {
           editorResourceLanguageItems = editorResourceLanguageItems.filter(
@@ -2434,19 +2437,23 @@
       card.appendChild(head);
 
       const fields = document.createElement("div");
-      fields.className = "ecva-editor-resource-fields";
+      fields.className = "contribute-language-fields";
 
       const languageLabel = document.createElement("label");
       languageLabel.textContent = "Language";
       const languageSelect = document.createElement("select");
+      languageSelect.id = `editor-resource-language-${item.id}`;
       languageSelect.name = `editor-resource-language-${item.id}`;
+      languageLabel.setAttribute("for", languageSelect.id);
       languageSelect.setAttribute("data-focus-language", "true");
-      const languagePlaceholder = document.createElement("option");
-      languagePlaceholder.value = "";
-      languagePlaceholder.disabled = true;
-      languagePlaceholder.textContent = "Select language";
-      if (!item.languageCode) languagePlaceholder.selected = true;
-      languageSelect.appendChild(languagePlaceholder);
+      if (!item.languageCode) {
+        const languagePlaceholder = document.createElement("option");
+        languagePlaceholder.value = "";
+        languagePlaceholder.disabled = true;
+        languagePlaceholder.selected = true;
+        languagePlaceholder.textContent = "Select language";
+        languageSelect.appendChild(languagePlaceholder);
+      }
       EDITOR_RESOURCE_LANGUAGE_OPTIONS.forEach((option) => {
         const opt = document.createElement("option");
         opt.value = option.code;
@@ -2474,9 +2481,12 @@
       fields.appendChild(languageLabel);
 
       const typeLabel = document.createElement("label");
+      typeLabel.className = "contribute-language-type-field";
       typeLabel.textContent = "Type";
       const typeSelect = document.createElement("select");
+      typeSelect.id = `editor-resource-type-${item.id}`;
       typeSelect.name = `editor-resource-type-${item.id}`;
+      typeLabel.setAttribute("for", typeSelect.id);
       typeSelect.innerHTML = EDITOR_RESOURCE_TYPE_OPTIONS.map(
         (option) =>
           `<option value="${option.value}">${escapeHtml(option.label)}</option>`,
@@ -2504,12 +2514,18 @@
       if (typeConfig.inputMode === "file") {
         valueLabel.textContent = "Resource file";
         const shell = document.createElement("div");
-        shell.className = "ecva-editor-resource-file-shell";
+        shell.className = "contribute-language-file-shell";
         const fileInput = document.createElement("input");
+        fileInput.id = `editor-resource-file-${item.id}`;
         fileInput.type = "file";
-        fileInput.className = "ecva-editor-resource-file-input";
+        fileInput.className = "contribute-language-file-input";
         fileInput.accept = ".pdf,.doc,.docx,.ppt,.pptx,.png,.jpg,.jpeg";
+        fileInput.name = `editor-resource-file-${item.id}`;
+        valueLabel.setAttribute("for", fileInput.id);
         fileInput.setAttribute("data-focus-value", "true");
+        const openPicker = () => {
+          fileInput.click();
+        };
         fileInput.addEventListener("change", () => {
           const file = fileInput.files && fileInput.files[0];
           item.file = file || null;
@@ -2518,27 +2534,57 @@
           renderEditorResourceLanguageItems(item.id);
         });
         shell.appendChild(fileInput);
-        const fileBtn = document.createElement("button");
-        fileBtn.type = "button";
-        fileBtn.className = "ecva-editor-resource-file-btn";
-        fileBtn.textContent =
-          item.file instanceof File
-            ? String(item.file.name || "").trim() || "Uploaded file"
-            : String(item.fileName || "").trim() || "Choose file";
-        fileBtn.addEventListener("click", () => {
-          fileInput.click();
-        });
-        shell.appendChild(fileBtn);
+        const hasPickedFile =
+          item.file instanceof File ||
+          Boolean(String(item.fileName || "").trim()) ||
+          Boolean(String(item.resourceUrl || "").trim());
+        if (hasPickedFile) {
+          shell.classList.add("is-loaded");
+          const fileDisplayName =
+            String(item.fileName || "").trim() ||
+            String((item.file && item.file.name) || "").trim() ||
+            "Uploaded file";
+          const fileTab = document.createElement("button");
+          fileTab.type = "button";
+          fileTab.className = "contribute-language-file-tab";
+          fileTab.setAttribute("aria-label", "Change uploaded file");
+          fileTab.innerHTML = `
+            <span class="contribute-language-file-tab-name">${escapeHtml(fileDisplayName)}</span>
+            <span class="contribute-language-file-tab-icon" aria-hidden="true">↺</span>
+          `;
+          fileTab.addEventListener("click", openPicker);
+          shell.appendChild(fileTab);
+        } else {
+          shell.classList.add("is-empty");
+          const fileTrigger = document.createElement("button");
+          fileTrigger.type = "button";
+          fileTrigger.className = "contribute-language-file-trigger";
+          fileTrigger.textContent = "Choose file";
+          fileTrigger.addEventListener("click", openPicker);
+          shell.appendChild(fileTrigger);
+        }
         valueLabel.appendChild(shell);
       } else {
         valueLabel.textContent = "Resource link for this language";
         const input = document.createElement("input");
+        input.id = `editor-resource-url-${item.id}`;
+        input.name = `editor-resource-url-${item.id}`;
         input.type = "url";
+        input.className = "contribute-language-url";
         input.placeholder = "https://...";
         input.value = String(item.resourceUrl || "");
+        valueLabel.setAttribute("for", input.id);
         input.setAttribute("data-focus-value", "true");
         input.addEventListener("input", () => {
           item.resourceUrl = String(input.value || "");
+          setInputValidity(input, true);
+        });
+        input.addEventListener("blur", () => {
+          const normalized = normalizeLikelyUrl(input.value);
+          if (normalized !== input.value) {
+            input.value = normalized;
+          }
+          item.resourceUrl = normalized;
           setInputValidity(input, true);
         });
         valueLabel.appendChild(input);
@@ -2547,25 +2593,39 @@
       card.appendChild(fields);
 
       if (typeConfig.value === "webpage") {
-        const pricingWrap = document.createElement("div");
-        pricingWrap.className = "ecva-editor-resource-pricing";
+        const pricingWrap = document.createElement("section");
+        pricingWrap.className = "contribute-language-pricing";
         const pricingTitle = document.createElement("h6");
         pricingTitle.textContent = "Resource access mode";
         pricingWrap.appendChild(pricingTitle);
         const tabs = document.createElement("div");
-        tabs.className = "ecva-editor-resource-pricing-tabs";
+        tabs.className = "contribute-language-pricing-tabs";
+        const activePricing = getEditorResourcePricingConfig(item.resourcePricing);
+        item.resourcePricing = activePricing.value;
         EDITOR_RESOURCE_PRICING_OPTIONS.forEach((option) => {
-          const tab = document.createElement("button");
-          tab.type = "button";
-          tab.className = "ecva-editor-resource-pricing-tab";
-          if (item.resourcePricing === option.value) {
+          const tab = document.createElement("label");
+          tab.className = "contribute-language-pricing-tab";
+          if (option.value === activePricing.value) {
             tab.classList.add("is-active");
           }
-          tab.textContent = option.label;
-          tab.addEventListener("click", () => {
-            item.resourcePricing = option.value;
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `editor-resource-pricing-${item.id}`;
+          input.value = option.value;
+          input.checked = option.value === activePricing.value;
+          input.addEventListener("change", () => {
+            item.resourcePricing = getEditorResourcePricingConfig(input.value).value;
             renderEditorResourceLanguageItems(item.id);
           });
+          const icon = document.createElement("span");
+          icon.className = "contribute-language-pricing-icon";
+          icon.innerHTML = renderResourcePricingIconSvg(option.icon);
+          const label = document.createElement("span");
+          label.className = "contribute-language-pricing-label";
+          label.textContent = option.label;
+          tab.appendChild(input);
+          tab.appendChild(icon);
+          tab.appendChild(label);
           tabs.appendChild(tab);
         });
         pricingWrap.appendChild(tabs);
@@ -2575,9 +2635,8 @@
       }
 
       if (duplicate) {
-        const duplicateHint = document.createElement("p");
-        duplicateHint.className = "ecva-editor-resource-helper";
-        duplicateHint.style.color = "#8d3838";
+        const duplicateHint = document.createElement("span");
+        duplicateHint.className = "contribute-field-error";
         duplicateHint.textContent = "This language was already added.";
         card.appendChild(duplicateHint);
       }
@@ -2595,7 +2654,7 @@
       const focusSelector =
         focusItem && String(focusItem.languageCode || "").trim()
           ? `[data-resource-focus-anchor="${focusItemId}"] [data-focus-value="true"]`
-          : `[data-editor-resource-id="${focusItemId}"] [data-focus-language="true"]`;
+          : `[data-resource-lang-id="${focusItemId}"] [data-focus-language="true"]`;
       const focusNode = editorResourceLanguageList.querySelector(focusSelector);
       if (focusNode) {
         window.requestAnimationFrame(() => {
@@ -2610,7 +2669,7 @@
     for (const item of editorResourceLanguageItems) {
       const card = editorResourceLanguageList
         ? editorResourceLanguageList.querySelector(
-            `[data-editor-resource-id="${item.id}"]`,
+            `[data-resource-lang-id="${item.id}"]`,
           )
         : null;
       const languageSelect = card ? card.querySelector("select") : null;
@@ -2630,7 +2689,7 @@
       const typeConfig = getEditorResourceTypeConfig(item.resourceType);
       if (typeConfig.inputMode === "file") {
         const fileNode = card
-          ? card.querySelector(".ecva-editor-resource-file-shell")
+          ? card.querySelector(".contribute-language-file-shell")
           : null;
         const hasStoredFile = Boolean(String(item.resourceUrl || "").trim());
         const hasNewFile = item.file instanceof File;

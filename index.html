@@ -4973,222 +4973,6 @@
         word-break: break-word;
       }
 
-      .ecva-editor-resource-review {
-        display: grid;
-        gap: 10px;
-      }
-
-      .ecva-editor-resource-title {
-        margin: 0;
-        font-size: 15px;
-        font-weight: 900;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        color: #2a4451;
-      }
-
-      .ecva-editor-resource-subtitle {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        color: #385565;
-      }
-
-      .ecva-editor-resource-list {
-        display: grid;
-        gap: 10px;
-      }
-
-      .ecva-editor-resource-item {
-        display: grid;
-        gap: 9px;
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(126, 146, 157, 0.5);
-        background: rgba(250, 252, 253, 0.97);
-      }
-
-      .ecva-editor-resource-item-head {
-        display: flex;
-        justify-content: flex-end;
-      }
-
-      .ecva-editor-resource-remove {
-        min-height: 28px;
-        padding: 0 10px;
-        border-radius: 8px;
-        border: 1px solid rgba(150, 78, 78, 0.52);
-        background: #f6ebeb;
-        color: #7f3838;
-        font-family: "Alexandria", sans-serif;
-        font-size: 11px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        cursor: pointer;
-      }
-
-      .ecva-editor-resource-fields {
-        display: grid;
-        gap: 8px;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr);
-      }
-
-      @media (max-width: 760px) {
-        .ecva-editor-resource-fields {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .ecva-editor-resource-fields label {
-        display: grid;
-        gap: 5px;
-        font-size: 13px;
-        color: #35505e;
-      }
-
-      .ecva-editor-resource-review label {
-        display: grid;
-        gap: 6px;
-        font-size: 13px;
-        color: #35505e;
-      }
-
-      .ecva-editor-resource-fields select,
-      .ecva-editor-resource-fields input[type="url"] {
-        min-height: 42px;
-        border-radius: 10px;
-      }
-
-      .ecva-editor-resource-file-shell {
-        position: relative;
-        display: flex;
-        align-items: center;
-        min-height: 42px;
-        border: 1px solid rgba(130, 151, 162, 0.7);
-        border-radius: 10px;
-        background: #f7fbfd;
-        padding: 4px;
-      }
-
-      .ecva-editor-resource-file-input {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      .ecva-editor-resource-file-btn {
-        min-height: 32px;
-        width: 100%;
-        border-radius: 8px;
-        border: 1px solid rgba(112, 134, 146, 0.45);
-        background: #edf4f8;
-        color: #2b4654;
-        font-family: "Alexandria", sans-serif;
-        font-size: 12px;
-        font-weight: 700;
-        padding: 0 10px;
-        text-align: left;
-        cursor: pointer;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      .ecva-editor-resource-pricing {
-        display: grid;
-        gap: 7px;
-      }
-
-      .ecva-editor-resource-pricing h6 {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        color: #375362;
-      }
-
-      .ecva-editor-resource-pricing-tabs {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 7px;
-      }
-
-      @media (max-width: 760px) {
-        .ecva-editor-resource-pricing-tabs {
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-      }
-
-      .ecva-editor-resource-pricing-tab {
-        min-height: 40px;
-        border-radius: 10px;
-        border: 1px solid rgba(146, 122, 139, 0.4);
-        background: #fff;
-        color: #3a4b58;
-        font-family: "Alexandria", sans-serif;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        cursor: pointer;
-      }
-
-      .ecva-editor-resource-pricing-tab.is-active {
-        border-color: rgba(178, 74, 134, 0.7);
-        background: rgba(246, 225, 239, 0.55);
-        color: #8d2f64;
-      }
-
-      .ecva-editor-resource-controls {
-        display: flex;
-        justify-content: flex-start;
-      }
-
-      .ecva-editor-resource-add-language {
-        min-height: 42px;
-        padding: 0 16px;
-        border-radius: 14px;
-        border: 1px solid rgba(90, 119, 134, 0.6);
-        background: linear-gradient(180deg, #eff6f9, #e2edf3);
-        color: #2c4655;
-        font-family: "Alexandria", sans-serif;
-        font-size: 12px;
-        font-weight: 800;
-        letter-spacing: 0.02em;
-        text-transform: uppercase;
-        cursor: pointer;
-      }
-
-      .ecva-editor-resource-contact-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-      }
-
-      @media (max-width: 760px) {
-        .ecva-editor-resource-contact-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-
-      .ecva-editor-resource-helper {
-        margin: 0;
-        font-size: 12px;
-        color: #4b6471;
-      }
-
-      .ecva-editor-resource-item [aria-invalid="true"],
-      .ecva-editor-resource-contact-grid [aria-invalid="true"],
-      .ecva-editor-resource-review > label [aria-invalid="true"] {
-        border-color: #b43e3e !important;
-        box-shadow: 0 0 0 1px rgba(180, 62, 62, 0.2);
-      }
-
       .ecva-editor-actions {
         display: flex;
         align-items: center;
@@ -6166,33 +5950,33 @@
                 </article>
               </div>
             </section>
-            <section class="ecva-editor-submission-field ecva-editor-resource-review">
-              <p class="ecva-editor-resource-title">Available languages</p>
-              <p class="ecva-editor-resource-subtitle">
+            <section class="ecva-editor-submission-field contribute-form contribute-form-segment">
+              <p class="contribute-form-segment-title">Available languages</p>
+              <p class="contribute-form-section-title">
                 Add one resource version per language
               </p>
               <div
                 id="ecva-editor-resource-language-list"
-                class="ecva-editor-resource-list"
+                class="contribute-language-list"
               ></div>
-              <div class="ecva-editor-resource-controls">
+              <div class="contribute-language-controls">
                 <button
                   id="ecva-editor-resource-add-language-btn"
-                  class="ecva-editor-resource-add-language"
+                  class="contribute-form-btn secondary"
                   type="button"
                 >
                   Add another language
                 </button>
               </div>
             </section>
-            <section class="ecva-editor-submission-field ecva-editor-resource-review">
-              <p class="ecva-editor-resource-title">
+            <section class="ecva-editor-submission-field contribute-form contribute-form-segment">
+              <p class="contribute-form-segment-title">
                 For more informations, contact:
               </p>
-              <p class="ecva-editor-resource-subtitle">
+              <p class="contribute-form-section-title">
                 These details are public and shown at the end of the article.
               </p>
-              <div class="ecva-editor-resource-contact-grid">
+              <div class="contribute-form-row">
                 <label>
                   Name
                   <input id="ecva-editor-contact-name" type="text" />
@@ -6206,7 +5990,7 @@
                 Email
                 <input id="ecva-editor-contact-email" type="text" />
               </label>
-              <p class="ecva-editor-resource-helper">
+              <p class="contribute-field-helper">
                 Used if clarifications are needed.
               </p>
             </section>
