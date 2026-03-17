@@ -1440,12 +1440,33 @@
       }
 
       .contribute-form-actions {
+        --contribute-action-height: 54px;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         gap: 10px;
         margin-top: 2px;
         flex-wrap: wrap;
+      }
+
+      .contribute-form-actions .contribute-form-btn {
+        min-height: var(--contribute-action-height);
+        height: var(--contribute-action-height);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .contribute-form-actions .ecva-editor-remove-btn {
+        width: var(--contribute-action-height);
+        min-width: var(--contribute-action-height);
+        min-height: var(--contribute-action-height);
+        height: var(--contribute-action-height);
+      }
+
+      .contribute-form-actions .ecva-editor-remove-btn.is-confirm {
+        width: auto;
+        min-width: 132px;
       }
 
       .contribute-form-actions .contribute-form-btn[hidden],
