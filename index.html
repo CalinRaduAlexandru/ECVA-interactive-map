@@ -4179,18 +4179,28 @@
       .ecva-inbox-details .country-modal-resource-version-main {
         width: 100%;
         min-width: 0;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px;
       }
 
       .ecva-inbox-details .country-modal-resource-version .country-modal-entry-link-btn {
-        flex: 0 0 auto;
-        width: auto;
+        flex: 0 1 auto;
+        width: 100%;
         max-width: 100%;
         min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       .ecva-inbox-details .country-modal-resource-pricing-pill {
-        margin-left: auto;
+        margin-left: 0;
         min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .ecva-inbox-actions {
