@@ -6654,20 +6654,22 @@
               <input type="hidden" name="countryId" />
               <input type="hidden" name="pillarId" value="representatives" />
               <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">Personal data</p>
+                <p class="contribute-form-segment-title" id="rep-personal-data-title">Personal data</p>
                 <div class="contribute-form-row">
-                  <label>
+                  <label id="rep-submitter-name-label">
                     Your Name
                     <input
+                      id="rep-submitter-name-input"
                       type="text"
                       name="submitterName"
                       placeholder="Your full name"
                       required
                     />
                   </label>
-                  <label>
+                  <label id="rep-submitter-email-label">
                     Your Email
                     <input
+                      id="rep-submitter-email-input"
                       type="email"
                       name="submitterEmail"
                       placeholder="you@example.org"
@@ -6677,25 +6679,27 @@
                 </div>
               </section>
               <section class="contribute-form-segment">
-                <p class="contribute-form-segment-title">
+                <p class="contribute-form-segment-title" id="rep-public-info-title">
                   Suggested public information
                 </p>
-                <p class="contribute-form-section-title">
+                <p class="contribute-form-section-title" id="rep-details-title">
                   Representative details
                 </p>
                 <div class="contribute-form-row">
-                  <label>
+                  <label id="rep-name-label">
                     Representative Name
                     <input
+                      id="rep-name-input"
                       type="text"
                       name="representativeName"
                       placeholder="Full name"
                       required
                     />
                   </label>
-                  <label>
+                  <label id="rep-title-label">
                     Representative Title
                     <input
+                      id="rep-title-input"
                       type="text"
                       name="representativeTitle"
                       placeholder="Role / title"
@@ -6703,16 +6707,17 @@
                     />
                   </label>
                 </div>
-                <label>
+                <label id="rep-organisation-label">
                   Organisation
                   <input
+                    id="rep-organisation-input"
                     type="text"
                     name="organisation"
                     placeholder="Organisation name"
                     required
                   />
                 </label>
-                <label>
+                <label id="rep-photo-label">
                   Upload Photo
                   <input
                     id="contribute-rep-photo"
@@ -6739,7 +6744,7 @@
                     </div>
                   </div>
                   <div class="contribute-rep-crop-meta">
-                    <span class="contribute-rep-crop-tip"
+                    <span class="contribute-rep-crop-tip" id="rep-crop-tip"
                       >Move frame and resize from the corner handle.</span
                     >
                     <span
@@ -8438,6 +8443,31 @@
       const contributeRepCropStatus = document.getElementById(
         "contribute-rep-crop-status",
       );
+      const repPersonalDataTitle = document.getElementById(
+        "rep-personal-data-title",
+      );
+      const repSubmitterNameLabel = document.getElementById(
+        "rep-submitter-name-label",
+      );
+      const repSubmitterEmailLabel = document.getElementById(
+        "rep-submitter-email-label",
+      );
+      const repSubmitterNameInput = document.getElementById(
+        "rep-submitter-name-input",
+      );
+      const repSubmitterEmailInput = document.getElementById(
+        "rep-submitter-email-input",
+      );
+      const repPublicInfoTitle = document.getElementById("rep-public-info-title");
+      const repDetailsTitle = document.getElementById("rep-details-title");
+      const repNameLabel = document.getElementById("rep-name-label");
+      const repTitleLabel = document.getElementById("rep-title-label");
+      const repOrganisationLabel = document.getElementById("rep-organisation-label");
+      const repPhotoLabel = document.getElementById("rep-photo-label");
+      const repNameInput = document.getElementById("rep-name-input");
+      const repTitleInput = document.getElementById("rep-title-input");
+      const repOrganisationInput = document.getElementById("rep-organisation-input");
+      const repCropTip = document.getElementById("rep-crop-tip");
       const tepaceModal = document.getElementById("tepace-modal");
       const tepaceModalClose = document.getElementById("tepace-modal-close");
       const tepaceModalTitle = document.getElementById("tepace-modal-title");
@@ -8521,6 +8551,14 @@
             "Pot fi incluse și resurse din domenii conexe dacă au o componentă relevantă de dezvoltare a caracterului.",
           ],
         },
+        representative: {
+          title: "Reprezentanți ai țării",
+          paragraphs: [
+            "Recomandă un reprezentant cu rol verificat și date de contact pentru această țară.",
+            "Propunerile ar trebui să includă context profesional, afiliere organizațională și profil public sau referințe, când sunt disponibile.",
+            "Toate sugestiile sunt revizuite înainte de publicare.",
+          ],
+        },
       };
       let modalCloseTimer = null;
       let contributeSuccessFlowTimer = null;
@@ -8545,6 +8583,31 @@
             "Congratulations, your recommendation was sent. A page moderator will review and process it.",
           submit: "Send request",
           close: "Close",
+          personalDataTitle: "Personal data",
+          yourName: "Your Name",
+          yourEmail: "Your Email",
+          yourNamePlaceholder: "Your full name",
+          yourEmailPlaceholder: "you@example.org",
+          publicInfoTitle: "Suggested public information",
+          representativeDetailsTitle: "Representative details",
+          representativeName: "Representative Name",
+          representativeTitle: "Representative Title",
+          representativeNamePlaceholder: "Full name",
+          representativeTitlePlaceholder: "Role / title",
+          organisation: "Organisation",
+          organisationPlaceholder: "Organisation name",
+          uploadPhoto: "Upload Photo",
+          cropTip: "Move frame and resize from the corner handle.",
+          cropEmpty: "No image selected yet.",
+          uploadingImage: "Uploading image...",
+          missingCountryContext: "Missing country context.",
+          completeRequiredFields: "Please complete all required fields.",
+          uploadAndFramePhoto: "Please upload and frame the representative photo.",
+          couldNotReadImageFile: "Could not read image file.",
+          submitFailed:
+            "Could not submit your recommendation. Please try again.",
+          submitSuccess:
+            "Congratulations, your recommendation was sent. A page moderator will review and process it.",
         },
         ro: {
           title:
@@ -8554,6 +8617,32 @@
             "Felicitări, recomandarea a fost trimisă, un moderator al paginii o va vizualiza și prelucra.",
           submit: "Trimite solicitarea",
           close: "Închide",
+          personalDataTitle: "Date personale",
+          yourName: "Numele tău",
+          yourEmail: "Email-ul tău",
+          yourNamePlaceholder: "Numele tău complet",
+          yourEmailPlaceholder: "tu@exemplu.org",
+          publicInfoTitle: "Informații publice sugerate",
+          representativeDetailsTitle: "Detalii reprezentant",
+          representativeName: "Nume reprezentant",
+          representativeTitle: "Titlu reprezentant",
+          representativeNamePlaceholder: "Nume complet",
+          representativeTitlePlaceholder: "Rol / titlu",
+          organisation: "Organizație",
+          organisationPlaceholder: "Numele organizației",
+          uploadPhoto: "Încarcă fotografie",
+          cropTip: "Mută cadrul și redimensionează din mânerul din colț.",
+          cropEmpty: "Nicio imagine selectată încă.",
+          uploadingImage: "Se încarcă imaginea...",
+          missingCountryContext: "Lipsește contextul țării.",
+          completeRequiredFields: "Completează toate câmpurile obligatorii.",
+          uploadAndFramePhoto:
+            "Te rugăm să încarci și să încadrezi fotografia reprezentantului.",
+          couldNotReadImageFile: "Fișierul imaginii nu a putut fi citit.",
+          submitFailed:
+            "Recomandarea nu a putut fi trimisă. Te rugăm să încerci din nou.",
+          submitSuccess:
+            "Felicitări, recomandarea a fost trimisă, un moderator al paginii o va vizualiza și prelucra.",
         },
       };
       const RESOURCE_UI_BASE = {
@@ -11720,6 +11809,62 @@
         return REP_FORM_COPY.en;
       }
 
+      function setContributeLabelPrefix(labelEl, text) {
+        if (!labelEl || !labelEl.childNodes || !labelEl.childNodes.length) return;
+        const first = labelEl.childNodes[0];
+        if (first && first.nodeType === Node.TEXT_NODE) {
+          first.nodeValue = `${String(text || "").trim()}\n                    `;
+        }
+      }
+
+      function applyRepFormUiCopy() {
+        const copy = getRepFormCopy();
+        if (repPersonalDataTitle) {
+          repPersonalDataTitle.textContent = copy.personalDataTitle;
+        }
+        if (repPublicInfoTitle) {
+          repPublicInfoTitle.textContent = copy.publicInfoTitle;
+        }
+        if (repDetailsTitle) {
+          repDetailsTitle.textContent = copy.representativeDetailsTitle;
+        }
+        setContributeLabelPrefix(repSubmitterNameLabel, copy.yourName);
+        setContributeLabelPrefix(repSubmitterEmailLabel, copy.yourEmail);
+        setContributeLabelPrefix(repNameLabel, copy.representativeName);
+        setContributeLabelPrefix(repTitleLabel, copy.representativeTitle);
+        setContributeLabelPrefix(repOrganisationLabel, copy.organisation);
+        setContributeLabelPrefix(repPhotoLabel, copy.uploadPhoto);
+        if (repSubmitterNameInput) {
+          repSubmitterNameInput.placeholder = copy.yourNamePlaceholder;
+        }
+        if (repSubmitterEmailInput) {
+          repSubmitterEmailInput.placeholder = copy.yourEmailPlaceholder;
+        }
+        if (repNameInput) {
+          repNameInput.placeholder = copy.representativeNamePlaceholder;
+        }
+        if (repTitleInput) {
+          repTitleInput.placeholder = copy.representativeTitlePlaceholder;
+        }
+        if (repOrganisationInput) {
+          repOrganisationInput.placeholder = copy.organisationPlaceholder;
+        }
+        if (repCropTip) {
+          repCropTip.textContent = copy.cropTip;
+        }
+        if (contributeRepCropStatus && !contributeRepCropSource) {
+          contributeRepCropStatus.textContent = copy.cropEmpty;
+        }
+        if (contributeRepCancelBtn) {
+          contributeRepCancelBtn.textContent = copy.close;
+        }
+        if (contributeRepForm) {
+          const repSubmitBtn =
+            contributeRepForm.querySelector('[type="submit"]');
+          if (repSubmitBtn) repSubmitBtn.textContent = copy.submit;
+        }
+      }
+
       function getResourceUiCopy() {
         return resourceUiCopy && typeof resourceUiCopy === "object"
           ? resourceUiCopy
@@ -12150,6 +12295,7 @@
           .finally(() => {
             ensureResourceUiCopy(lang)
               .then(() => {
+                applyRepFormUiCopy();
                 const shouldRerenderCards = Boolean(
                   resourceLanguageList &&
                   resourceLanguageList.children.length &&
@@ -12188,6 +12334,7 @@
       }
 
       function resetContributeRepCrop() {
+        const copy = getRepFormCopy();
         contributeRepCropSource = "";
         contributeRepCropFilename = "representative-image.png";
         contributeRepNaturalWidth = 0;
@@ -12208,7 +12355,7 @@
           contributeRepCropFrame.style.height = "0px";
         }
         if (contributeRepCropStatus) {
-          contributeRepCropStatus.textContent = "No image selected yet.";
+          contributeRepCropStatus.textContent = copy.cropEmpty;
         }
       }
 
@@ -12316,6 +12463,7 @@
       }
 
       function setContributeRepCropPreview(source, cropNorm) {
+        const copy = getRepFormCopy();
         contributeRepCropSource = String(source || "").trim();
         contributeRepNaturalWidth = 0;
         contributeRepNaturalHeight = 0;
@@ -12342,8 +12490,7 @@
           contributeRepCropImage.style.transform = "translate(-50%, -50%)";
           initializeContributeRepCrop(cropNorm);
           if (contributeRepCropStatus) {
-            contributeRepCropStatus.textContent =
-              "Move frame and resize from the corner handle.";
+            contributeRepCropStatus.textContent = copy.cropTip;
           }
         };
       }
@@ -12604,6 +12751,7 @@
           const repSubmitBtn =
             contributeRepForm.querySelector('[type="submit"]');
           if (repSubmitBtn) repSubmitBtn.textContent = repCopy.submit;
+          applyRepFormUiCopy();
         }
         resetContributeRepCrop();
         applyContributeModeCopy();
@@ -13648,6 +13796,7 @@
       if (contributeRepForm) {
         contributeRepForm.addEventListener("submit", async (event) => {
           event.preventDefault();
+          const repCopy = getRepFormCopy();
           const formData = new FormData(contributeRepForm);
           const countryId = String(formData.get("countryId") || "")
             .trim()
@@ -13669,7 +13818,7 @@
           ).trim();
 
           if (!countryId) {
-            setContributeRepStatus("Missing country context.", "error");
+            setContributeRepStatus(repCopy.missingCountryContext, "error");
             return;
           }
           if (
@@ -13680,7 +13829,7 @@
             !submitterEmail
           ) {
             setContributeRepStatus(
-              "Please complete all required fields.",
+              repCopy.completeRequiredFields,
               "error",
             );
             return;
@@ -13688,13 +13837,13 @@
           const crop = normalizeContributeRepCrop();
           if (!crop || !contributeRepCropSource) {
             setContributeRepStatus(
-              "Please upload and frame the representative photo.",
+              repCopy.uploadAndFramePhoto,
               "error",
             );
             return;
           }
 
-          setContributeRepStatus("Uploading image...", "");
+          setContributeRepStatus(repCopy.uploadingImage, "");
           const submitBtn = contributeRepForm.querySelector('[type="submit"]');
           if (submitBtn) submitBtn.disabled = true;
           try {
@@ -13745,13 +13894,13 @@
             }
             runContributeConfetti();
             triggerContributeSuccessFlow();
-            setContributeRepStatus("Suggestion sent for review.", "success");
+            setContributeRepStatus(repCopy.submitSuccess, "success");
             window.setTimeout(() => {
               closeContributeModal();
             }, 3000);
           } catch (_error) {
             setContributeRepStatus(
-              "Could not submit your recommendation. Please try again.",
+              repCopy.submitFailed,
               "error",
             );
           } finally {
@@ -13813,7 +13962,7 @@
           contributeRepCropFilename = file.name || "representative-image.png";
           const reader = new FileReader();
           reader.onerror = () => {
-            setContributeRepStatus("Could not read image file.", "error");
+            setContributeRepStatus(getRepFormCopy().couldNotReadImageFile, "error");
           };
           reader.onload = () => {
             setContributeRepCropPreview(String(reader.result || ""), null);
