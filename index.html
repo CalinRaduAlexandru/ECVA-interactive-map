@@ -9219,6 +9219,7 @@
         statusHighMomentum: "High Momentum",
         statusInDevelopment: "In Development",
         uploadingResourceData: "Uploading resource data...",
+        uploadingEventData: "Uploading event data...",
         couldNotLoadEditorData:
           "Could not load editor data. Please close and try again.",
         couldNotRemoveArticleRightNow: "Could not remove article right now.",
@@ -9373,6 +9374,7 @@
         statusHighMomentum: "Cu momentum",
         statusInDevelopment: "În dezvoltare",
         uploadingResourceData: "Se încarcă datele resursei...",
+        uploadingEventData: "Se încarcă datele evenimentului...",
         couldNotLoadEditorData:
           "Nu am putut încărca datele editorului. Închide și încearcă din nou.",
         couldNotRemoveArticleRightNow: "Articolul nu poate fi șters acum.",
@@ -9565,6 +9567,7 @@
         statusHighMomentum: "status",
         statusInDevelopment: "status",
         uploadingResourceData: "status",
+        uploadingEventData: "status",
         couldNotLoadEditorData: "status",
         couldNotRemoveArticleRightNow: "status",
         articleDeleted: "status",
@@ -14547,7 +14550,14 @@
             );
             return;
           }
-          setContributeStatus(getResourceUiText("uploadingResourceData"), "");
+          setContributeStatus(
+            getResourceUiText(
+              isContributeEventsFlow()
+                ? "uploadingEventData"
+                : "uploadingResourceData",
+            ),
+            "",
+          );
           const submitBtn = resourceSubmitBtn;
           if (submitBtn) submitBtn.disabled = true;
           try {
