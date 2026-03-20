@@ -1035,6 +1035,97 @@
         color: #55707e;
       }
 
+      .contribute-event-fieldset {
+        margin: 0;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(132, 153, 165, 0.42);
+        background: rgba(250, 253, 255, 0.88);
+        display: grid;
+        gap: 10px;
+      }
+
+      .contribute-event-fieldset legend {
+        padding: 0 6px;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #2b4451;
+      }
+
+      .contribute-event-choice-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .contribute-event-choice-tabs.is-compact {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+
+      .contribute-event-choice-tab {
+        position: relative;
+        display: flex;
+      }
+
+      .contribute-event-choice-tab input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .contribute-event-choice-tab span {
+        width: 100%;
+        min-height: 42px;
+        border-radius: 10px;
+        border: 1px solid rgba(132, 153, 165, 0.45);
+        background: rgba(255, 255, 255, 0.9);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        font-size: 13px;
+        font-weight: 800;
+        color: #2f4c59;
+        cursor: pointer;
+        transition:
+          border-color 180ms ease,
+          background-color 180ms ease,
+          color 180ms ease,
+          box-shadow 180ms ease;
+      }
+
+      .contribute-event-choice-tab input:checked + span {
+        border-color: rgba(33, 166, 138, 0.8);
+        background: rgba(212, 243, 235, 0.92);
+        color: #1a7d68;
+        box-shadow: inset 0 0 0 1px rgba(33, 166, 138, 0.24);
+      }
+
+      .contribute-event-choice-tab input:focus-visible + span {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(66, 120, 184, 0.22);
+      }
+
+      .contribute-event-photo-block {
+        display: grid;
+        gap: 8px;
+      }
+
+      .contribute-event-photo-label {
+        display: grid;
+        gap: 8px;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+      }
+
+      .contribute-event-photo-input {
+        width: 100%;
+        min-height: 44px;
+        padding: 9px 10px;
+      }
+
       .contribute-input-wrap {
         position: relative;
       }
@@ -1412,12 +1503,17 @@
         .contribute-wizard-stepper-list {
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
         }
+
+        .contribute-event-choice-tabs.is-compact {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
       }
 
       .contribute-form input.is-invalid,
       .contribute-form textarea.is-invalid,
       .contribute-form select.is-invalid,
-      .contribute-language-file-shell.is-invalid {
+      .contribute-language-file-shell.is-invalid,
+      .contribute-event-fieldset.is-invalid {
         border-color: #b10f36;
         box-shadow: 0 0 0 2.5px rgba(177, 15, 54, 0.78);
         background: #ffeaf0;
@@ -6538,7 +6634,10 @@
                 class="contribute-step-panel"
                 hidden
               >
-                <section class="contribute-form-segment">
+                <section
+                  id="resource-languages-segment"
+                  class="contribute-form-segment"
+                >
                   <p
                     class="contribute-form-segment-title"
                     id="resource-languages-title"
@@ -6563,6 +6662,127 @@
                     >
                       Add another language
                     </button>
+                  </div>
+                </section>
+                <section
+                  id="resource-events-schedule-segment"
+                  class="contribute-form-segment"
+                  hidden
+                >
+                  <p
+                    class="contribute-form-segment-title"
+                    id="resource-event-schedule-title"
+                  >
+                    Event schedule
+                  </p>
+                  <div class="contribute-form-row">
+                    <label>
+                      <span id="resource-event-date-label">Date</span>
+                      <input
+                        id="resource-event-date"
+                        type="date"
+                        name="eventDate"
+                      />
+                    </label>
+                  </div>
+                  <fieldset
+                    id="resource-event-recurrence-shell"
+                    class="contribute-event-fieldset"
+                  >
+                    <legend id="resource-event-recurrence-title">
+                      Recurrence
+                    </legend>
+                    <div class="contribute-event-choice-tabs">
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          id="resource-event-recurrence-single"
+                          type="radio"
+                          name="eventRecurrence"
+                          value="non_recurrent"
+                        />
+                        <span id="resource-event-recurrence-single-label"
+                          >Non-recurrent</span
+                        >
+                      </label>
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          id="resource-event-recurrence-repeating"
+                          type="radio"
+                          name="eventRecurrence"
+                          value="recurrent"
+                        />
+                        <span id="resource-event-recurrence-repeating-label"
+                          >Recurrent</span
+                        >
+                      </label>
+                    </div>
+                  </fieldset>
+                  <fieldset
+                    id="resource-event-cadence-shell"
+                    class="contribute-event-fieldset"
+                    hidden
+                  >
+                    <legend id="resource-event-cadence-title">
+                      Repeat interval
+                    </legend>
+                    <div class="contribute-event-choice-tabs is-compact">
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          type="radio"
+                          name="eventCadence"
+                          value="daily"
+                        />
+                        <span id="resource-event-cadence-daily">Daily</span>
+                      </label>
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          type="radio"
+                          name="eventCadence"
+                          value="weekly"
+                        />
+                        <span id="resource-event-cadence-weekly">Weekly</span>
+                      </label>
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          type="radio"
+                          name="eventCadence"
+                          value="monthly"
+                        />
+                        <span id="resource-event-cadence-monthly">Monthly</span>
+                      </label>
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          type="radio"
+                          name="eventCadence"
+                          value="yearly"
+                        />
+                        <span id="resource-event-cadence-yearly">Yearly</span>
+                      </label>
+                    </div>
+                  </fieldset>
+                  <div class="contribute-event-photo-block">
+                    <p
+                      class="contribute-form-section-title"
+                      id="resource-event-photos-title"
+                    >
+                      (Optional) Insert relevant photos
+                    </p>
+                    <label class="contribute-event-photo-label">
+                      <span id="resource-event-photos-helper"
+                        >Add one or more photos related to the event.</span
+                      >
+                      <input
+                        id="resource-event-photos"
+                        class="contribute-event-photo-input"
+                        type="file"
+                        accept="image/*"
+                        multiple
+                      />
+                    </label>
+                    <p
+                      id="resource-event-photos-status"
+                      class="contribute-field-helper"
+                    ></p>
                   </div>
                 </section>
               </section>
@@ -8472,8 +8692,71 @@
       const resourceLanguagesTitle = document.getElementById(
         "resource-languages-title",
       );
+      const resourceLanguagesSegment = document.getElementById(
+        "resource-languages-segment",
+      );
       const resourceLanguagesHelper = document.getElementById(
         "resource-languages-helper",
+      );
+      const resourceEventScheduleSegment = document.getElementById(
+        "resource-events-schedule-segment",
+      );
+      const resourceEventScheduleTitle = document.getElementById(
+        "resource-event-schedule-title",
+      );
+      const resourceEventDateLabel = document.getElementById(
+        "resource-event-date-label",
+      );
+      const resourceEventDateInput = document.getElementById(
+        "resource-event-date",
+      );
+      const resourceEventRecurrenceShell = document.getElementById(
+        "resource-event-recurrence-shell",
+      );
+      const resourceEventRecurrenceTitle = document.getElementById(
+        "resource-event-recurrence-title",
+      );
+      const resourceEventRecurrenceSingleInput = document.getElementById(
+        "resource-event-recurrence-single",
+      );
+      const resourceEventRecurrenceRepeatingInput = document.getElementById(
+        "resource-event-recurrence-repeating",
+      );
+      const resourceEventRecurrenceSingleLabel = document.getElementById(
+        "resource-event-recurrence-single-label",
+      );
+      const resourceEventRecurrenceRepeatingLabel = document.getElementById(
+        "resource-event-recurrence-repeating-label",
+      );
+      const resourceEventCadenceShell = document.getElementById(
+        "resource-event-cadence-shell",
+      );
+      const resourceEventCadenceTitle = document.getElementById(
+        "resource-event-cadence-title",
+      );
+      const resourceEventCadenceDailyLabel = document.getElementById(
+        "resource-event-cadence-daily",
+      );
+      const resourceEventCadenceWeeklyLabel = document.getElementById(
+        "resource-event-cadence-weekly",
+      );
+      const resourceEventCadenceMonthlyLabel = document.getElementById(
+        "resource-event-cadence-monthly",
+      );
+      const resourceEventCadenceYearlyLabel = document.getElementById(
+        "resource-event-cadence-yearly",
+      );
+      const resourceEventPhotosTitle = document.getElementById(
+        "resource-event-photos-title",
+      );
+      const resourceEventPhotosHelper = document.getElementById(
+        "resource-event-photos-helper",
+      );
+      const resourceEventPhotosInput = document.getElementById(
+        "resource-event-photos",
+      );
+      const resourceEventPhotosStatus = document.getElementById(
+        "resource-event-photos-status",
       );
       const resourceOwnershipTitle = document.getElementById(
         "resource-ownership-title",
@@ -8648,6 +8931,14 @@
             "Pot fi incluse și resurse din domenii conexe dacă au o componentă relevantă de dezvoltare a caracterului.",
           ],
         },
+        events: {
+          title: "Evenimente dedicate",
+          paragraphs: [
+            "Această secțiune documentează evenimente cu impact semnificativ asupra dezvoltării Educației Caracterului în țară.",
+            "Sunt încurajate propunerile cu impact ridicat: conferințe naționale, conferințe regionale, celebrări naționale, celebrări regionale și inițiative publice care cresc nivelul de conștientizare și implementare.",
+            "Sunt relevante și evenimente academice sau de practică, inclusiv workshopuri, seminare, simpozioane și programe de formare pentru profesori.",
+          ],
+        },
         representative: {
           title: "Reprezentanți ai țării",
           paragraphs: [
@@ -8757,6 +9048,7 @@
         stepDescribeResource: "Describe resource",
         stepCheckTranslation: "Check translation",
         stepLanguagesLinks: "Languages & links",
+        stepEventSchedule: "Date & media",
         stepContactDetails: "Contact",
         back: "Back",
         next: "Next",
@@ -8778,6 +9070,18 @@
         availableLanguages: "Available languages",
         addOneVersion: "Add one resource version per language",
         addLanguage: "Add another language",
+        eventScheduleTitle: "Event schedule",
+        eventDate: "Date",
+        eventRecurrence: "Recurrence",
+        eventRecurrenceSingle: "Non-recurrent",
+        eventRecurrenceRepeating: "Recurrent",
+        eventCadence: "Repeat interval",
+        eventCadenceDaily: "Daily",
+        eventCadenceWeekly: "Weekly",
+        eventCadenceMonthly: "Monthly",
+        eventCadenceYearly: "Yearly",
+        eventPhotosOptional: "(Optional) Insert relevant photos",
+        eventPhotosHelper: "Add one or more photos related to the event.",
         contactHeader: "Contact informations",
         contactHelper:
           "These details are public and shown at the end of the article.",
@@ -8802,6 +9106,9 @@
         ownershipNamePlaceholder: "Write the name...",
         titlePlaceholder: "e.g. Character Toolkit for Schools",
         descriptionPlaceholder: "Write a short and clear resource description.",
+        titlePlaceholderEvent: "e.g. National character education conference",
+        descriptionPlaceholderEvent:
+          "Write a short and clear event description.",
         contactNamePlaceholder: "Full name",
         contactRolePlaceholder: "Role / title",
         contactEmailPlaceholder: "name@example.org",
@@ -8813,6 +9120,9 @@
         selectEntityTypeError: "Select entity type.",
         completeEntityName: "Complete entity name.",
         selectLanguageError: "Select a language.",
+        completeEventDate: "Choose an event date.",
+        chooseRecurrence: "Choose if the event is recurrent.",
+        chooseRecurrenceCadence: "Choose recurrence interval.",
         uploadFilePerLanguageError: "Upload a file for each added language.",
         fileTooLargeError:
           "File too large. Maximum allowed size is 15MB per file.",
@@ -8885,6 +9195,7 @@
         stepDescribeResource: "Descrie resursa",
         stepCheckTranslation: "Verifică traducerea",
         stepLanguagesLinks: "Limbi și linkuri",
+        stepEventSchedule: "Dată și media",
         stepContactDetails: "Contact",
         back: "Înapoi",
         next: "Următorul",
@@ -8905,6 +9216,19 @@
         availableLanguages: "Limbi disponibile",
         addOneVersion: "Adaugă o versiune a resursei pentru fiecare limbă",
         addLanguage: "Adaugă altă limbă",
+        eventScheduleTitle: "Program eveniment",
+        eventDate: "Dată",
+        eventRecurrence: "Recurență",
+        eventRecurrenceSingle: "Non-recurent",
+        eventRecurrenceRepeating: "Recurent",
+        eventCadence: "Interval de repetare",
+        eventCadenceDaily: "Zilnic",
+        eventCadenceWeekly: "Săptămânal",
+        eventCadenceMonthly: "Lunar",
+        eventCadenceYearly: "Anual",
+        eventPhotosOptional: "(Opțional) Inserează fotografii relevante",
+        eventPhotosHelper:
+          "Adaugă una sau mai multe fotografii relevante pentru eveniment.",
         contactHeader: "Informații de contact",
         contactHelper:
           "Aceste detalii sunt publice și apar la finalul articolului.",
@@ -8929,6 +9253,10 @@
         ownershipNamePlaceholder: "Scrie numele...",
         titlePlaceholder: "ex: Toolkit de caracter pentru școli",
         descriptionPlaceholder: "Scrie o descriere scurtă și clară a resursei.",
+        titlePlaceholderEvent:
+          "ex: Conferință națională de educație a caracterului",
+        descriptionPlaceholderEvent:
+          "Scrie o descriere scurtă și clară a evenimentului.",
         contactNamePlaceholder: "Nume complet",
         contactRolePlaceholder: "Rol / funcție",
         contactEmailPlaceholder: "nume@exemplu.org",
@@ -8941,6 +9269,9 @@
         selectEntityTypeError: "Selectează tipul entității.",
         completeEntityName: "Completează numele entității.",
         selectLanguageError: "Selectează o limbă.",
+        completeEventDate: "Alege data evenimentului.",
+        chooseRecurrence: "Alege dacă evenimentul este recurent.",
+        chooseRecurrenceCadence: "Alege intervalul de recurență.",
         uploadFilePerLanguageError:
           "Încarcă un fișier pentru fiecare limbă adăugată.",
         fileTooLargeError:
@@ -9070,6 +9401,7 @@
         stepDescribeResource: "wizard",
         stepCheckTranslation: "wizard",
         stepLanguagesLinks: "wizard",
+        stepEventSchedule: "wizard",
         stepContactDetails: "wizard",
         back: "wizard",
         next: "wizard",
@@ -9093,6 +9425,18 @@
         availableLanguages: "form",
         addOneVersion: "form",
         addLanguage: "form",
+        eventScheduleTitle: "form",
+        eventDate: "form",
+        eventRecurrence: "form",
+        eventRecurrenceSingle: "form",
+        eventRecurrenceRepeating: "form",
+        eventCadence: "form",
+        eventCadenceDaily: "form",
+        eventCadenceWeekly: "form",
+        eventCadenceMonthly: "form",
+        eventCadenceYearly: "form",
+        eventPhotosOptional: "form",
+        eventPhotosHelper: "form",
         contactHeader: "form",
         contactHelper: "form",
         emailFootnote: "form",
@@ -9115,6 +9459,8 @@
         ownershipNamePlaceholder: "form",
         titlePlaceholder: "form",
         descriptionPlaceholder: "form",
+        titlePlaceholderEvent: "form",
+        descriptionPlaceholderEvent: "form",
         contactNamePlaceholder: "form",
         contactRolePlaceholder: "form",
         contactEmailPlaceholder: "form",
@@ -9123,6 +9469,9 @@
         selectEntityTypeError: "validation",
         completeEntityName: "validation",
         selectLanguageError: "validation",
+        completeEventDate: "validation",
+        chooseRecurrence: "validation",
+        chooseRecurrenceCadence: "validation",
         uploadFilePerLanguageError: "validation",
         fileTooLargeError: "validation",
         fileFormatUnsupportedError: "validation",
@@ -9451,6 +9800,15 @@
             (contributeForm.querySelector('[name="contactEmail"]') || {})
               .value || "",
           ),
+          eventDate: String(
+            (resourceEventDateInput && resourceEventDateInput.value) || "",
+          ),
+          eventRecurrence: getEventRecurrenceValue(),
+          eventCadence: String(
+            (getEventCadenceInput() && getEventCadenceInput().value) || "",
+          )
+            .trim()
+            .toLowerCase(),
           resourceLanguages: resourceLanguageItems.map((item) => ({
             languageCode: item.languageCode,
             resourceType: item.resourceType,
@@ -9520,6 +9878,28 @@
         if (contactEmailInput) {
           contactEmailInput.value = String(payload.contactEmail || "");
         }
+        if (resourceEventDateInput) {
+          resourceEventDateInput.value = String(payload.eventDate || "");
+        }
+        const recurrence = String(payload.eventRecurrence || "")
+          .trim()
+          .toLowerCase();
+        if (contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventRecurrence"]')
+            .forEach((input) => {
+              input.checked = String(input.value || "").trim().toLowerCase() === recurrence;
+            });
+          const cadence = String(payload.eventCadence || "")
+            .trim()
+            .toLowerCase();
+          contributeForm
+            .querySelectorAll('input[name="eventCadence"]')
+            .forEach((input) => {
+              input.checked = String(input.value || "").trim().toLowerCase() === cadence;
+            });
+        }
+        updateEventCadenceUi();
         if (
           Array.isArray(payload.resourceLanguages) &&
           payload.resourceLanguages.length
@@ -9944,7 +10324,29 @@
           if (resourceDescriptionInput) resourceDescriptionInput.value = "";
           if (resourceOwnershipTypeInput) resourceOwnershipTypeInput.value = "";
           if (resourceOwnershipNameInput) resourceOwnershipNameInput.value = "";
+          if (resourceEventDateInput) resourceEventDateInput.value = "";
+          if (resourceEventRecurrenceSingleInput) {
+            resourceEventRecurrenceSingleInput.checked = true;
+          }
+          if (contributeForm) {
+            contributeForm
+              .querySelectorAll('input[name="eventCadence"]')
+              .forEach((input) => {
+                input.checked = false;
+              });
+          }
         }
+        if (resourceEventPhotosInput) {
+          resourceEventPhotosInput.value = "";
+        }
+        if (resourceEventRecurrenceShell) {
+          resourceEventRecurrenceShell.classList.remove("is-invalid");
+        }
+        if (resourceEventCadenceShell) {
+          resourceEventCadenceShell.classList.remove("is-invalid");
+        }
+        updateEventCadenceUi();
+        updateEventPhotosStatus();
         updateResourceCounter(
           resourceTitleInput,
           resourceTitleCount,
@@ -10058,6 +10460,10 @@
           typeof safeEntry.representativeContact === "object"
             ? safeEntry.representativeContact
             : {};
+        const eventDetails =
+          safeEntry.eventDetails && typeof safeEntry.eventDetails === "object"
+            ? safeEntry.eventDetails
+            : {};
         const contactNameInput = contributeForm.querySelector(
           '[name="contactName"]',
         );
@@ -10074,6 +10480,44 @@
         if (contactEmailInput) {
           contactEmailInput.value = String(contact.email || "");
         }
+        if (resourceEventDateInput) {
+          resourceEventDateInput.value = String(
+            eventDetails.date || safeEntry.eventDate || "",
+          );
+        }
+        const recurrence = String(
+          eventDetails.recurrence || safeEntry.eventRecurrence || "non_recurrent",
+        )
+          .trim()
+          .toLowerCase();
+        if (contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventRecurrence"]')
+            .forEach((input) => {
+              input.checked = String(input.value || "").trim().toLowerCase() === recurrence;
+            });
+          const cadence = String(
+            eventDetails.cadence || safeEntry.eventCadence || "",
+          )
+            .trim()
+            .toLowerCase();
+          contributeForm
+            .querySelectorAll('input[name="eventCadence"]')
+            .forEach((input) => {
+              input.checked = String(input.value || "").trim().toLowerCase() === cadence;
+            });
+        }
+        if (resourceEventPhotosInput) {
+          resourceEventPhotosInput.value = "";
+        }
+        if (resourceEventRecurrenceShell) {
+          resourceEventRecurrenceShell.classList.remove("is-invalid");
+        }
+        if (resourceEventCadenceShell) {
+          resourceEventCadenceShell.classList.remove("is-invalid");
+        }
+        updateEventCadenceUi();
+        updateEventPhotosStatus();
         updateResourceCounter(
           resourceTitleInput,
           resourceTitleCount,
@@ -10312,10 +10756,13 @@
         const shouldPaintInvalid = Boolean(
           showStatus || resourceValidationTriggered,
         );
+        const stepTwoErrors = isContributeEventsFlow()
+          ? [validateContributeEventStep(shouldPaintInvalid)].filter(Boolean)
+          : validateResourceLanguageVersionFields(shouldPaintInvalid);
         const errors = []
           .concat(validateResourceTextFields(shouldPaintInvalid))
           .concat(validateResourceOwnershipFields(shouldPaintInvalid))
-          .concat(validateResourceLanguageVersionFields(shouldPaintInvalid))
+          .concat(stepTwoErrors)
           .concat(validateResourceContactFields(shouldPaintInvalid));
         const valid = errors.length === 0;
         if (valid) {
@@ -10353,6 +10800,70 @@
           !Boolean(contributeContext && contributeContext.editEntryTarget) &&
           !Boolean(contributeContext && contributeContext.directPublish),
         );
+      }
+
+      function isContributeEventsFlow() {
+        if (!isContributeArticleMode()) return false;
+        const pillarId = String((contributeContext && contributeContext.pillarId) || "")
+          .trim()
+          .toLowerCase();
+        return pillarId === "events";
+      }
+
+      function getEventCadenceInput() {
+        if (!contributeForm) return null;
+        return contributeForm.querySelector(
+          'input[name="eventCadence"]:checked',
+        );
+      }
+
+      function getEventRecurrenceValue() {
+        if (!contributeForm) return "";
+        const input = contributeForm.querySelector(
+          'input[name="eventRecurrence"]:checked',
+        );
+        return String((input && input.value) || "")
+          .trim()
+          .toLowerCase();
+      }
+
+      function updateEventCadenceUi() {
+        if (!resourceEventCadenceShell) return;
+        if (
+          isContributeEventsFlow() &&
+          !getEventRecurrenceValue() &&
+          resourceEventRecurrenceSingleInput
+        ) {
+          resourceEventRecurrenceSingleInput.checked = true;
+        }
+        const recurrence = getEventRecurrenceValue();
+        const recurring = recurrence === "recurrent";
+        resourceEventCadenceShell.hidden = !recurring;
+        if (!recurring && contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventCadence"]')
+            .forEach((input) => {
+              input.checked = false;
+            });
+        }
+      }
+
+      function updateEventPhotosStatus() {
+        if (!resourceEventPhotosStatus || !resourceEventPhotosInput) return;
+        const files = Array.from(resourceEventPhotosInput.files || []);
+        resourceEventPhotosStatus.textContent = files.length
+          ? `📷 ${files.length}`
+          : "";
+      }
+
+      function syncContributeStepTwoMode() {
+        const eventsFlow = isContributeEventsFlow();
+        if (resourceLanguagesSegment) {
+          resourceLanguagesSegment.hidden = eventsFlow;
+        }
+        if (resourceEventScheduleSegment) {
+          resourceEventScheduleSegment.hidden = !eventsFlow;
+        }
       }
 
       function requiresContributeTranslationStep() {
@@ -10929,6 +11440,46 @@
         return errors[0] || "";
       }
 
+      function validateContributeEventStep(paintInvalid) {
+        if (!isContributeEventsFlow()) return "";
+        const shouldPaint = Boolean(paintInvalid);
+        const errors = [];
+        const eventDate = String(
+          (resourceEventDateInput && resourceEventDateInput.value) || "",
+        ).trim();
+        const recurrence = getEventRecurrenceValue();
+        const cadenceInput = getEventCadenceInput();
+        const cadence = String((cadenceInput && cadenceInput.value) || "")
+          .trim()
+          .toLowerCase();
+        const hasDate = Boolean(eventDate);
+        const hasRecurrence = Boolean(recurrence);
+        const recurrenceIsRecurring = recurrence === "recurrent";
+        const hasCadence = !recurrenceIsRecurring || Boolean(cadence);
+        setFieldError(resourceEventDateInput, shouldPaint && !hasDate);
+        if (resourceEventRecurrenceShell) {
+          resourceEventRecurrenceShell.classList.toggle(
+            "is-invalid",
+            shouldPaint && !hasRecurrence,
+          );
+        }
+        if (resourceEventCadenceShell) {
+          resourceEventCadenceShell.classList.toggle(
+            "is-invalid",
+            shouldPaint && recurrenceIsRecurring && !hasCadence,
+          );
+        }
+        if (!hasDate) {
+          errors.push(getResourceUiText("completeEventDate"));
+        }
+        if (!hasRecurrence) {
+          errors.push(getResourceUiText("chooseRecurrence"));
+        } else if (recurrenceIsRecurring && !hasCadence) {
+          errors.push(getResourceUiText("chooseRecurrenceCadence"));
+        }
+        return errors[0] || "";
+      }
+
       function validateContributeContactStep(paintInvalid) {
         const errors = []
           .concat(validateResourceOwnershipFields(Boolean(paintInvalid)))
@@ -10937,6 +11488,7 @@
       }
 
       function getContributeWizardStepDefinitions() {
+        const eventsFlow = isContributeEventsFlow();
         return [
           {
             id: "text",
@@ -10953,11 +11505,15 @@
               validateContributeTranslationStep(paintInvalid),
           },
           {
-            id: "languages",
-            label: getResourceUiText("stepLanguagesLinks"),
+            id: eventsFlow ? "event-schedule" : "languages",
+            label: eventsFlow
+              ? getResourceUiText("stepEventSchedule")
+              : getResourceUiText("stepLanguagesLinks"),
             panel: contributeStepLanguagesPanel,
             validate: (paintInvalid) =>
-              validateContributeLanguagesStep(paintInvalid),
+              eventsFlow
+                ? validateContributeEventStep(paintInvalid)
+                : validateContributeLanguagesStep(paintInvalid),
           },
           {
             id: "contact",
@@ -11102,6 +11658,7 @@
       }
 
       function updateContributeWizardUi() {
+        syncContributeStepTwoMode();
         const isWizard = Boolean(
           contributeWizardEnabled &&
           contributeWizardSteps.length &&
@@ -11507,6 +12064,38 @@
             }
           });
         });
+        [resourceEventRecurrenceSingleInput, resourceEventRecurrenceRepeatingInput]
+          .filter(Boolean)
+          .forEach((input) => {
+            input.addEventListener("change", () => {
+              updateEventCadenceUi();
+              saveResourceDraft();
+              validateResourceForm(resourceValidationTriggered);
+            });
+          });
+        if (resourceEventDateInput) {
+          resourceEventDateInput.addEventListener("change", () => {
+            saveResourceDraft();
+            validateResourceForm(resourceValidationTriggered);
+          });
+        }
+        if (contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventCadence"]')
+            .forEach((input) => {
+              input.addEventListener("change", () => {
+                saveResourceDraft();
+                validateResourceForm(resourceValidationTriggered);
+              });
+            });
+        }
+        if (resourceEventPhotosInput) {
+          resourceEventPhotosInput.addEventListener("change", () => {
+            updateEventPhotosStatus();
+            saveResourceDraft();
+            validateResourceForm(resourceValidationTriggered);
+          });
+        }
         if (resourceAddLanguageBtn) {
           resourceAddLanguageBtn.addEventListener("click", () => {
             if (resourceLanguageItems.length >= RESOURCE_LIMITS.maxLanguages) {
@@ -12462,7 +13051,9 @@
       function applyResourceFormUiCopy() {
         if (!contributeForm) return;
         const copy = getResourceUiCopy();
+        const eventsFlow = isContributeEventsFlow();
         applyContributeModeCopy();
+        syncContributeStepTwoMode();
         if (resourceBasicTitle) {
           resourceBasicTitle.textContent =
             copy.resourceBasicInfo || RESOURCE_UI_BASE.resourceBasicInfo;
@@ -12482,6 +13073,55 @@
         if (resourceLanguagesHelper) {
           resourceLanguagesHelper.textContent =
             copy.addOneVersion || RESOURCE_UI_BASE.addOneVersion;
+        }
+        if (resourceEventScheduleTitle) {
+          resourceEventScheduleTitle.textContent =
+            copy.eventScheduleTitle || RESOURCE_UI_BASE.eventScheduleTitle;
+        }
+        if (resourceEventDateLabel) {
+          resourceEventDateLabel.textContent =
+            copy.eventDate || RESOURCE_UI_BASE.eventDate;
+        }
+        if (resourceEventRecurrenceTitle) {
+          resourceEventRecurrenceTitle.textContent =
+            copy.eventRecurrence || RESOURCE_UI_BASE.eventRecurrence;
+        }
+        if (resourceEventRecurrenceSingleLabel) {
+          resourceEventRecurrenceSingleLabel.textContent =
+            copy.eventRecurrenceSingle || RESOURCE_UI_BASE.eventRecurrenceSingle;
+        }
+        if (resourceEventRecurrenceRepeatingLabel) {
+          resourceEventRecurrenceRepeatingLabel.textContent =
+            copy.eventRecurrenceRepeating ||
+            RESOURCE_UI_BASE.eventRecurrenceRepeating;
+        }
+        if (resourceEventCadenceTitle) {
+          resourceEventCadenceTitle.textContent =
+            copy.eventCadence || RESOURCE_UI_BASE.eventCadence;
+        }
+        if (resourceEventCadenceDailyLabel) {
+          resourceEventCadenceDailyLabel.textContent =
+            copy.eventCadenceDaily || RESOURCE_UI_BASE.eventCadenceDaily;
+        }
+        if (resourceEventCadenceWeeklyLabel) {
+          resourceEventCadenceWeeklyLabel.textContent =
+            copy.eventCadenceWeekly || RESOURCE_UI_BASE.eventCadenceWeekly;
+        }
+        if (resourceEventCadenceMonthlyLabel) {
+          resourceEventCadenceMonthlyLabel.textContent =
+            copy.eventCadenceMonthly || RESOURCE_UI_BASE.eventCadenceMonthly;
+        }
+        if (resourceEventCadenceYearlyLabel) {
+          resourceEventCadenceYearlyLabel.textContent =
+            copy.eventCadenceYearly || RESOURCE_UI_BASE.eventCadenceYearly;
+        }
+        if (resourceEventPhotosTitle) {
+          resourceEventPhotosTitle.textContent =
+            copy.eventPhotosOptional || RESOURCE_UI_BASE.eventPhotosOptional;
+        }
+        if (resourceEventPhotosHelper) {
+          resourceEventPhotosHelper.textContent =
+            copy.eventPhotosHelper || RESOURCE_UI_BASE.eventPhotosHelper;
         }
         if (resourceContactHelper) {
           resourceContactHelper.textContent =
@@ -12553,14 +13193,20 @@
         if (resourceTitleInput) {
           resourceTitleInput.setAttribute(
             "placeholder",
-            copy.titlePlaceholder || RESOURCE_UI_BASE.titlePlaceholder,
+            eventsFlow
+              ? copy.titlePlaceholderEvent ||
+                  RESOURCE_UI_BASE.titlePlaceholderEvent
+              : copy.titlePlaceholder || RESOURCE_UI_BASE.titlePlaceholder,
           );
         }
         if (resourceDescriptionInput) {
           resourceDescriptionInput.setAttribute(
             "placeholder",
-            copy.descriptionPlaceholder ||
-              RESOURCE_UI_BASE.descriptionPlaceholder,
+            eventsFlow
+              ? copy.descriptionPlaceholderEvent ||
+                  RESOURCE_UI_BASE.descriptionPlaceholderEvent
+              : copy.descriptionPlaceholder ||
+                  RESOURCE_UI_BASE.descriptionPlaceholder,
           );
         }
         const contactNameInput = contributeForm.querySelector(
@@ -12619,6 +13265,8 @@
         if (isContributeArticleMode()) {
           configureContributeWizard();
         }
+        updateEventCadenceUi();
+        updateEventPhotosStatus();
         updateContributeTranslationUi();
         updateContributeWizardUi();
       }
@@ -12997,6 +13645,7 @@
               : null,
         };
         applyContributePillarThemeClass();
+        syncContributeStepTwoMode();
         const infoKey = mode === "representative" ? "representative" : pillarId;
         const infoSource =
           activeLangBase === "ro" && contributeInfoByPillarRo[infoKey]
@@ -13785,53 +14434,85 @@
           const submitBtn = resourceSubmitBtn;
           if (submitBtn) submitBtn.disabled = true;
           try {
+            const eventsFlow = isContributeEventsFlow();
+            const eventDate = String(
+              (resourceEventDateInput && resourceEventDateInput.value) || "",
+            ).trim();
+            const eventRecurrence = getEventRecurrenceValue() || "non_recurrent";
+            const eventCadence = String(
+              (getEventCadenceInput() && getEventCadenceInput().value) || "",
+            )
+              .trim()
+              .toLowerCase();
             const resourceLanguages = [];
-            for (const item of resourceLanguageItems) {
-              const languageCode = String(item.languageCode || "")
-                .trim()
-                .toLowerCase();
-              if (!languageCode) {
-                throw new Error("missing_language_selection");
-              }
-              const languageOption = getResourceLanguageOption(languageCode);
-              const typeConfig = getResourceTypeConfig(item.resourceType);
-              if (typeConfig.inputMode === "file") {
-                const file = item.file instanceof File ? item.file : null;
-                if (!file && !item.resourceUrl) {
-                  throw new Error("missing_resource_file");
+            if (!eventsFlow) {
+              for (const item of resourceLanguageItems) {
+                const languageCode = String(item.languageCode || "")
+                  .trim()
+                  .toLowerCase();
+                if (!languageCode) {
+                  throw new Error("missing_language_selection");
                 }
-                let uploaded = null;
-                if (file) {
-                  const fileUpload = await uploadContributeAttachments([file]);
-                  uploaded = fileUpload[0] || null;
-                } else if (item.fileDataUrl) {
-                  const response = await fetch(ATTACHMENT_UPLOAD_API, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      filename: item.fileName || "resource.bin",
-                      dataUrl: String(item.fileDataUrl || ""),
-                    }),
-                  });
-                  const payload = await response.json().catch(() => null);
-                  if (!response.ok || !payload || payload.ok === false) {
-                    const detail =
-                      payload && payload.details ? ` (${payload.details})` : "";
-                    if (
-                      response.status === 413 ||
-                      (payload && payload.error === "attachment_too_large")
-                    ) {
-                      throw new Error("attachment_file_too_large");
-                    }
-                    throw new Error(`attachment_upload_failed${detail}`);
+                const languageOption = getResourceLanguageOption(languageCode);
+                const typeConfig = getResourceTypeConfig(item.resourceType);
+                if (typeConfig.inputMode === "file") {
+                  const file = item.file instanceof File ? item.file : null;
+                  if (!file && !item.resourceUrl) {
+                    throw new Error("missing_resource_file");
                   }
-                  uploaded = {
-                    name:
-                      String(item.fileName || "").trim() ||
-                      String(payload.filename || "").trim() ||
-                      "Attachment",
-                    url: String(payload.path || "").trim(),
-                  };
+                  let uploaded = null;
+                  if (file) {
+                    const fileUpload = await uploadContributeAttachments([file]);
+                    uploaded = fileUpload[0] || null;
+                  } else if (item.fileDataUrl) {
+                    const response = await fetch(ATTACHMENT_UPLOAD_API, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        filename: item.fileName || "resource.bin",
+                        dataUrl: String(item.fileDataUrl || ""),
+                      }),
+                    });
+                    const payload = await response.json().catch(() => null);
+                    if (!response.ok || !payload || payload.ok === false) {
+                      const detail =
+                        payload && payload.details
+                          ? ` (${payload.details})`
+                          : "";
+                      if (
+                        response.status === 413 ||
+                        (payload && payload.error === "attachment_too_large")
+                      ) {
+                        throw new Error("attachment_file_too_large");
+                      }
+                      throw new Error(`attachment_upload_failed${detail}`);
+                    }
+                    uploaded = {
+                      name:
+                        String(item.fileName || "").trim() ||
+                        String(payload.filename || "").trim() ||
+                        "Attachment",
+                      url: String(payload.path || "").trim(),
+                    };
+                  }
+                  resourceLanguages.push({
+                    languageCode,
+                    languageLabel: languageOption.label,
+                    languageFlag: languageOption.flag,
+                    resourceType: typeConfig.value,
+                    resourceTypeLabel: typeConfig.label,
+                    resourcePricing: "free",
+                    resourcePricingLabel: getResourcePricingConfig("free").label,
+                    accessType: "file",
+                    resourceUrl:
+                      (uploaded && uploaded.url) ||
+                      String(item.resourceUrl || "").trim(),
+                    fileName:
+                      (uploaded && uploaded.name) ||
+                      (file && file.name) ||
+                      String(item.fileName || ""),
+                  });
+                  continue;
                 }
                 resourceLanguages.push({
                   languageCode,
@@ -13839,51 +14520,54 @@
                   languageFlag: languageOption.flag,
                   resourceType: typeConfig.value,
                   resourceTypeLabel: typeConfig.label,
-                  resourcePricing: "free",
-                  resourcePricingLabel: getResourcePricingConfig("free").label,
-                  accessType: "file",
-                  resourceUrl:
-                    (uploaded && uploaded.url) ||
-                    String(item.resourceUrl || "").trim(),
-                  fileName:
-                    (uploaded && uploaded.name) ||
-                    (file && file.name) ||
-                    String(item.fileName || ""),
+                  resourcePricing:
+                    typeConfig.value === "webpage"
+                      ? getResourcePricingConfig(item.resourcePricing).value
+                      : "free",
+                  resourcePricingLabel:
+                    typeConfig.value === "webpage"
+                      ? getResourcePricingConfig(item.resourcePricing).label
+                      : getResourcePricingConfig("free").label,
+                  accessType: "url",
+                  resourceUrl: normalizeLikelyUrl(item.resourceUrl),
+                  fileName: "",
                 });
-                continue;
               }
-              resourceLanguages.push({
-                languageCode,
-                languageLabel: languageOption.label,
-                languageFlag: languageOption.flag,
-                resourceType: typeConfig.value,
-                resourceTypeLabel: typeConfig.label,
-                resourcePricing:
-                  typeConfig.value === "webpage"
-                    ? getResourcePricingConfig(item.resourcePricing).value
-                    : "free",
-                resourcePricingLabel:
-                  typeConfig.value === "webpage"
-                    ? getResourcePricingConfig(item.resourcePricing).label
-                    : getResourcePricingConfig("free").label,
-                accessType: "url",
-                resourceUrl: normalizeLikelyUrl(item.resourceUrl),
-                fileName: "",
-              });
             }
+            const eventPhotoFiles =
+              eventsFlow && resourceEventPhotosInput
+                ? Array.from(resourceEventPhotosInput.files || []).filter(
+                    (file) =>
+                      file instanceof File &&
+                      String(file.type || "").toLowerCase().startsWith("image/"),
+                  )
+                : [];
+            const eventPhotoUploads =
+              eventPhotoFiles.length > 0
+                ? await uploadContributeAttachments(eventPhotoFiles)
+                : [];
             const languageAvailability = resourceLanguages
               .map((item) => item.languageLabel)
               .filter(Boolean)
               .join(", ");
-            const links = resourceLanguages
-              .map((item) => String(item.resourceUrl || "").trim())
-              .filter(Boolean);
-            const attachments = resourceLanguages
-              .filter((item) => item.accessType === "file" && item.resourceUrl)
-              .map((item) => ({
-                name: item.fileName || `${item.languageLabel} file`,
-                url: item.resourceUrl,
-              }));
+            const links = eventsFlow
+              ? []
+              : resourceLanguages
+                  .map((item) => String(item.resourceUrl || "").trim())
+                  .filter(Boolean);
+            const attachments = eventsFlow
+              ? eventPhotoUploads
+                  .map((item) => ({
+                    name: String((item && item.name) || "").trim() || "Event photo",
+                    url: String((item && item.url) || "").trim(),
+                  }))
+                  .filter((item) => item.url)
+              : resourceLanguages
+                  .filter((item) => item.accessType === "file" && item.resourceUrl)
+                  .map((item) => ({
+                    name: item.fileName || `${item.languageLabel} file`,
+                    url: item.resourceUrl,
+                  }));
             const contactName = String(
               formData.get("contactName") || "",
             ).trim();
@@ -13938,6 +14622,15 @@
                       name: ownershipName,
                     },
                     resourceLanguages,
+                    eventDetails: eventsFlow
+                      ? {
+                          date: eventDate,
+                          recurrence: eventRecurrence,
+                          cadence:
+                            eventRecurrence === "recurrent" ? eventCadence : "",
+                          photos: attachments,
+                        }
+                      : null,
                     representativeContact: {
                       name: contactName,
                       role: contactRole,
@@ -13982,6 +14675,15 @@
                         name: ownershipName,
                       },
                       resourceLanguages,
+                      eventDetails: eventsFlow
+                        ? {
+                            date: eventDate,
+                            recurrence: eventRecurrence,
+                            cadence:
+                              eventRecurrence === "recurrent" ? eventCadence : "",
+                            photos: attachments,
+                          }
+                        : null,
                       representativeContact: {
                         name: contactName,
                         role: contactRole,
@@ -14029,6 +14731,15 @@
                   links,
                   attachments,
                   resourceLanguages,
+                  eventDetails: eventsFlow
+                    ? {
+                        date: eventDate,
+                        recurrence: eventRecurrence,
+                        cadence:
+                          eventRecurrence === "recurrent" ? eventCadence : "",
+                        photos: attachments,
+                      }
+                    : null,
                   submittedBy: {
                     name: contactName,
                     email: contactEmail,
@@ -14086,6 +14797,15 @@
                 links,
                 attachments,
                 resourceLanguages,
+                eventDetails: eventsFlow
+                  ? {
+                      date: eventDate,
+                      recurrence: eventRecurrence,
+                      cadence:
+                        eventRecurrence === "recurrent" ? eventCadence : "",
+                      photos: attachments,
+                    }
+                  : null,
                 submittedBy: {
                   name: contactName,
                   email: contactEmail,

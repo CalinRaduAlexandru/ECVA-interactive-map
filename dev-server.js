@@ -488,6 +488,20 @@ async function writeEditorDataToPostgres(data, scopeKey) {
       `,
       [normalizedScope, JSON.stringify(scopedState), stateHash, note],
     );
+    await pgPool.query(
+      `
+        DELETE FROM ecva_app_state_versions
+        WHERE scope_key = $1
+          AND id NOT IN (
+            SELECT id
+            FROM ecva_app_state_versions
+            WHERE scope_key = $1
+            ORDER BY id DESC
+            LIMIT $2
+          )
+      `,
+      [normalizedScope, VERSION_LIMIT_MAX],
+    );
   }
   return true;
 }

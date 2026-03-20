@@ -1756,6 +1756,10 @@
       .ecva-version-sub{margin:0 0 10px;color:#45616f;font:600 13px/1.4 "Alexandria",sans-serif}
       .ecva-version-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
       .ecva-version-list{display:grid;gap:8px;overflow-y:auto;align-content:start;min-height:0;padding-right:2px}
+      .ecva-version-day-group{display:grid;gap:8px}
+      .ecva-version-day-head{display:flex;align-items:center;gap:10px;padding:2px 2px 0}
+      .ecva-version-day-label{margin:0;font:800 12px/1.2 "Alexandria",sans-serif;color:#52707e;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+      .ecva-version-day-line{height:1px;border:0;background:rgba(132,154,165,.42);flex:1}
       .ecva-version-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(142,161,171,.35);border-radius:12px;background:#fbfdfe}
       .ecva-version-meta{display:grid;gap:3px}
       .ecva-version-main{font:800 14px/1.2 "Alexandria",sans-serif;color:#223d49}
@@ -2593,12 +2597,31 @@
     return d.toLocaleString();
   }
 
+  function getVersionDayKey(value) {
+    const d = new Date(String(value || ""));
+    if (!Number.isFinite(d.getTime())) return "unknown";
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate(),
+    ).padStart(2, "0")}`;
+  }
+
+  function formatVersionDayLabel(value) {
+    const d = new Date(String(value || ""));
+    if (!Number.isFinite(d.getTime())) return "Unknown date";
+    return d.toLocaleDateString(undefined, {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+
   async function fetchVersions(scopeCountryId) {
     const scopedCountry = getVersionScopeCountryId(scopeCountryId);
     if (!scopedCountry) return [];
     const scope = `country:${scopedCountry}`;
     const response = await fetch(
-      `${EDITOR_VERSIONS_API}?limit=30&scope=${encodeURIComponent(scope)}`,
+      `${EDITOR_VERSIONS_API}?limit=80&scope=${encodeURIComponent(scope)}`,
       { cache: "no-store" },
     );
     if (!response.ok) throw new Error("versions_fetch_failed");
@@ -2642,7 +2665,28 @@
       return;
     }
     versionHistoryList.innerHTML = "";
+    const groups = [];
+    const groupsByDay = new Map();
     list.forEach((item) => {
+      const dayKey = getVersionDayKey(item && item.createdAt);
+      if (!groupsByDay.has(dayKey)) {
+        const dayGroup = { key: dayKey, createdAt: item && item.createdAt, items: [] };
+        groupsByDay.set(dayKey, dayGroup);
+        groups.push(dayGroup);
+      }
+      groupsByDay.get(dayKey).items.push(item);
+    });
+    groups.forEach((group) => {
+      const section = document.createElement("section");
+      section.className = "ecva-version-day-group";
+      const head = document.createElement("header");
+      head.className = "ecva-version-day-head";
+      head.innerHTML = `
+        <p class="ecva-version-day-label">${formatVersionDayLabel(group.createdAt)}</p>
+        <hr class="ecva-version-day-line" />
+      `;
+      section.appendChild(head);
+      group.items.forEach((item) => {
       const row = document.createElement("article");
       row.className = "ecva-version-item";
       const id = Number(item && item.versionId);
@@ -2675,7 +2719,9 @@
         }
       });
       row.appendChild(restore);
-      versionHistoryList.appendChild(row);
+      section.appendChild(row);
+    });
+      versionHistoryList.appendChild(section);
     });
   }
 
