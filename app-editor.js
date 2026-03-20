@@ -985,6 +985,17 @@
     }
   }
 
+  function updateLabelManageButtonVisibility() {
+    if (!labelManageBtn) return;
+    const hasSelectedCountry = Boolean(
+      normalizeManageCountryCode(selectedCountryId),
+    );
+    labelManageBtn.style.display = hasSelectedCountry ? "inline-flex" : "none";
+    if (!hasSelectedCountry) {
+      closeLabelManageModal();
+    }
+  }
+
   function rebuildCountryAccessMaps() {
     accessCodeToCountryMap = new Map();
     countryAccessCodeMap = new Map();
@@ -1640,6 +1651,7 @@
     ensureLabelManageUi();
     ensureLabelManageButton();
     updateVersionHistoryButtonVisibility();
+    updateLabelManageButtonVisibility();
     if (requestFreshCountries) {
       postToMap("ecva-request-active-countries");
     }
@@ -2260,7 +2272,10 @@
 
   function ensureLabelManageButton() {
     if (!manageRoot) return;
-    if (labelManageBtn) return;
+    if (labelManageBtn) {
+      updateLabelManageButtonVisibility();
+      return;
+    }
     const topbar = manageRoot.querySelector(".ecva-manage-topbar");
     if (!topbar) return;
     const btn = document.createElement("button");
@@ -2275,6 +2290,7 @@
       topbar.appendChild(btn);
     }
     labelManageBtn = btn;
+    updateLabelManageButtonVisibility();
   }
 
   async function openLabelManageModal() {
@@ -4873,6 +4889,7 @@
       countryTabsHost.appendChild(btn);
     });
     updateVersionHistoryButtonVisibility();
+    updateLabelManageButtonVisibility();
   }
 
   function selectCountry(countryId) {
