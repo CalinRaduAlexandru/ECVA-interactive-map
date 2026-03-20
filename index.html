@@ -1513,15 +1513,15 @@
       }
 
       .contribute-form-actions .contribute-form-status.is-success::before {
-        content: "";
-        width: 14px;
-        height: 14px;
-        border-radius: 999px;
-        background: radial-gradient(circle at 35% 35%, #98f2c0 0%, #19a95d 68%);
-        box-shadow:
-          0 0 0 0 rgba(23, 140, 80, 0.45),
-          0 0 18px rgba(23, 140, 80, 0.45);
-        animation: contributeSuccessPing 1s ease-out 1;
+        content: "✅";
+        width: auto;
+        height: auto;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        font-size: 22px;
+        line-height: 1;
+        animation: contributeSuccessPop 320ms ease-out;
       }
 
       @keyframes contributeSuccessPop {
@@ -8753,7 +8753,7 @@
           "Edit title and description in {language} and run Refresh translation before continuing.",
         checkTranslationBeforeContinuing:
           "Run Refresh translation before continuing.",
-        translationCheckedToast: "Translation checked.",
+        translationCheckedToast: "✅ Translations synced.",
         translationCheckFailedToast: "Could not check translation right now.",
         countryOpenFailedRetry:
           "Could not open this country right now. Click once more to retry.",
@@ -8882,7 +8882,7 @@
           "Editează titlul și descrierea în {language} și apasă Reactualizează traducerea înainte de a continua.",
         checkTranslationBeforeContinuing:
           "Rulează Reactualizează traducerea înainte de a continua.",
-        translationCheckedToast: "Traducerea a fost verificată.",
+        translationCheckedToast: "✅ Traducerile au fost sincronizate.",
         translationCheckFailedToast:
           "Traducerea nu a putut fi verificată în acest moment.",
         countryOpenFailedRetry:
@@ -10547,7 +10547,10 @@
           state.translationSourceDescription = nativeDescription;
           state.checked = true;
           state.checkedAt = new Date().toISOString();
-          setContributeStatus(getResourceUiText("translationCheckedToast"), "");
+          setContributeStatus(
+            getResourceUiText("translationCheckedToast"),
+            "success",
+          );
         } catch (_error) {
           setContributeStatus(
             getResourceUiText("translationCheckFailedToast"),
