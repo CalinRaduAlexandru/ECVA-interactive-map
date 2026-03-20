@@ -5643,8 +5643,7 @@
       .ecva-editor-translation-field-head {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        gap: 8px;
+        min-height: 24px;
       }
 
       .ecva-editor-translation-field strong {
@@ -5652,10 +5651,14 @@
         color: #405c6a;
       }
 
+      .ecva-editor-translation-input-wrap {
+        position: relative;
+      }
+
       .ecva-editor-sync-field-btn {
-        width: 28px;
-        min-width: 28px;
-        height: 28px;
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
         border-radius: 999px;
         border: 1px solid rgba(106, 131, 144, 0.58);
         background: linear-gradient(180deg, #eff5f8, #e3edf2);
@@ -5668,6 +5671,10 @@
         justify-content: center;
         cursor: pointer;
         line-height: 1;
+        position: absolute;
+        right: 8px;
+        top: 8px;
+        z-index: 2;
       }
 
       .ecva-editor-sync-field-btn:disabled {
@@ -5700,7 +5707,7 @@
         font-family: "Alexandria", sans-serif;
         font-size: 18px;
         font-weight: 700;
-        padding: 10px 12px;
+        padding: 10px 46px 10px 12px;
       }
 
       .ecva-editor-translation-field .ecva-editor-translation-textarea {
@@ -6934,6 +6941,14 @@
                         <strong id="ecva-editor-native-title-label"
                           >Title</strong
                         >
+                      </div>
+                      <div class="ecva-editor-translation-input-wrap">
+                        <input
+                          id="ecva-editor-native-title-preview"
+                          class="ecva-editor-translation-input"
+                          type="text"
+                          maxlength="72"
+                        />
                         <button
                           id="ecva-editor-sync-native-title"
                           class="ecva-editor-sync-field-btn"
@@ -6944,18 +6959,19 @@
                           ↻
                         </button>
                       </div>
-                      <input
-                        id="ecva-editor-native-title-preview"
-                        class="ecva-editor-translation-input"
-                        type="text"
-                        maxlength="72"
-                      />
                     </div>
                     <div class="ecva-editor-translation-field">
                       <div class="ecva-editor-translation-field-head">
                         <strong id="ecva-editor-native-description-label"
                           >Description</strong
                         >
+                      </div>
+                      <div class="ecva-editor-translation-input-wrap">
+                        <textarea
+                          id="ecva-editor-native-description-preview"
+                          class="ecva-editor-translation-textarea"
+                          maxlength="200"
+                        ></textarea>
                         <button
                           id="ecva-editor-sync-native-description"
                           class="ecva-editor-sync-field-btn"
@@ -6966,11 +6982,6 @@
                           ↻
                         </button>
                       </div>
-                      <textarea
-                        id="ecva-editor-native-description-preview"
-                        class="ecva-editor-translation-textarea"
-                        maxlength="200"
-                      ></textarea>
                     </div>
                   </article>
                   <div
@@ -6992,6 +7003,14 @@
                         <strong id="ecva-editor-english-title-label"
                           >Title</strong
                         >
+                      </div>
+                      <div class="ecva-editor-translation-input-wrap">
+                        <input
+                          id="ecva-editor-english-title-preview"
+                          class="ecva-editor-translation-input"
+                          type="text"
+                          maxlength="72"
+                        />
                         <button
                           id="ecva-editor-sync-english-title"
                           class="ecva-editor-sync-field-btn"
@@ -7002,18 +7021,19 @@
                           ↻
                         </button>
                       </div>
-                      <input
-                        id="ecva-editor-english-title-preview"
-                        class="ecva-editor-translation-input"
-                        type="text"
-                        maxlength="72"
-                      />
                     </div>
                     <div class="ecva-editor-translation-field">
                       <div class="ecva-editor-translation-field-head">
                         <strong id="ecva-editor-english-description-label"
                           >Description</strong
                         >
+                      </div>
+                      <div class="ecva-editor-translation-input-wrap">
+                        <textarea
+                          id="ecva-editor-english-description-preview"
+                          class="ecva-editor-translation-textarea"
+                          maxlength="200"
+                        ></textarea>
                         <button
                           id="ecva-editor-sync-english-description"
                           class="ecva-editor-sync-field-btn"
@@ -7024,11 +7044,6 @@
                           ↻
                         </button>
                       </div>
-                      <textarea
-                        id="ecva-editor-english-description-preview"
-                        class="ecva-editor-translation-textarea"
-                        maxlength="200"
-                      ></textarea>
                     </div>
                   </article>
                 </div>
