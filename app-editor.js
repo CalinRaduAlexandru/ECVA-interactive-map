@@ -1828,6 +1828,7 @@
         save: "Salvează traducerile",
         englishColumn: "Engleză",
         nativePlaceholder: "Traducere personalizată",
+        nativePlaceholderWithDefault: "Implicit: {default}",
         loading: "Se încarcă traducerile...",
         empty: "Nu există etichete pentru această căutare.",
         sourceReadOnly:
@@ -1853,6 +1854,7 @@
       save: "Save translations",
       englishColumn: "English",
       nativePlaceholder: "Custom translation",
+      nativePlaceholderWithDefault: "Default: {default}",
       loading: "Loading translations...",
       empty: "No labels match this search.",
       sourceReadOnly: "English is source text and cannot be overridden.",
@@ -2041,6 +2043,13 @@
               const key = String(item.key || "");
               const english = String(item.english || "").trim();
               const value = String(draft[key] || "");
+              const placeholderTemplate = String(
+                copy.nativePlaceholderWithDefault ||
+                  "Default: {default}",
+              );
+              const placeholderWithDefault = english
+                ? placeholderTemplate.split("{default}").join(english)
+                : copy.nativePlaceholder;
               return `
                 <div class="ecva-label-manage-item" data-label-key="${escapeHtml(key)}">
                   <span class="ecva-label-manage-english" title="${escapeHtml(english)}">${escapeHtml(english)}</span>
@@ -2049,7 +2058,7 @@
                     class="ecva-label-manage-native-input"
                     data-label-input="${escapeHtml(key)}"
                     value="${escapeHtml(value)}"
-                    placeholder="${escapeHtml(copy.nativePlaceholder)}"
+                    placeholder="${escapeHtml(placeholderWithDefault)}"
                     ${isEditable ? "" : 'readonly tabindex="-1"'}
                   />
                 </div>
