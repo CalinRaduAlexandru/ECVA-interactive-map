@@ -3665,18 +3665,6 @@
               if (!labelNode) return;
               labelNode.classList.add("is-loading");
               loadingCountryCode = code;
-              window.setTimeout(() => {
-                if (loadingCountryCode === code) {
-                  clearLoadingCountry();
-                  window.parent.postMessage(
-                    {
-                      type: "ecva-country-open-timeout",
-                      payload: { countryId: code },
-                    },
-                    "*",
-                  );
-                }
-              }, 6200);
             }
 
             function ensurePendingHintLayer() {
