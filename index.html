@@ -5827,6 +5827,25 @@
         border-color: rgba(45, 118, 75, 0.82);
       }
 
+      #ecva-editor-pending-btn {
+        background: linear-gradient(180deg, #e29144 0%, #cc742d 100%) !important;
+        color: #ffffff !important;
+        border-color: rgba(162, 97, 38, 0.78) !important;
+      }
+
+      #ecva-editor-accept-btn {
+        background: linear-gradient(180deg, #45a86f 0%, #2f8455 100%) !important;
+        color: #ffffff !important;
+        border-color: rgba(45, 118, 75, 0.82) !important;
+      }
+
+      #ecva-editor-pending-btn:disabled,
+      #ecva-editor-accept-btn:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+        filter: saturate(0.8);
+      }
+
       @media (max-width: 700px) {
         .ecva-editor-actions {
           gap: 10px;
