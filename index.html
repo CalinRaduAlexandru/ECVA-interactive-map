@@ -1056,19 +1056,40 @@
         color: #2b4451;
       }
 
-      .contribute-event-choice-tabs {
+      .contribute-event-primary-row {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(180px, 0.55fr) minmax(0, 1.45fr);
         gap: 10px;
+        align-items: stretch;
+      }
+
+      .contribute-event-date-wrap {
+        display: grid;
+        gap: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        font-size: 12px;
+        font-weight: 700;
+        color: #2f4a58;
+      }
+
+      .contribute-event-choice-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 10px;
+        min-width: 0;
       }
 
       .contribute-event-choice-tabs.is-compact {
+        display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
       }
 
       .contribute-event-choice-tab {
         position: relative;
         display: flex;
+        min-width: 0;
+        flex: 1 1 0;
       }
 
       .contribute-event-choice-tab input {
@@ -1088,6 +1109,7 @@
         justify-content: center;
         padding: 0 10px;
         font-size: 13px;
+        text-align: center;
         font-weight: 800;
         color: #2f4c59;
         cursor: pointer;
@@ -1108,6 +1130,17 @@
       .contribute-event-choice-tab input:focus-visible + span {
         outline: none;
         box-shadow: 0 0 0 3px rgba(66, 120, 184, 0.22);
+      }
+
+      .contribute-event-choice-tabs.is-invalid .contribute-event-choice-tab span {
+        border-color: #b10f36;
+        background: #ffeaf0;
+      }
+
+      .contribute-event-date-wrap.is-invalid > input {
+        border-color: #b10f36;
+        box-shadow: 0 0 0 2.5px rgba(177, 15, 54, 0.78);
+        background: #ffeaf0;
       }
 
       .contribute-event-photo-block {
@@ -1504,6 +1537,15 @@
       @media (max-width: 860px) {
         .contribute-wizard-stepper-list {
           grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+
+        .contribute-event-primary-row {
+          grid-template-columns: minmax(132px, 0.6fr) minmax(0, 1.4fr);
+        }
+
+        .contribute-event-choice-tab span {
+          font-size: 12px;
+          padding: 0 8px;
         }
 
         .contribute-event-choice-tabs.is-compact {
@@ -6677,8 +6719,8 @@
                   >
                     Event schedule
                   </p>
-                  <div class="contribute-form-row">
-                    <label>
+                  <div class="contribute-event-primary-row">
+                    <label id="resource-event-date-wrap" class="contribute-event-date-wrap">
                       <span id="resource-event-date-label">Date</span>
                       <input
                         id="resource-event-date"
@@ -6686,39 +6728,42 @@
                         name="eventDate"
                       />
                     </label>
+                    <fieldset
+                      id="resource-event-recurrence-shell"
+                      class="contribute-event-fieldset"
+                    >
+                      <legend id="resource-event-recurrence-title">
+                        Recurrence
+                      </legend>
+                      <div
+                        id="resource-event-recurrence-tabs"
+                        class="contribute-event-choice-tabs"
+                      >
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            id="resource-event-recurrence-single"
+                            type="radio"
+                            name="eventRecurrence"
+                            value="non_recurrent"
+                          />
+                          <span id="resource-event-recurrence-single-label"
+                            >Non-recurrent</span
+                          >
+                        </label>
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            id="resource-event-recurrence-repeating"
+                            type="radio"
+                            name="eventRecurrence"
+                            value="recurrent"
+                          />
+                          <span id="resource-event-recurrence-repeating-label"
+                            >Recurrent</span
+                          >
+                        </label>
+                      </div>
+                    </fieldset>
                   </div>
-                  <fieldset
-                    id="resource-event-recurrence-shell"
-                    class="contribute-event-fieldset"
-                  >
-                    <legend id="resource-event-recurrence-title">
-                      Recurrence
-                    </legend>
-                    <div class="contribute-event-choice-tabs">
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          id="resource-event-recurrence-single"
-                          type="radio"
-                          name="eventRecurrence"
-                          value="non_recurrent"
-                        />
-                        <span id="resource-event-recurrence-single-label"
-                          >Non-recurrent</span
-                        >
-                      </label>
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          id="resource-event-recurrence-repeating"
-                          type="radio"
-                          name="eventRecurrence"
-                          value="recurrent"
-                        />
-                        <span id="resource-event-recurrence-repeating-label"
-                          >Recurrent</span
-                        >
-                      </label>
-                    </div>
-                  </fieldset>
                   <fieldset
                     id="resource-event-cadence-shell"
                     class="contribute-event-fieldset"
@@ -6727,7 +6772,10 @@
                     <legend id="resource-event-cadence-title">
                       Repeat interval
                     </legend>
-                    <div class="contribute-event-choice-tabs is-compact">
+                    <div
+                      id="resource-event-cadence-tabs"
+                      class="contribute-event-choice-tabs is-compact"
+                    >
                       <label class="contribute-event-choice-tab">
                         <input
                           type="radio"
@@ -8709,6 +8757,9 @@
       const resourceEventDateLabel = document.getElementById(
         "resource-event-date-label",
       );
+      const resourceEventDateWrap = document.getElementById(
+        "resource-event-date-wrap",
+      );
       const resourceEventDateInput = document.getElementById(
         "resource-event-date",
       );
@@ -8717,6 +8768,9 @@
       );
       const resourceEventRecurrenceTitle = document.getElementById(
         "resource-event-recurrence-title",
+      );
+      const resourceEventRecurrenceTabs = document.getElementById(
+        "resource-event-recurrence-tabs",
       );
       const resourceEventRecurrenceSingleInput = document.getElementById(
         "resource-event-recurrence-single",
@@ -8735,6 +8789,9 @@
       );
       const resourceEventCadenceTitle = document.getElementById(
         "resource-event-cadence-title",
+      );
+      const resourceEventCadenceTabs = document.getElementById(
+        "resource-event-cadence-tabs",
       );
       const resourceEventCadenceDailyLabel = document.getElementById(
         "resource-event-cadence-daily",
@@ -9048,6 +9105,7 @@
           "Text in {language}",
         stepReviewText: "Review text",
         stepDescribeResource: "Describe resource",
+        stepDescribeEvent: "Describe event",
         stepCheckTranslation: "Check translation",
         stepLanguagesLinks: "Languages & links",
         stepEventSchedule: "Date & media",
@@ -9063,9 +9121,11 @@
         selectEntityType: "Select entity type",
         entityName: "Name of the entity",
         resourceBasicInfo: "Resource basic information",
+        resourceBasicInfoEvent: "Event basic information",
         title: "Title",
         titleHelper: "Title will be displayed publicly.",
         stepDescriptionLabel: "Short and clear resource description.",
+        stepDescriptionLabelEvent: "Short and clear event description.",
         description: "Description",
         descriptionHelper:
           "Write a short and clear description of the resource.",
@@ -9195,6 +9255,7 @@
           "Text în {language}",
         stepReviewText: "Revizuiește textul",
         stepDescribeResource: "Descrie resursa",
+        stepDescribeEvent: "Descrie evenimentul",
         stepCheckTranslation: "Verifică traducerea",
         stepLanguagesLinks: "Limbi și linkuri",
         stepEventSchedule: "Dată și media",
@@ -9210,9 +9271,11 @@
         selectEntityType: "Selectează tipul entității",
         entityName: "Numele entității",
         resourceBasicInfo: "Informații de bază despre resursă",
+        resourceBasicInfoEvent: "Informații de bază despre eveniment",
         title: "Titlu",
         titleHelper: "Titlul va fi afișat public.",
         stepDescriptionLabel: "Descriere scurtă și clară a resursei.",
+        stepDescriptionLabelEvent: "Descriere scurtă și clară a evenimentului.",
         description: "Descriere",
         descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
         availableLanguages: "Limbi disponibile",
@@ -9401,6 +9464,7 @@
         stepWriteNativeBeforeSubmit: "wizard",
         stepReviewText: "wizard",
         stepDescribeResource: "wizard",
+        stepDescribeEvent: "wizard",
         stepCheckTranslation: "wizard",
         stepLanguagesLinks: "wizard",
         stepEventSchedule: "wizard",
@@ -9419,9 +9483,11 @@
         selectEntityType: "form",
         entityName: "form",
         resourceBasicInfo: "form",
+        resourceBasicInfoEvent: "form",
         title: "form",
         titleHelper: "form",
         stepDescriptionLabel: "form",
+        stepDescriptionLabelEvent: "form",
         description: "form",
         descriptionHelper: "form",
         availableLanguages: "form",
@@ -10344,8 +10410,17 @@
         if (resourceEventRecurrenceShell) {
           resourceEventRecurrenceShell.classList.remove("is-invalid");
         }
+        if (resourceEventRecurrenceTabs) {
+          resourceEventRecurrenceTabs.classList.remove("is-invalid");
+        }
         if (resourceEventCadenceShell) {
           resourceEventCadenceShell.classList.remove("is-invalid");
+        }
+        if (resourceEventCadenceTabs) {
+          resourceEventCadenceTabs.classList.remove("is-invalid");
+        }
+        if (resourceEventDateWrap) {
+          resourceEventDateWrap.classList.remove("is-invalid");
         }
         updateEventCadenceUi();
         updateEventPhotosStatus();
@@ -10359,7 +10434,11 @@
           resourceDescriptionCount,
           RESOURCE_LIMITS.description,
         );
-        renderResourceLanguageItems();
+        if (isContributeEventsFlow()) {
+          if (resourceLanguageList) resourceLanguageList.innerHTML = "";
+        } else {
+          renderResourceLanguageItems();
+        }
         validateResourceForm(false);
       }
 
@@ -10515,8 +10594,17 @@
         if (resourceEventRecurrenceShell) {
           resourceEventRecurrenceShell.classList.remove("is-invalid");
         }
+        if (resourceEventRecurrenceTabs) {
+          resourceEventRecurrenceTabs.classList.remove("is-invalid");
+        }
         if (resourceEventCadenceShell) {
           resourceEventCadenceShell.classList.remove("is-invalid");
+        }
+        if (resourceEventCadenceTabs) {
+          resourceEventCadenceTabs.classList.remove("is-invalid");
+        }
+        if (resourceEventDateWrap) {
+          resourceEventDateWrap.classList.remove("is-invalid");
         }
         updateEventCadenceUi();
         updateEventPhotosStatus();
@@ -10530,7 +10618,11 @@
           resourceDescriptionCount,
           RESOURCE_LIMITS.description,
         );
-        renderResourceLanguageItems();
+        if (isContributeEventsFlow()) {
+          if (resourceLanguageList) resourceLanguageList.innerHTML = "";
+        } else {
+          renderResourceLanguageItems();
+        }
         validateResourceForm(false);
       }
 
@@ -10865,6 +10957,9 @@
         }
         if (resourceEventScheduleSegment) {
           resourceEventScheduleSegment.hidden = !eventsFlow;
+        }
+        if (eventsFlow && resourceLanguageList) {
+          resourceLanguageList.innerHTML = "";
         }
       }
 
@@ -11459,14 +11554,29 @@
         const recurrenceIsRecurring = recurrence === "recurrent";
         const hasCadence = !recurrenceIsRecurring || Boolean(cadence);
         setFieldError(resourceEventDateInput, shouldPaint && !hasDate);
+        if (resourceEventDateWrap) {
+          resourceEventDateWrap.classList.toggle("is-invalid", shouldPaint && !hasDate);
+        }
         if (resourceEventRecurrenceShell) {
           resourceEventRecurrenceShell.classList.toggle(
             "is-invalid",
             shouldPaint && !hasRecurrence,
           );
         }
+        if (resourceEventRecurrenceTabs) {
+          resourceEventRecurrenceTabs.classList.toggle(
+            "is-invalid",
+            shouldPaint && !hasRecurrence,
+          );
+        }
         if (resourceEventCadenceShell) {
           resourceEventCadenceShell.classList.toggle(
+            "is-invalid",
+            shouldPaint && recurrenceIsRecurring && !hasCadence,
+          );
+        }
+        if (resourceEventCadenceTabs) {
+          resourceEventCadenceTabs.classList.toggle(
             "is-invalid",
             shouldPaint && recurrenceIsRecurring && !hasCadence,
           );
@@ -11827,7 +11937,9 @@
           return template || getResourceUiText("stepReviewText");
         }
         const fallback = getResourceUiText("stepReviewText");
-        const localized = getResourceUiText("stepDescribeResource");
+        const localized = isContributeEventsFlow()
+          ? getResourceUiText("stepDescribeEvent")
+          : getResourceUiText("stepDescribeResource");
         const value = String(localized || "").trim();
         return value || fallback;
       }
@@ -13057,8 +13169,9 @@
         applyContributeModeCopy();
         syncContributeStepTwoMode();
         if (resourceBasicTitle) {
-          resourceBasicTitle.textContent =
-            copy.resourceBasicInfo || RESOURCE_UI_BASE.resourceBasicInfo;
+          resourceBasicTitle.textContent = eventsFlow
+            ? copy.resourceBasicInfoEvent || RESOURCE_UI_BASE.resourceBasicInfoEvent
+            : copy.resourceBasicInfo || RESOURCE_UI_BASE.resourceBasicInfo;
         }
         if (resourceLanguagesTitle) {
           resourceLanguagesTitle.textContent =
@@ -13146,7 +13259,9 @@
         setLabelPrefix("#resource-title-input", copy.title);
         setLabelPrefix(
           "#resource-description-input",
-          copy.stepDescriptionLabel || copy.description,
+          eventsFlow
+            ? copy.stepDescriptionLabelEvent || RESOURCE_UI_BASE.stepDescriptionLabelEvent
+            : copy.stepDescriptionLabel || copy.description,
         );
         setLabelPrefix('[name="contactName"]', copy.name);
         setLabelPrefix('[name="contactRole"]', copy.role);
