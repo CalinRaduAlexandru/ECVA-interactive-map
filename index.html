@@ -6511,6 +6511,40 @@
                   >
                     Resource basic information
                   </p>
+                  <fieldset
+                    id="resource-event-format-shell"
+                    class="contribute-event-fieldset"
+                    hidden
+                  >
+                    <legend id="resource-event-format-title">Event format</legend>
+                    <div
+                      id="resource-event-format-tabs"
+                      class="contribute-event-choice-tabs"
+                    >
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          id="resource-event-format-online"
+                          type="radio"
+                          name="eventFormat"
+                          value="online"
+                        />
+                        <span id="resource-event-format-online-label"
+                          >🖥 Online</span
+                        >
+                      </label>
+                      <label class="contribute-event-choice-tab">
+                        <input
+                          id="resource-event-format-physical"
+                          type="radio"
+                          name="eventFormat"
+                          value="physical"
+                        />
+                        <span id="resource-event-format-physical-label"
+                          >📍 Fizic</span
+                        >
+                      </label>
+                    </div>
+                  </fieldset>
                   <label>
                     Title
                     <div class="contribute-input-wrap">
@@ -8986,6 +9020,27 @@
       const resourceBasicTitle = document.getElementById(
         "resource-basic-title",
       );
+      const resourceEventFormatShell = document.getElementById(
+        "resource-event-format-shell",
+      );
+      const resourceEventFormatTitle = document.getElementById(
+        "resource-event-format-title",
+      );
+      const resourceEventFormatTabs = document.getElementById(
+        "resource-event-format-tabs",
+      );
+      const resourceEventFormatOnlineInput = document.getElementById(
+        "resource-event-format-online",
+      );
+      const resourceEventFormatPhysicalInput = document.getElementById(
+        "resource-event-format-physical",
+      );
+      const resourceEventFormatOnlineLabel = document.getElementById(
+        "resource-event-format-online-label",
+      );
+      const resourceEventFormatPhysicalLabel = document.getElementById(
+        "resource-event-format-physical-label",
+      );
       const resourceLanguagesTitle = document.getElementById(
         "resource-languages-title",
       );
@@ -9406,6 +9461,9 @@
         description: "Description",
         descriptionHelper:
           "Write a short and clear description of the resource.",
+        eventFormat: "Event format",
+        eventFormatOnline: "🖥 Online",
+        eventFormatPhysical: "📍 Physical",
         availableLanguages: "Available languages",
         addOneVersion: "Add one resource version per language",
         addLanguage: "Add another language",
@@ -9461,6 +9519,7 @@
         leadSuggest: "Share a verified {pillar} suggestion for {country}.",
         completeTitle: "Complete the title.",
         completeDescription: "Complete the description.",
+        chooseEventFormat: "Choose event format.",
         selectEntityTypeError: "Select entity type.",
         completeEntityName: "Complete entity name.",
         selectLanguageError: "Select a language.",
@@ -9563,6 +9622,9 @@
         stepDescriptionLabelEvent: "Descriere scurtă și clară a evenimentului.",
         description: "Descriere",
         descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
+        eventFormat: "Format eveniment",
+        eventFormatOnline: "🖥 Online",
+        eventFormatPhysical: "📍 Fizic",
         availableLanguages: "Limbi disponibile",
         addOneVersion: "Adaugă o versiune a resursei pentru fiecare limbă",
         addLanguage: "Adaugă altă limbă",
@@ -9621,6 +9683,7 @@
           "Trimite o sugestie verificată pentru resurse legate de Educația Caracterului în {country}.",
         completeTitle: "Completează titlul.",
         completeDescription: "Completează descrierea.",
+        chooseEventFormat: "Alege formatul evenimentului.",
         selectEntityTypeError: "Selectează tipul entității.",
         completeEntityName: "Completează numele entității.",
         selectLanguageError: "Selectează o limbă.",
@@ -9783,6 +9846,9 @@
         stepDescriptionLabelEvent: "form",
         description: "form",
         descriptionHelper: "form",
+        eventFormat: "form",
+        eventFormatOnline: "form",
+        eventFormatPhysical: "form",
         availableLanguages: "form",
         addOneVersion: "form",
         addLanguage: "form",
@@ -9832,6 +9898,7 @@
         contactEmailPlaceholder: "form",
         completeTitle: "validation",
         completeDescription: "validation",
+        chooseEventFormat: "validation",
         selectEntityTypeError: "validation",
         completeEntityName: "validation",
         selectLanguageError: "validation",
@@ -10172,6 +10239,7 @@
           eventDate: String(
             (resourceEventDateInput && resourceEventDateInput.value) || "",
           ),
+          eventFormat: getEventFormatValue() || "physical",
           eventEndDate: String(
             (resourceEventEndDateInput && resourceEventEndDateInput.value) || "",
           ),
@@ -10253,6 +10321,17 @@
         }
         if (resourceEventDateInput) {
           resourceEventDateInput.value = String(payload.eventDate || "");
+        }
+        const eventFormat = String(payload.eventFormat || "physical")
+          .trim()
+          .toLowerCase();
+        if (contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventFormat"]')
+            .forEach((input) => {
+              input.checked =
+                String(input.value || "").trim().toLowerCase() === eventFormat;
+            });
         }
         if (resourceEventEndDateInput) {
           resourceEventEndDateInput.value = String(payload.eventEndDate || "");
@@ -10712,6 +10791,9 @@
           if (resourceOwnershipTypeInput) resourceOwnershipTypeInput.value = "";
           if (resourceOwnershipNameInput) resourceOwnershipNameInput.value = "";
           if (resourceEventDateInput) resourceEventDateInput.value = "";
+          if (resourceEventFormatPhysicalInput) {
+            resourceEventFormatPhysicalInput.checked = true;
+          }
           if (resourceEventEndDateInput) resourceEventEndDateInput.value = "";
           if (resourceEventModeFixedInput) {
             resourceEventModeFixedInput.checked = true;
@@ -10748,12 +10830,19 @@
         if (resourceEventModeTabs) {
           resourceEventModeTabs.classList.remove("is-invalid");
         }
+        if (resourceEventFormatShell) {
+          resourceEventFormatShell.classList.remove("is-invalid");
+        }
+        if (resourceEventFormatTabs) {
+          resourceEventFormatTabs.classList.remove("is-invalid");
+        }
         if (resourceEventDateWrap) {
           resourceEventDateWrap.classList.remove("is-invalid");
         }
         if (resourceEventEndDateWrap) {
           resourceEventEndDateWrap.classList.remove("is-invalid");
         }
+        updateEventFormatUi();
         updateEventCadenceUi();
         updateEventPhotosStatus();
         updateResourceCounter(
@@ -10898,6 +10987,19 @@
             eventDetails.date || safeEntry.eventDate || "",
           );
         }
+        const eventFormat = String(
+          eventDetails.format || safeEntry.eventFormat || "physical",
+        )
+          .trim()
+          .toLowerCase();
+        if (contributeForm) {
+          contributeForm
+            .querySelectorAll('input[name="eventFormat"]')
+            .forEach((input) => {
+              input.checked =
+                String(input.value || "").trim().toLowerCase() === eventFormat;
+            });
+        }
         if (resourceEventEndDateInput) {
           resourceEventEndDateInput.value = String(eventDetails.endDate || "");
         }
@@ -10961,12 +11063,19 @@
         if (resourceEventModeTabs) {
           resourceEventModeTabs.classList.remove("is-invalid");
         }
+        if (resourceEventFormatShell) {
+          resourceEventFormatShell.classList.remove("is-invalid");
+        }
+        if (resourceEventFormatTabs) {
+          resourceEventFormatTabs.classList.remove("is-invalid");
+        }
         if (resourceEventDateWrap) {
           resourceEventDateWrap.classList.remove("is-invalid");
         }
         if (resourceEventEndDateWrap) {
           resourceEventEndDateWrap.classList.remove("is-invalid");
         }
+        updateEventFormatUi();
         updateEventCadenceUi();
         updateEventPhotosStatus();
         updateResourceCounter(
@@ -11010,12 +11119,14 @@
 
       function validateResourceTextFields(shouldPaintInvalid) {
         const errors = [];
+        const eventsFlow = isContributeEventsFlow();
         const title = String(
           (resourceTitleInput && resourceTitleInput.value) || "",
         ).trim();
         const description = String(
           (resourceDescriptionInput && resourceDescriptionInput.value) || "",
         ).trim();
+        const eventFormat = getEventFormatValue();
         let wrongLanguage = false;
         updateResourceCounter(
           resourceTitleInput,
@@ -11035,8 +11146,23 @@
           resourceDescriptionInput,
           Boolean(shouldPaintInvalid && !description),
         );
+        if (resourceEventFormatShell) {
+          resourceEventFormatShell.classList.toggle(
+            "is-invalid",
+            Boolean(shouldPaintInvalid && eventsFlow && !eventFormat),
+          );
+        }
+        if (resourceEventFormatTabs) {
+          resourceEventFormatTabs.classList.toggle(
+            "is-invalid",
+            Boolean(shouldPaintInvalid && eventsFlow && !eventFormat),
+          );
+        }
         if (!title) errors.push(getResourceUiText("completeTitle"));
         if (!description) errors.push(getResourceUiText("completeDescription"));
+        if (eventsFlow && !eventFormat) {
+          errors.push(getResourceUiText("chooseEventFormat"));
+        }
         if (title && description) {
           const nativeLanguageCheck = validateNativeContentLanguage(
             contributeContext && contributeContext.countryId,
@@ -11272,6 +11398,16 @@
         );
       }
 
+      function getEventFormatValue() {
+        if (!contributeForm) return "";
+        const input = contributeForm.querySelector(
+          'input[name="eventFormat"]:checked',
+        );
+        return String((input && input.value) || "")
+          .trim()
+          .toLowerCase();
+      }
+
       function getEventScheduleModeValue() {
         if (!contributeForm) return "";
         const input = contributeForm.querySelector(
@@ -11352,6 +11488,25 @@
         }
       }
 
+      function updateEventFormatUi() {
+        const eventsFlow = isContributeEventsFlow();
+        if (resourceEventFormatShell) {
+          resourceEventFormatShell.hidden = !eventsFlow;
+        }
+        if (!eventsFlow) {
+          if (resourceEventFormatShell) {
+            resourceEventFormatShell.classList.remove("is-invalid");
+          }
+          if (resourceEventFormatTabs) {
+            resourceEventFormatTabs.classList.remove("is-invalid");
+          }
+          return;
+        }
+        if (!getEventFormatValue() && resourceEventFormatPhysicalInput) {
+          resourceEventFormatPhysicalInput.checked = true;
+        }
+      }
+
       function updateEventPhotosStatus() {
         if (!resourceEventPhotosStatus || !resourceEventPhotosInput) return;
         const files = Array.from(resourceEventPhotosInput.files || []);
@@ -11362,6 +11517,7 @@
 
       function syncContributeStepTwoMode() {
         const eventsFlow = isContributeEventsFlow();
+        updateEventFormatUi();
         if (resourceLanguagesSegment) {
           resourceLanguagesSegment.hidden = eventsFlow;
         }
@@ -12627,6 +12783,14 @@
               validateResourceForm(resourceValidationTriggered);
             });
           });
+        [resourceEventFormatOnlineInput, resourceEventFormatPhysicalInput]
+          .filter(Boolean)
+          .forEach((input) => {
+            input.addEventListener("change", () => {
+              saveResourceDraft();
+              validateResourceForm(resourceValidationTriggered);
+            });
+          });
         [resourceEventModeFixedInput, resourceEventModePeriodInput]
           .filter(Boolean)
           .forEach((input) => {
@@ -13629,6 +13793,18 @@
           resourceBasicTitle.textContent = eventsFlow
             ? copy.resourceBasicInfoEvent || RESOURCE_UI_BASE.resourceBasicInfoEvent
             : copy.resourceBasicInfo || RESOURCE_UI_BASE.resourceBasicInfo;
+        }
+        if (resourceEventFormatTitle) {
+          resourceEventFormatTitle.textContent =
+            copy.eventFormat || RESOURCE_UI_BASE.eventFormat;
+        }
+        if (resourceEventFormatOnlineLabel) {
+          resourceEventFormatOnlineLabel.textContent =
+            copy.eventFormatOnline || RESOURCE_UI_BASE.eventFormatOnline;
+        }
+        if (resourceEventFormatPhysicalLabel) {
+          resourceEventFormatPhysicalLabel.textContent =
+            copy.eventFormatPhysical || RESOURCE_UI_BASE.eventFormatPhysical;
         }
         if (resourceLanguagesTitle) {
           resourceLanguagesTitle.textContent =
@@ -15032,6 +15208,7 @@
           if (submitBtn) submitBtn.disabled = true;
           try {
             const eventsFlow = isContributeEventsFlow();
+            const eventFormat = getEventFormatValue() || "physical";
             const eventScheduleMode = getEventScheduleModeValue() || "fixed_date";
             const periodMode = eventScheduleMode === "period";
             const eventDate = String(
@@ -15231,6 +15408,7 @@
                     eventDetails: eventsFlow
                       ? {
                           mode: eventScheduleMode,
+                          format: eventFormat,
                           date: eventPrimaryDate,
                           startDate: eventStartDate,
                           endDate: periodMode ? eventEndDate : "",
@@ -15287,6 +15465,7 @@
                       eventDetails: eventsFlow
                         ? {
                             mode: eventScheduleMode,
+                            format: eventFormat,
                             date: eventPrimaryDate,
                             startDate: eventStartDate,
                             endDate: periodMode ? eventEndDate : "",
@@ -15346,6 +15525,7 @@
                   eventDetails: eventsFlow
                     ? {
                         mode: eventScheduleMode,
+                        format: eventFormat,
                         date: eventPrimaryDate,
                         startDate: eventStartDate,
                         endDate: periodMode ? eventEndDate : "",
@@ -15415,6 +15595,7 @@
                 eventDetails: eventsFlow
                   ? {
                       mode: eventScheduleMode,
+                      format: eventFormat,
                       date: eventPrimaryDate,
                       startDate: eventStartDate,
                       endDate: periodMode ? eventEndDate : "",
