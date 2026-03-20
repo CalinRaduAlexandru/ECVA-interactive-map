@@ -11125,6 +11125,15 @@
         );
       }
 
+      function normalizeLanguageWords(text) {
+        return String(text || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .split(/[^a-z]+/)
+          .filter(Boolean);
+      }
+
       function validateNativeContentLanguage(countryId, title, description) {
         const expected = getExpectedNativeLanguage(countryId);
         if (!expected || expected === "en") {
@@ -11136,69 +11145,41 @@
         if (!combined) {
           return { ok: true, message: "" };
         }
+        const lowerRaw = combined.toLowerCase();
+        const normalizedWords = normalizeLanguageWords(combined);
+        const languageMarkers = {
+          ro: new Set([
+            "de","in","cu","la","pe","din","pentru","un","o","si","sa","sau","este","sunt","romana","educatie","scoala","resursa","resurse","descriere","titlu","articol","caracter","profesor","profesori","elev","elevi","program","proiect","ghid","lectie","lectii","vreau","propun","ceva",
+          ]),
+          en: new Set([
+            "the","and","for","of","to","in","on","with","from","about","resource","education","school","teacher","students","program","project","guide","title","description",
+          ]),
+          es: new Set([
+            "de","la","el","en","y","para","con","por","que","una","un","los","las","recurso","recursos","educacion","escuela","docente","programa","proyecto","titulo","descripcion","articulo",
+          ]),
+          fr: new Set([
+            "de","la","le","les","en","et","pour","avec","des","une","un","ressource","ressources","education","ecole","enseignant","programme","projet","titre","description","article",
+          ]),
+          de: new Set([
+            "der","die","das","und","fur","mit","von","zu","ein","eine","im","in","ressource","ressourcen","bildung","schule","lehrer","programm","projekt","titel","beschreibung","artikel",
+          ]),
+          it: new Set([
+            "di","la","il","lo","in","e","per","con","una","un","risorsa","risorse","educazione","scuola","docente","programma","progetto","titolo","descrizione","articolo",
+          ]),
+          pt: new Set([
+            "de","da","do","em","e","para","com","uma","um","recurso","recursos","educacao","escola","professor","programa","projeto","titulo","descricao","artigo",
+          ]),
+        };
         if (expected === "ro") {
-          const lower = combined.toLowerCase();
-          const hasDiacritics = /[ăâîșşțţ]/i.test(lower);
+          const hasDiacritics = /[ăâîșşțţ]/i.test(lowerRaw);
           if (hasDiacritics) {
             return { ok: true, message: "" };
           }
-          const normalized = lower
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "");
-          const words = normalized.split(/[^a-z]+/).filter(Boolean);
-          const roMarkers = new Set([
-            "de",
-            "in",
-            "cu",
-            "la",
-            "pe",
-            "din",
-            "pentru",
-            "un",
-            "o",
-            "si",
-            "sau",
-            "este",
-            "sunt",
-            "romana",
-            "educatie",
-            "scoala",
-            "resursa",
-            "resurse",
-            "descriere",
-            "titlu",
-            "articol",
-            "caracter",
-            "profesor",
-            "profesori",
-            "elev",
-            "elevi",
-            "program",
-            "proiect",
-            "ghid",
-            "lectie",
-            "lectii",
-          ]);
-          const enMarkers = new Set([
-            "the",
-            "and",
-            "for",
-            "with",
-            "from",
-            "about",
-            "resource",
-            "education",
-            "school",
-            "teacher",
-            "students",
-            "project",
-            "guide",
-          ]);
-          const roHits = countLanguageMarkers(words, roMarkers);
-          const enHits = countLanguageMarkers(words, enMarkers);
+          const roHits = countLanguageMarkers(normalizedWords, languageMarkers.ro);
+          const enHits = countLanguageMarkers(normalizedWords, languageMarkers.en);
           const wrongLanguage =
             (enHits >= 2 && enHits > roHits + 1) ||
-            isClearlyEnglishText(normalized);
+            isClearlyEnglishText(combined);
           if (wrongLanguage) {
             return {
               ok: false,
@@ -11206,6 +11187,39 @@
             };
           }
           return { ok: true, message: "" };
+        }
+        const hasRomanianDiacritics = /[ăâîșşțţ]/i.test(lowerRaw);
+        if (hasRomanianDiacritics) {
+          return {
+            ok: false,
+            message: getNativeLanguageWarningMessage(),
+          };
+        }
+        const expectedMarkers = languageMarkers[expected];
+        if (expectedMarkers && normalizedWords.length) {
+          const expectedHits = countLanguageMarkers(
+            normalizedWords,
+            expectedMarkers,
+          );
+          const otherCodes = Object.keys(languageMarkers).filter(
+            (code) => code !== expected,
+          );
+          const maxOtherHits = otherCodes.reduce((max, code) => {
+            const hits = countLanguageMarkers(
+              normalizedWords,
+              languageMarkers[code],
+            );
+            return hits > max ? hits : max;
+          }, 0);
+          if (
+            (expectedHits === 0 && maxOtherHits >= 2) ||
+            (maxOtherHits >= 3 && maxOtherHits > expectedHits + 1)
+          ) {
+            return {
+              ok: false,
+              message: getNativeLanguageWarningMessage(),
+            };
+          }
         }
         if (isClearlyEnglishText(combined)) {
           return {
