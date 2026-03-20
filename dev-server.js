@@ -15,7 +15,8 @@ try {
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8081);
 const DATA_FILE = path.join(ROOT, 'editor-data.json');
-const NIGHTLY_BACKUP_DIR = path.join(ROOT, 'backups', 'nightly');
+const MONTHLY_BACKUP_DIR = path.join(ROOT, 'backups', 'monthly');
+const MONTHLY_BACKUP_STATE_FILE = path.join(MONTHLY_BACKUP_DIR, '.state.json');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const ASSETS_ATTACHMENTS_DIR = path.join(ASSETS_UPLOAD_DIR, 'attachments');
 const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
@@ -26,8 +27,10 @@ const VERSION_LIMIT_DEFAULT = 25;
 const VERSION_LIMIT_MAX = 80;
 const BACKUP_LIMIT_DEFAULT = 30;
 const BACKUP_LIMIT_MAX = 365;
-const NIGHTLY_BACKUP_HOUR = 3;
-const NIGHTLY_BACKUP_MINUTE = 0;
+const MONTHLY_BACKUP_DAY = 1;
+const MONTHLY_BACKUP_HOUR = 3;
+const MONTHLY_BACKUP_MINUTE = 0;
+const MONTHLY_BACKUP_TIMEZONE = String(process.env.BACKUP_TIMEZONE || 'Europe/Bucharest');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -62,15 +65,15 @@ function parseBackupLimit(value, fallback = BACKUP_LIMIT_DEFAULT) {
   return Math.max(1, Math.min(BACKUP_LIMIT_MAX, Math.trunc(num)));
 }
 
-function ensureNightlyBackupDir() {
-  fs.mkdirSync(NIGHTLY_BACKUP_DIR, { recursive: true });
+function ensureMonthlyBackupDir() {
+  fs.mkdirSync(MONTHLY_BACKUP_DIR, { recursive: true });
 }
 
 function pad2(value) {
   return String(value).padStart(2, '0');
 }
 
-function getNightlyBackupFileName(now) {
+function getMonthlyBackupFileName(now) {
   const d = now instanceof Date ? now : new Date();
   const yyyy = d.getFullYear();
   const mm = pad2(d.getMonth() + 1);
@@ -81,14 +84,70 @@ function getNightlyBackupFileName(now) {
   return `editor-state-${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}.json`;
 }
 
-function msUntilNextNightlyBackup(now = new Date()) {
-  const next = new Date(now);
-  next.setHours(NIGHTLY_BACKUP_HOUR, NIGHTLY_BACKUP_MINUTE, 0, 0);
-  if (next <= now) {
-    next.setDate(next.getDate() + 1);
+function getZonedDateParts(now, timeZone) {
+  const formatter = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(now instanceof Date ? now : new Date());
+  const map = {};
+  parts.forEach((part) => {
+    if (part && part.type && part.type !== 'literal') {
+      map[part.type] = part.value;
+    }
+  });
+  return {
+    year: Number(map.year || 0),
+    month: Number(map.month || 0),
+    day: Number(map.day || 0),
+    hour: Number(map.hour || 0),
+    minute: Number(map.minute || 0),
+    second: Number(map.second || 0),
+  };
+}
+
+function getMonthlyBackupMonthKey(now = new Date(), timeZone = MONTHLY_BACKUP_TIMEZONE) {
+  const parts = getZonedDateParts(now, timeZone);
+  return `${parts.year}-${pad2(parts.month)}`;
+}
+
+function loadMonthlyBackupState() {
+  ensureMonthlyBackupDir();
+  if (!fs.existsSync(MONTHLY_BACKUP_STATE_FILE)) {
+    return { lastCompletedMonth: '' };
   }
-  const delta = Number(next.getTime() - now.getTime());
-  return Number.isFinite(delta) && delta > 0 ? delta : 60 * 1000;
+  try {
+    const raw = fs.readFileSync(MONTHLY_BACKUP_STATE_FILE, 'utf8');
+    const parsed = JSON.parse(raw);
+    return {
+      lastCompletedMonth: String((parsed && parsed.lastCompletedMonth) || ''),
+    };
+  } catch (error) {
+    return { lastCompletedMonth: '' };
+  }
+}
+
+function saveMonthlyBackupState(lastCompletedMonth) {
+  ensureMonthlyBackupDir();
+  const payload = {
+    lastCompletedMonth: String(lastCompletedMonth || ''),
+    updatedAt: new Date().toISOString(),
+  };
+  fs.writeFileSync(MONTHLY_BACKUP_STATE_FILE, JSON.stringify(payload, null, 2), 'utf8');
+}
+
+function shouldRunMonthlyBackupNow(now = new Date(), timeZone = MONTHLY_BACKUP_TIMEZONE) {
+  const parts = getZonedDateParts(now, timeZone);
+  if (parts.day !== MONTHLY_BACKUP_DAY) return false;
+  if (parts.hour > MONTHLY_BACKUP_HOUR) return true;
+  if (parts.hour < MONTHLY_BACKUP_HOUR) return false;
+  return parts.minute >= MONTHLY_BACKUP_MINUTE;
 }
 
 function hashState(state) {
@@ -729,16 +788,16 @@ async function writeEditorData(data, options) {
   return persistedToDb;
 }
 
-function listNightlyBackups(limit) {
-  ensureNightlyBackupDir();
+function listMonthlyBackups(limit) {
+  ensureMonthlyBackupDir();
   const safeLimit = parseBackupLimit(limit);
   const files = fs
-    .readdirSync(NIGHTLY_BACKUP_DIR)
-    .filter((name) => String(name || '').toLowerCase().endsWith('.json'))
+    .readdirSync(MONTHLY_BACKUP_DIR)
+    .filter((name) => /^editor-state-\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}\.json$/.test(name))
     .sort((a, b) => b.localeCompare(a))
     .slice(0, safeLimit);
   return files.map((name) => {
-    const fullPath = path.join(NIGHTLY_BACKUP_DIR, name);
+    const fullPath = path.join(MONTHLY_BACKUP_DIR, name);
     let size = 0;
     let createdAt = '';
     try {
@@ -753,12 +812,12 @@ function listNightlyBackups(limit) {
   });
 }
 
-function readNightlyBackupByFile(fileName) {
-  ensureNightlyBackupDir();
+function readMonthlyBackupByFile(fileName) {
+  ensureMonthlyBackupDir();
   const raw = String(fileName || '').trim();
   const safeName = path.basename(raw);
   if (!safeName || safeName !== raw) return null;
-  const fullPath = path.join(NIGHTLY_BACKUP_DIR, safeName);
+  const fullPath = path.join(MONTHLY_BACKUP_DIR, safeName);
   if (!fs.existsSync(fullPath)) return null;
   const parsed = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
   if (!parsed || typeof parsed !== 'object') return null;
@@ -772,7 +831,7 @@ function readNightlyBackupByFile(fileName) {
   };
 }
 
-async function runNightlyBackup(reason) {
+async function runMonthlyBackup(reason) {
   const status = await getEditorStoreStatus();
   if (!status.editable || status.store !== 'postgres') {
     // eslint-disable-next-line no-console
@@ -790,30 +849,43 @@ async function runNightlyBackup(reason) {
     sourceUpdatedAt: String((data && data.updatedAt) || ''),
     state,
   };
-  ensureNightlyBackupDir();
-  const file = getNightlyBackupFileName(now);
-  const outPath = path.join(NIGHTLY_BACKUP_DIR, file);
+  ensureMonthlyBackupDir();
+  const file = getMonthlyBackupFileName(now);
+  const outPath = path.join(MONTHLY_BACKUP_DIR, file);
   fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
   // eslint-disable-next-line no-console
   console.log(`[backup] saved ${file}`);
   return { ok: true, file, backedUpAt: payload.backedUpAt };
 }
 
-function scheduleNightlyBackup() {
-  const scheduleNext = () => {
-    const delay = msUntilNextNightlyBackup(new Date());
-    setTimeout(async () => {
-      try {
-        await runNightlyBackup('scheduled');
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('[backup] nightly backup failed:', error);
-      } finally {
-        scheduleNext();
+function scheduleMonthlyBackup() {
+  const state = loadMonthlyBackupState();
+  let lastCompletedMonth = String(state.lastCompletedMonth || '');
+
+  const tick = async () => {
+    if (!shouldRunMonthlyBackupNow(new Date(), MONTHLY_BACKUP_TIMEZONE)) {
+      return;
+    }
+    const monthKey = getMonthlyBackupMonthKey(new Date(), MONTHLY_BACKUP_TIMEZONE);
+    if (monthKey === lastCompletedMonth) {
+      return;
+    }
+    try {
+      const result = await runMonthlyBackup('scheduled');
+      if (result && result.ok) {
+        lastCompletedMonth = monthKey;
+        saveMonthlyBackupState(lastCompletedMonth);
       }
-    }, delay);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('[backup] monthly backup failed:', error);
+    }
   };
-  scheduleNext();
+
+  tick();
+  setInterval(() => {
+    tick();
+  }, 30 * 1000);
 }
 
 function httpGetJson(targetUrl) {
@@ -993,11 +1065,15 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET') {
       try {
         const limit = parseBackupLimit(parsed.query && parsed.query.limit);
-        const backups = listNightlyBackups(limit);
+        const backups = listMonthlyBackups(limit);
         return sendJson(res, 200, {
           ok: true,
-          backupDir: NIGHTLY_BACKUP_DIR,
-          scheduleLocal: `${pad2(NIGHTLY_BACKUP_HOUR)}:${pad2(NIGHTLY_BACKUP_MINUTE)}`,
+          backupDir: MONTHLY_BACKUP_DIR,
+          schedule: {
+            dayOfMonth: MONTHLY_BACKUP_DAY,
+            time: `${pad2(MONTHLY_BACKUP_HOUR)}:${pad2(MONTHLY_BACKUP_MINUTE)}`,
+            timezone: MONTHLY_BACKUP_TIMEZONE,
+          },
           backups,
         });
       } catch (error) {
@@ -1034,7 +1110,7 @@ const server = http.createServer(async (req, res) => {
             reason: status.reason,
           });
         }
-        const backup = readNightlyBackupByFile(file);
+        const backup = readMonthlyBackupByFile(file);
         if (!backup) {
           return sendJson(res, 404, { ok: false, error: 'backup_not_found' });
         }
@@ -1326,8 +1402,8 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-ensureNightlyBackupDir();
-scheduleNightlyBackup();
+ensureMonthlyBackupDir();
+scheduleMonthlyBackup();
 
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
@@ -1338,6 +1414,6 @@ server.listen(PORT, () => {
   );
   // eslint-disable-next-line no-console
   console.log(
-    `Nightly backup: ${pad2(NIGHTLY_BACKUP_HOUR)}:${pad2(NIGHTLY_BACKUP_MINUTE)} local time -> ${NIGHTLY_BACKUP_DIR}`,
+    `Monthly backup: day ${MONTHLY_BACKUP_DAY} at ${pad2(MONTHLY_BACKUP_HOUR)}:${pad2(MONTHLY_BACKUP_MINUTE)} (${MONTHLY_BACKUP_TIMEZONE}) -> ${MONTHLY_BACKUP_DIR}`,
   );
 });
