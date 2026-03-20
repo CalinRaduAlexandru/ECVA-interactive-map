@@ -5688,6 +5688,19 @@
         position: relative;
       }
 
+      .ecva-editor-translation-input-wrap > .ecva-editor-translation-input,
+      .ecva-editor-translation-input-wrap > .ecva-editor-translation-textarea {
+        padding-right: 56px;
+      }
+
+      .ecva-editor-translation-input-wrap > .ecva-editor-translation-textarea {
+        padding-bottom: 28px;
+      }
+
+      #contribute-translation-block .ecva-editor-review-head {
+        display: none;
+      }
+
       .ecva-editor-sync-field-btn {
         width: 34px;
         min-width: 34px;
@@ -6406,22 +6419,44 @@
                           <strong id="contribute-native-title-label"
                             >Title</strong
                           >
-                          <input
-                            id="contribute-native-title-preview"
-                            class="ecva-editor-translation-input"
-                            type="text"
-                            maxlength="72"
-                          />
+                          <div class="ecva-editor-translation-input-wrap">
+                            <input
+                              id="contribute-native-title-preview"
+                              class="ecva-editor-translation-input"
+                              type="text"
+                              maxlength="72"
+                            />
+                            <button
+                              id="contribute-sync-native-title"
+                              class="ecva-editor-sync-field-btn"
+                              type="button"
+                              aria-label="Sync from English"
+                              title="Sync from English"
+                            >
+                              ↻
+                            </button>
+                          </div>
                         </div>
                         <div class="ecva-editor-translation-field">
                           <strong id="contribute-native-description-label"
                             >Description</strong
                           >
-                          <textarea
-                            id="contribute-native-description-preview"
-                            class="ecva-editor-translation-textarea"
-                            maxlength="200"
-                          ></textarea>
+                          <div class="ecva-editor-translation-input-wrap">
+                            <textarea
+                              id="contribute-native-description-preview"
+                              class="ecva-editor-translation-textarea"
+                              maxlength="200"
+                            ></textarea>
+                            <button
+                              id="contribute-sync-native-description"
+                              class="ecva-editor-sync-field-btn"
+                              type="button"
+                              aria-label="Sync from English"
+                              title="Sync from English"
+                            >
+                              ↻
+                            </button>
+                          </div>
                         </div>
                       </article>
                       <div
@@ -6442,22 +6477,44 @@
                           <strong id="contribute-english-title-label"
                             >Title</strong
                           >
-                          <input
-                            id="contribute-english-title-preview"
-                            class="ecva-editor-translation-input"
-                            type="text"
-                            maxlength="72"
-                          />
+                          <div class="ecva-editor-translation-input-wrap">
+                            <input
+                              id="contribute-english-title-preview"
+                              class="ecva-editor-translation-input"
+                              type="text"
+                              maxlength="72"
+                            />
+                            <button
+                              id="contribute-sync-english-title"
+                              class="ecva-editor-sync-field-btn"
+                              type="button"
+                              aria-label="Sync from source language"
+                              title="Sync from source language"
+                            >
+                              ↻
+                            </button>
+                          </div>
                         </div>
                         <div class="ecva-editor-translation-field">
                           <strong id="contribute-english-description-label"
                             >Description</strong
                           >
-                          <textarea
-                            id="contribute-english-description-preview"
-                            class="ecva-editor-translation-textarea"
-                            maxlength="200"
-                          ></textarea>
+                          <div class="ecva-editor-translation-input-wrap">
+                            <textarea
+                              id="contribute-english-description-preview"
+                              class="ecva-editor-translation-textarea"
+                              maxlength="200"
+                            ></textarea>
+                            <button
+                              id="contribute-sync-english-description"
+                              class="ecva-editor-sync-field-btn"
+                              type="button"
+                              aria-label="Sync from source language"
+                              title="Sync from source language"
+                            >
+                              ↻
+                            </button>
+                          </div>
                         </div>
                       </article>
                     </div>
@@ -8373,6 +8430,12 @@
       const contributeNativeDescriptionLabel = document.getElementById(
         "contribute-native-description-label",
       );
+      const contributeSyncNativeTitleBtn = document.getElementById(
+        "contribute-sync-native-title",
+      );
+      const contributeSyncNativeDescriptionBtn = document.getElementById(
+        "contribute-sync-native-description",
+      );
       const contributeEnglishTitlePreview = document.getElementById(
         "contribute-english-title-preview",
       );
@@ -8384,6 +8447,12 @@
       );
       const contributeEnglishDescriptionLabel = document.getElementById(
         "contribute-english-description-label",
+      );
+      const contributeSyncEnglishTitleBtn = document.getElementById(
+        "contribute-sync-english-title",
+      );
+      const contributeSyncEnglishDescriptionBtn = document.getElementById(
+        "contribute-sync-english-description",
       );
       const resourceBasicTitle = document.getElementById(
         "resource-basic-title",
@@ -8748,11 +8817,11 @@
           "Write title and description in {language} before submitting.",
         translationCheckingNote: "Checking translation...",
         translationVerifiedNote:
-          "Translation verified for current {language} text.",
+          "Edit both columns freely. Use ↻ to sync any field from the opposite column.",
         translationNeedsCheckNote:
-          "Edit title and description in {language} and run Refresh translation before continuing.",
+          "Use ↻ to sync changed fields between columns before continuing.",
         checkTranslationBeforeContinuing:
-          "Run Refresh translation before continuing.",
+          "Use ↻ to sync translation fields before continuing.",
         translationCheckedToast: "✅ Translations synced.",
         translationCheckFailedToast: "Could not check translation right now.",
         countryOpenFailedRetry:
@@ -8877,11 +8946,11 @@
           "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
         translationCheckingNote: "Se verifică traducerea...",
         translationVerifiedNote:
-          "Traducerea este verificată pentru textul curent în {language}.",
+          "Poți edita ambele coloane. Folosește ↻ ca să sincronizezi orice câmp din coloana opusă.",
         translationNeedsCheckNote:
-          "Editează titlul și descrierea în {language} și apasă Reactualizează traducerea înainte de a continua.",
+          "Folosește ↻ pentru a sincroniza câmpurile modificate între coloane înainte de a continua.",
         checkTranslationBeforeContinuing:
-          "Rulează Reactualizează traducerea înainte de a continua.",
+          "Folosește ↻ pentru sincronizarea traducerii înainte de a continua.",
         translationCheckedToast: "✅ Traducerile au fost sincronizate.",
         translationCheckFailedToast:
           "Traducerea nu a putut fi verificată în acest moment.",
@@ -10344,6 +10413,15 @@
         if (!visible) {
           if (contributeCheckTranslationBtn)
             contributeCheckTranslationBtn.disabled = true;
+          [
+            contributeSyncNativeTitleBtn,
+            contributeSyncNativeDescriptionBtn,
+            contributeSyncEnglishTitleBtn,
+            contributeSyncEnglishDescriptionBtn,
+          ].forEach((btn) => {
+            if (!btn) return;
+            btn.disabled = true;
+          });
           return;
         }
         updateContributeTranslationPreview();
@@ -10441,6 +10519,45 @@
           contributeCheckTranslationBtn.disabled =
             !hasNativeText || state.checking;
         }
+        const canUseEnglishTitleSync = Boolean(
+          String(readContributeNodeValue(contributeNativeTitlePreview) || "").trim(),
+        );
+        const canUseEnglishDescriptionSync = Boolean(
+          String(readContributeNodeValue(contributeNativeDescriptionPreview) || "").trim(),
+        );
+        const canUseNativeTitleSync = Boolean(
+          String(readContributeNodeValue(contributeEnglishTitlePreview) || "").trim(),
+        );
+        const canUseNativeDescriptionSync = Boolean(
+          String(readContributeNodeValue(contributeEnglishDescriptionPreview) || "").trim(),
+        );
+        const setSyncButtonState = (button, enabled, label) => {
+          if (!button) return;
+          const title = `↻ ${label}`;
+          button.disabled = Boolean(state.checking) || !enabled;
+          button.title = title;
+          button.setAttribute("aria-label", title);
+        };
+        setSyncButtonState(
+          contributeSyncNativeTitleBtn,
+          canUseNativeTitleSync,
+          `English → ${sourceLanguageLabel}`,
+        );
+        setSyncButtonState(
+          contributeSyncNativeDescriptionBtn,
+          canUseNativeDescriptionSync,
+          `English → ${sourceLanguageLabel}`,
+        );
+        setSyncButtonState(
+          contributeSyncEnglishTitleBtn,
+          canUseEnglishTitleSync,
+          `${sourceLanguageLabel} → English`,
+        );
+        setSyncButtonState(
+          contributeSyncEnglishDescriptionBtn,
+          canUseEnglishDescriptionSync,
+          `${sourceLanguageLabel} → English`,
+        );
       }
 
       function invalidateContributeTranslationOnNativeEdit() {
@@ -10503,7 +10620,87 @@
         if (state.checked && !state.checkedAt) {
           state.checkedAt = new Date().toISOString();
         }
+        updateContributeTranslationUi();
         updateContributeWizardUi();
+      }
+
+      async function translateContributeText(sourceLang, targetLang, text) {
+        const sourceText = String(text || "").trim();
+        if (!sourceText) return "";
+        const response = await fetch("/api/translate-batch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sourceLang: String(sourceLang || "auto").trim() || "auto",
+            targetLang: String(targetLang || "en").trim() || "en",
+            texts: [sourceText],
+          }),
+        });
+        if (!response.ok) {
+          throw new Error(`translation_status_${response.status}`);
+        }
+        const payload = await response.json().catch(() => null);
+        const translated = Array.isArray(payload && payload.translated)
+          ? payload.translated
+          : null;
+        const translatedText =
+          translated && translated.length
+            ? String(translated[0] || "").trim()
+            : "";
+        return translatedText || sourceText;
+      }
+
+      async function syncContributeTranslationField(options) {
+        const state = contributeTranslationState;
+        if (!state || !state.required || state.checking) return;
+        const sourceNode = options && options.sourceNode;
+        const targetNode = options && options.targetNode;
+        const sourceLang = options && options.sourceLang;
+        const targetLang = options && options.targetLang;
+        const afterSync =
+          options && typeof options.afterSync === "function"
+            ? options.afterSync
+            : null;
+        const sourceText = String(readContributeNodeValue(sourceNode) || "").trim();
+        if (!sourceText) {
+          writeContributeNodeValue(targetNode, "");
+          if (afterSync) afterSync();
+          state.checked = false;
+          state.checkedAt = "";
+          updateContributeTranslationUi();
+          updateContributeWizardUi();
+          return;
+        }
+        state.checking = true;
+        updateContributeTranslationUi();
+        updateContributeWizardUi();
+        try {
+          const translatedText = await translateContributeText(
+            sourceLang,
+            targetLang,
+            sourceText,
+          );
+          writeContributeNodeValue(targetNode, translatedText);
+          if (afterSync) afterSync();
+          const values = getResourceTextValues();
+          state.translationSourceTitle = values.title;
+          state.translationSourceDescription = values.description;
+          state.checked = true;
+          state.checkedAt = new Date().toISOString();
+          setContributeStatus(
+            getResourceUiText("translationCheckedToast"),
+            "success",
+          );
+        } catch (_error) {
+          setContributeStatus(
+            getResourceUiText("translationCheckFailedToast"),
+            "error",
+          );
+        } finally {
+          state.checking = false;
+          updateContributeTranslationUi();
+          updateContributeWizardUi();
+        }
       }
 
       async function runContributeTranslationCheck() {
@@ -11351,6 +11548,58 @@
         if (contributeCheckTranslationBtn) {
           contributeCheckTranslationBtn.addEventListener("click", () => {
             runContributeTranslationCheck();
+          });
+        }
+        if (contributeSyncEnglishTitleBtn) {
+          contributeSyncEnglishTitleBtn.addEventListener("click", () => {
+            const state = contributeTranslationState;
+            if (!state) return;
+            syncContributeTranslationField({
+              sourceNode: contributeNativeTitlePreview,
+              targetNode: contributeEnglishTitlePreview,
+              sourceLang: state.sourceLanguageCode || "auto",
+              targetLang: "en",
+              afterSync: syncContributeEnglishTranslationInputsToState,
+            });
+          });
+        }
+        if (contributeSyncEnglishDescriptionBtn) {
+          contributeSyncEnglishDescriptionBtn.addEventListener("click", () => {
+            const state = contributeTranslationState;
+            if (!state) return;
+            syncContributeTranslationField({
+              sourceNode: contributeNativeDescriptionPreview,
+              targetNode: contributeEnglishDescriptionPreview,
+              sourceLang: state.sourceLanguageCode || "auto",
+              targetLang: "en",
+              afterSync: syncContributeEnglishTranslationInputsToState,
+            });
+          });
+        }
+        if (contributeSyncNativeTitleBtn) {
+          contributeSyncNativeTitleBtn.addEventListener("click", () => {
+            const state = contributeTranslationState;
+            if (!state) return;
+            syncContributeTranslationField({
+              sourceNode: contributeEnglishTitlePreview,
+              targetNode: contributeNativeTitlePreview,
+              sourceLang: "en",
+              targetLang: state.sourceLanguageCode || "auto",
+              afterSync: syncContributeNativeTranslationInputsToMainFields,
+            });
+          });
+        }
+        if (contributeSyncNativeDescriptionBtn) {
+          contributeSyncNativeDescriptionBtn.addEventListener("click", () => {
+            const state = contributeTranslationState;
+            if (!state) return;
+            syncContributeTranslationField({
+              sourceNode: contributeEnglishDescriptionPreview,
+              targetNode: contributeNativeDescriptionPreview,
+              sourceLang: "en",
+              targetLang: state.sourceLanguageCode || "auto",
+              afterSync: syncContributeNativeTranslationInputsToMainFields,
+            });
           });
         }
         [
