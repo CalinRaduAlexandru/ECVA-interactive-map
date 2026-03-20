@@ -2106,7 +2106,7 @@
     const copy = getLabelManageUiCopy();
     if (!labelManageResetArmed) {
       setLabelManageResetButtonArmed(true);
-      updateLabelManageNotice(copy.resetConfirmNotice, false);
+      updateLabelManageNotice("", false);
       return;
     }
     setLabelManageResetButtonArmed(false);
