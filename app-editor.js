@@ -99,6 +99,70 @@
   const editorResourceAddLanguageBtn = document.getElementById(
     "ecva-editor-resource-add-language-btn",
   );
+  const editorLanguagesSegment = document.getElementById(
+    "ecva-editor-languages-segment",
+  );
+  const editorEventsSegment = document.getElementById(
+    "ecva-editor-events-segment",
+  );
+  const editorEventScheduleTitle = document.getElementById(
+    "ecva-editor-event-schedule-title",
+  );
+  const editorEventDateWrap = document.getElementById(
+    "ecva-editor-event-date-wrap",
+  );
+  const editorEventDateLabel = document.getElementById(
+    "ecva-editor-event-date-label",
+  );
+  const editorEventDate = document.getElementById("ecva-editor-event-date");
+  const editorEventRecurrenceShell = document.getElementById(
+    "ecva-editor-event-recurrence-shell",
+  );
+  const editorEventRecurrenceTitle = document.getElementById(
+    "ecva-editor-event-recurrence-title",
+  );
+  const editorEventRecurrenceTabs = document.getElementById(
+    "ecva-editor-event-recurrence-tabs",
+  );
+  const editorEventRecurrenceSingleLabel = document.getElementById(
+    "ecva-editor-event-recurrence-single-label",
+  );
+  const editorEventRecurrenceRepeatingLabel = document.getElementById(
+    "ecva-editor-event-recurrence-repeating-label",
+  );
+  const editorEventCadenceShell = document.getElementById(
+    "ecva-editor-event-cadence-shell",
+  );
+  const editorEventCadenceTitle = document.getElementById(
+    "ecva-editor-event-cadence-title",
+  );
+  const editorEventCadenceTabs = document.getElementById(
+    "ecva-editor-event-cadence-tabs",
+  );
+  const editorEventCadenceDaily = document.getElementById(
+    "ecva-editor-event-cadence-daily",
+  );
+  const editorEventCadenceWeekly = document.getElementById(
+    "ecva-editor-event-cadence-weekly",
+  );
+  const editorEventCadenceMonthly = document.getElementById(
+    "ecva-editor-event-cadence-monthly",
+  );
+  const editorEventCadenceYearly = document.getElementById(
+    "ecva-editor-event-cadence-yearly",
+  );
+  const editorEventPhotosTitle = document.getElementById(
+    "ecva-editor-event-photos-title",
+  );
+  const editorEventPhotosHelper = document.getElementById(
+    "ecva-editor-event-photos-helper",
+  );
+  const editorEventPhotosInput = document.getElementById(
+    "ecva-editor-event-photos",
+  );
+  const editorEventPhotosStatus = document.getElementById(
+    "ecva-editor-event-photos-status",
+  );
   const editorContactName = document.getElementById("ecva-editor-contact-name");
   const editorContactRole = document.getElementById("ecva-editor-contact-role");
   const editorContactEmail = document.getElementById(
@@ -257,9 +321,11 @@
     editRepresentative: "Edit representative",
     stepWord: "Step",
     stepWriteNativeBeforeSubmit: "Text in {language}",
+    stepDescribeEvent: "Describe event",
     stepReviewText: "Review text",
     stepCheckTranslation: "Check translation",
     stepLanguagesLinks: "Languages & links",
+    stepEventSchedule: "Event schedule",
     stepContactDetails: "Contact",
     back: "Back",
     cancel: "Cancel",
@@ -300,8 +366,25 @@
     titlePlaceholder: "e.g. Character Toolkit for Schools",
     descriptionPlaceholder: "Write a short and clear resource description.",
     stepDescriptionLabel: "Short and clear resource description.",
+    descriptionPlaceholderEvent: "Write a short and clear event description.",
+    stepDescriptionLabelEvent: "Short and clear event description.",
     titleHelper: "Title will be displayed publicly.",
     descriptionHelper: "Write a short and clear description of the resource.",
+    eventScheduleTitle: "Event schedule",
+    eventDate: "Date",
+    eventRecurrence: "Recurrence",
+    eventRecurrenceSingle: "Non-recurrent",
+    eventRecurrenceRepeating: "Recurrent",
+    eventCadence: "Repeat interval",
+    eventCadenceDaily: "Daily",
+    eventCadenceWeekly: "Weekly",
+    eventCadenceMonthly: "Monthly",
+    eventCadenceYearly: "Yearly",
+    eventPhotosOptional: "(Optional) Insert relevant photos",
+    eventPhotosHelper: "Add one or more photos related to the event.",
+    completeEventDate: "Choose an event date.",
+    chooseRecurrence: "Choose if the event is recurrent.",
+    chooseRecurrenceCadence: "Choose recurrence interval.",
   };
   const EDITOR_UI_COPY_PRESET = {
     ro: {
@@ -310,9 +393,11 @@
       editRepresentative: "Editează reprezentantul",
       stepWord: "Pasul",
       stepWriteNativeBeforeSubmit: "Text în {language}",
+      stepDescribeEvent: "Descrie evenimentul",
       stepReviewText: "Revizuiește textul",
       stepCheckTranslation: "Verifică traducerea",
       stepLanguagesLinks: "Limbi și linkuri",
+      stepEventSchedule: "Program eveniment",
       stepContactDetails: "Contact",
       back: "Înapoi",
       cancel: "Anulează",
@@ -354,8 +439,27 @@
       titlePlaceholder: "ex. Toolkit de educație a caracterului pentru școli",
       descriptionPlaceholder: "Scrie o descriere scurtă și clară a resursei.",
       stepDescriptionLabel: "Descriere scurtă și clară a resursei.",
+      descriptionPlaceholderEvent:
+        "Scrie o descriere scurtă și clară a evenimentului.",
+      stepDescriptionLabelEvent:
+        "Descriere scurtă și clară a evenimentului.",
       titleHelper: "Titlul va fi afișat public.",
       descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
+      eventScheduleTitle: "Program eveniment",
+      eventDate: "Dată",
+      eventRecurrence: "Recurență",
+      eventRecurrenceSingle: "Non-recurent",
+      eventRecurrenceRepeating: "Recurent",
+      eventCadence: "Interval de repetare",
+      eventCadenceDaily: "Zilnic",
+      eventCadenceWeekly: "Săptămânal",
+      eventCadenceMonthly: "Lunar",
+      eventCadenceYearly: "Anual",
+      eventPhotosOptional: "(Opțional) Inserează fotografii relevante",
+      eventPhotosHelper: "Adaugă una sau mai multe fotografii despre eveniment.",
+      completeEventDate: "Alege data evenimentului.",
+      chooseRecurrence: "Alege dacă evenimentul este recurent.",
+      chooseRecurrenceCadence: "Alege intervalul de repetare.",
     },
   };
   const EDITOR_UI_COPY_KEYS = Object.keys(EDITOR_UI_COPY_BASE);
@@ -889,6 +993,7 @@
   let submissionTranslationState = null;
   let editorResourceLanguageItems = [];
   let editorResourceLangUid = 0;
+  let editorEventExistingAttachments = [];
   let editorReviewWizardEnabled = false;
   let editorReviewStepIndex = 0;
   let editorReviewSteps = [];
@@ -2835,23 +2940,30 @@
     editorUiCopyLang = lang;
     ensureEditorUiCopy(lang);
     const copy = getEditorUiCopy(lang);
+    const eventsFlow = isEditorEventsPillarTarget();
     if (editorTitleFieldLabel) {
       editorTitleFieldLabel.textContent = copy.title || EDITOR_UI_COPY_BASE.title;
     }
     if (editorDescriptionFieldLabel) {
       editorDescriptionFieldLabel.textContent =
-        copy.stepDescriptionLabel ||
-        copy.description ||
-        EDITOR_UI_COPY_BASE.stepDescriptionLabel ||
-        EDITOR_UI_COPY_BASE.description;
+        eventsFlow
+          ? copy.stepDescriptionLabelEvent ||
+            EDITOR_UI_COPY_BASE.stepDescriptionLabelEvent
+          : copy.stepDescriptionLabel ||
+            copy.description ||
+            EDITOR_UI_COPY_BASE.stepDescriptionLabel ||
+            EDITOR_UI_COPY_BASE.description;
     }
     if (editorTitle) {
       editorTitle.placeholder =
         copy.titlePlaceholder || EDITOR_UI_COPY_BASE.titlePlaceholder;
     }
     if (editorDescription) {
-      editorDescription.placeholder =
-        copy.descriptionPlaceholder || EDITOR_UI_COPY_BASE.descriptionPlaceholder;
+      editorDescription.placeholder = eventsFlow
+        ? copy.descriptionPlaceholderEvent ||
+          EDITOR_UI_COPY_BASE.descriptionPlaceholderEvent
+        : copy.descriptionPlaceholder ||
+          EDITOR_UI_COPY_BASE.descriptionPlaceholder;
     }
     updateEditorTextCounters();
     if (editorBackBtn) {
@@ -2877,6 +2989,57 @@
       editorAcceptBtn.textContent =
         copy.acceptAction || EDITOR_UI_COPY_BASE.acceptAction;
     }
+    if (editorEventScheduleTitle) {
+      editorEventScheduleTitle.textContent =
+        copy.eventScheduleTitle || EDITOR_UI_COPY_BASE.eventScheduleTitle;
+    }
+    if (editorEventDateLabel) {
+      editorEventDateLabel.textContent =
+        copy.eventDate || EDITOR_UI_COPY_BASE.eventDate;
+    }
+    if (editorEventRecurrenceTitle) {
+      editorEventRecurrenceTitle.textContent =
+        copy.eventRecurrence || EDITOR_UI_COPY_BASE.eventRecurrence;
+    }
+    if (editorEventRecurrenceSingleLabel) {
+      editorEventRecurrenceSingleLabel.textContent =
+        copy.eventRecurrenceSingle ||
+        EDITOR_UI_COPY_BASE.eventRecurrenceSingle;
+    }
+    if (editorEventRecurrenceRepeatingLabel) {
+      editorEventRecurrenceRepeatingLabel.textContent =
+        copy.eventRecurrenceRepeating ||
+        EDITOR_UI_COPY_BASE.eventRecurrenceRepeating;
+    }
+    if (editorEventCadenceTitle) {
+      editorEventCadenceTitle.textContent =
+        copy.eventCadence || EDITOR_UI_COPY_BASE.eventCadence;
+    }
+    if (editorEventCadenceDaily) {
+      editorEventCadenceDaily.textContent =
+        copy.eventCadenceDaily || EDITOR_UI_COPY_BASE.eventCadenceDaily;
+    }
+    if (editorEventCadenceWeekly) {
+      editorEventCadenceWeekly.textContent =
+        copy.eventCadenceWeekly || EDITOR_UI_COPY_BASE.eventCadenceWeekly;
+    }
+    if (editorEventCadenceMonthly) {
+      editorEventCadenceMonthly.textContent =
+        copy.eventCadenceMonthly || EDITOR_UI_COPY_BASE.eventCadenceMonthly;
+    }
+    if (editorEventCadenceYearly) {
+      editorEventCadenceYearly.textContent =
+        copy.eventCadenceYearly || EDITOR_UI_COPY_BASE.eventCadenceYearly;
+    }
+    if (editorEventPhotosTitle) {
+      editorEventPhotosTitle.textContent =
+        copy.eventPhotosOptional || EDITOR_UI_COPY_BASE.eventPhotosOptional;
+    }
+    if (editorEventPhotosHelper) {
+      editorEventPhotosHelper.textContent =
+        copy.eventPhotosHelper || EDITOR_UI_COPY_BASE.eventPhotosHelper;
+    }
+    syncEditorStepThreeMode();
   }
 
   function setEditorMode(mode) {
@@ -2908,6 +3071,7 @@
       resetEditorRemoveState();
     }
     configureEditorReviewWizard();
+    syncEditorStepThreeMode();
     updateEditorHeading();
   }
 
@@ -2916,8 +3080,94 @@
     entryFieldsWrap.classList.toggle("is-submission", Boolean(isVisible));
   }
 
+  function isEditorEventsPillarTarget(explicitTarget) {
+    const target =
+      explicitTarget && typeof explicitTarget === "object"
+        ? explicitTarget
+        : editorTarget;
+    const pillarId = String(
+      (target && target.pillarId) || getEditorTargetPillarId(),
+    )
+      .trim()
+      .toLowerCase();
+    return pillarId === "events";
+  }
+
+  function getEditorEventRecurrenceValue() {
+    const checked = editorStepLanguagesPanel
+      ? editorStepLanguagesPanel.querySelector(
+          'input[name="editorEventRecurrence"]:checked',
+        )
+      : null;
+    return String((checked && checked.value) || "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function getEditorEventCadenceInput() {
+    if (!editorStepLanguagesPanel) return null;
+    return editorStepLanguagesPanel.querySelector(
+      'input[name="editorEventCadence"]:checked',
+    );
+  }
+
+  function syncEditorEventCadenceUi() {
+    const recurring = getEditorEventRecurrenceValue() === "recurrent";
+    if (editorEventCadenceShell) {
+      editorEventCadenceShell.hidden = !recurring;
+      if (!recurring) {
+        setInputValidity(editorEventCadenceShell, true);
+      }
+    }
+    if (editorEventCadenceTabs) {
+      setInputValidity(editorEventCadenceTabs, true);
+    }
+  }
+
+  function updateEditorEventPhotosStatus() {
+    if (!editorEventPhotosStatus) return;
+    const existingCount = editorEventExistingAttachments.length;
+    const selectedCount =
+      editorEventPhotosInput && editorEventPhotosInput.files
+        ? editorEventPhotosInput.files.length
+        : 0;
+    if (selectedCount > 0) {
+      editorEventPhotosStatus.textContent =
+        selectedCount === 1
+          ? "1 photo selected."
+          : `${selectedCount} photos selected.`;
+      return;
+    }
+    if (existingCount > 0) {
+      editorEventPhotosStatus.textContent =
+        existingCount === 1
+          ? "1 existing photo."
+          : `${existingCount} existing photos.`;
+      return;
+    }
+    editorEventPhotosStatus.textContent = "";
+  }
+
+  function syncEditorStepThreeMode() {
+    const eventsFlow = isEditorEventsPillarTarget();
+    if (editorLanguagesSegment) {
+      editorLanguagesSegment.hidden = eventsFlow;
+    }
+    if (editorEventsSegment) {
+      editorEventsSegment.hidden = !eventsFlow;
+    }
+    if (eventsFlow) {
+      syncEditorEventCadenceUi();
+      updateEditorEventPhotosStatus();
+      return;
+    }
+    editorEventExistingAttachments = [];
+    updateEditorEventPhotosStatus();
+  }
+
   function getEditorReviewStepDefinitions() {
     const copy = getEditorUiCopy(editorUiCopyLang);
+    const eventsFlow = isEditorEventsPillarTarget();
     return [
       {
         id: "text",
@@ -2934,12 +3184,15 @@
           validateEditorTranslationStep(paintInvalid),
       },
       {
-        id: "languages",
-        label:
-          copy.stepLanguagesLinks || EDITOR_UI_COPY_BASE.stepLanguagesLinks,
+        id: eventsFlow ? "event-schedule" : "languages",
+        label: eventsFlow
+          ? copy.stepEventSchedule || EDITOR_UI_COPY_BASE.stepEventSchedule
+          : copy.stepLanguagesLinks || EDITOR_UI_COPY_BASE.stepLanguagesLinks,
         panel: editorStepLanguagesPanel,
         validate: (paintInvalid) =>
-          validateEditorLanguageAndLinkFields(paintInvalid),
+          eventsFlow
+            ? validateEditorEventScheduleFields(paintInvalid)
+            : validateEditorLanguageAndLinkFields(paintInvalid),
       },
       {
         id: "contact",
@@ -3081,6 +3334,7 @@
 
   function updateEditorReviewUi() {
     const isWizard = Boolean(editorReviewWizardEnabled && editorReviewSteps.length);
+    syncEditorStepThreeMode();
     if (editorStepper) {
       editorStepper.hidden = !isWizard;
     }
@@ -3178,6 +3432,9 @@
 
   function getEditorStepOneLabel() {
     const copy = getEditorUiCopy(editorUiCopyLang);
+    if (isEditorEventsPillarTarget()) {
+      return copy.stepDescribeEvent || EDITOR_UI_COPY_BASE.stepDescribeEvent;
+    }
     const template = String(
       copy.stepWriteNativeBeforeSubmit ||
         EDITOR_UI_COPY_BASE.stepWriteNativeBeforeSubmit ||
@@ -3498,6 +3755,62 @@
       editorResourceLanguageItems[0].isPrimary = true;
     }
     renderEditorResourceLanguageItems();
+  }
+
+  function hydrateEditorEventFieldsFromSubmission(item) {
+    const safe = item && typeof item === "object" ? item : {};
+    const details =
+      safe.eventDetails && typeof safe.eventDetails === "object"
+        ? safe.eventDetails
+        : {};
+    const eventDate = String(details.date || safe.eventDate || "").trim();
+    const recurrence = String(
+      details.recurrence || safe.eventRecurrence || "non_recurrent",
+    )
+      .trim()
+      .toLowerCase();
+    const cadence = String(details.cadence || safe.eventCadence || "")
+      .trim()
+      .toLowerCase();
+    if (editorEventDate) {
+      editorEventDate.value = eventDate;
+    }
+    if (editorStepLanguagesPanel) {
+      editorStepLanguagesPanel
+        .querySelectorAll('input[name="editorEventRecurrence"]')
+        .forEach((input) => {
+          input.checked =
+            String(input.value || "").trim().toLowerCase() ===
+            (recurrence || "non_recurrent");
+        });
+      editorStepLanguagesPanel
+        .querySelectorAll('input[name="editorEventCadence"]')
+        .forEach((input) => {
+          input.checked =
+            String(input.value || "").trim().toLowerCase() === cadence;
+        });
+    }
+    editorEventExistingAttachments = Array.isArray(safe.attachments)
+      ? safe.attachments
+          .filter((next) => next && typeof next === "object")
+          .map((next) => ({
+            name: String(next.name || "").trim() || "Photo",
+            url: String(next.url || "").trim(),
+          }))
+          .filter((next) => next.url)
+      : [];
+    if (editorEventPhotosInput) {
+      editorEventPhotosInput.value = "";
+    }
+    [
+      editorEventDateWrap,
+      editorEventRecurrenceShell,
+      editorEventRecurrenceTabs,
+      editorEventCadenceShell,
+      editorEventCadenceTabs,
+    ].forEach((node) => setInputValidity(node, true));
+    syncEditorEventCadenceUi();
+    updateEditorEventPhotosStatus();
   }
 
   function addEditorResourceLanguageItem(countryId) {
@@ -3903,6 +4216,56 @@
     return "";
   }
 
+  function validateEditorEventScheduleFields(paintInvalid) {
+    const copy = getEditorUiCopy(editorUiCopyLang);
+    const shouldPaint = Boolean(paintInvalid);
+    const eventDate = String((editorEventDate && editorEventDate.value) || "").trim();
+    const recurrence = getEditorEventRecurrenceValue();
+    const cadenceInput = getEditorEventCadenceInput();
+    const cadence = String((cadenceInput && cadenceInput.value) || "")
+      .trim()
+      .toLowerCase();
+    const recurring = recurrence === "recurrent";
+    if (editorEventDateWrap && (shouldPaint || eventDate)) {
+      setInputValidity(editorEventDateWrap, Boolean(eventDate));
+    }
+    if (editorEventRecurrenceShell && (shouldPaint || recurrence)) {
+      setInputValidity(editorEventRecurrenceShell, Boolean(recurrence));
+    }
+    if (editorEventRecurrenceTabs) {
+      setInputValidity(editorEventRecurrenceTabs, !shouldPaint || Boolean(recurrence));
+    }
+    if (editorEventCadenceShell) {
+      const cadenceValid = !recurring || Boolean(cadence);
+      if (shouldPaint || recurring) {
+        setInputValidity(editorEventCadenceShell, cadenceValid);
+      } else {
+        setInputValidity(editorEventCadenceShell, true);
+      }
+    }
+    if (editorEventCadenceTabs) {
+      const cadenceValid = !recurring || Boolean(cadence);
+      if (shouldPaint || recurring) {
+        setInputValidity(editorEventCadenceTabs, cadenceValid);
+      } else {
+        setInputValidity(editorEventCadenceTabs, true);
+      }
+    }
+    if (!eventDate) {
+      return copy.completeEventDate || EDITOR_UI_COPY_BASE.completeEventDate;
+    }
+    if (!recurrence) {
+      return copy.chooseRecurrence || EDITOR_UI_COPY_BASE.chooseRecurrence;
+    }
+    if (recurring && !cadence) {
+      return (
+        copy.chooseRecurrenceCadence ||
+        EDITOR_UI_COPY_BASE.chooseRecurrenceCadence
+      );
+    }
+    return "";
+  }
+
   function validateEditorContactFields(paintInvalid) {
     const shouldPaint = Boolean(paintInvalid);
     const ownershipType = String(
@@ -4039,6 +4402,43 @@
         url: String(item.resourceUrl || "").trim(),
       }));
     return { resourceLanguages, languageAvailability, links, attachments };
+  }
+
+  async function buildEditorEventSubmissionPayload() {
+    const existing = Array.isArray(editorEventExistingAttachments)
+      ? editorEventExistingAttachments
+      : [];
+    const existingAttachments = existing
+      .filter((item) => item && typeof item === "object")
+      .map((item) => ({
+        name: String(item.name || "").trim() || "Photo",
+        url: String(item.url || "").trim(),
+      }))
+      .filter((item) => item.url);
+    const selectedFiles =
+      editorEventPhotosInput && editorEventPhotosInput.files
+        ? Array.from(editorEventPhotosInput.files)
+        : [];
+    const uploaded = [];
+    for (const file of selectedFiles) {
+      if (!(file instanceof File)) continue;
+      const upload = await uploadEditorAttachment(file);
+      uploaded.push({
+        name: String(upload.name || "").trim() || "Photo",
+        url: String(upload.url || "").trim(),
+      });
+    }
+    const mergedByUrl = new Map();
+    existingAttachments.concat(uploaded).forEach((item) => {
+      if (!item.url) return;
+      mergedByUrl.set(item.url, item);
+    });
+    return {
+      attachments: Array.from(mergedByUrl.values()),
+      links: [],
+      languageAvailability: "",
+      resourceLanguages: [],
+    };
   }
 
   function setNativeFieldLabels(titleText, descriptionText) {
@@ -4261,6 +4661,15 @@
     const invalidNode = scope.querySelector(".is-invalid, [aria-invalid='true']");
     if (invalidNode && typeof invalidNode.focus === "function") {
       invalidNode.focus();
+      return;
+    }
+    if (invalidNode) {
+      const focusable = invalidNode.querySelector(
+        "input, select, textarea, button, [tabindex]",
+      );
+      if (focusable && typeof focusable.focus === "function") {
+        focusable.focus();
+      }
     }
   }
 
@@ -4624,6 +5033,30 @@
     if (editorContactName) editorContactName.value = "";
     if (editorContactRole) editorContactRole.value = "";
     if (editorContactEmail) editorContactEmail.value = "";
+    if (editorEventDate) editorEventDate.value = "";
+    if (editorStepLanguagesPanel) {
+      editorStepLanguagesPanel
+        .querySelectorAll('input[name="editorEventRecurrence"]')
+        .forEach((input, index) => {
+          input.checked = index === 0;
+        });
+      editorStepLanguagesPanel
+        .querySelectorAll('input[name="editorEventCadence"]')
+        .forEach((input) => {
+          input.checked = false;
+        });
+    }
+    if (editorEventPhotosInput) editorEventPhotosInput.value = "";
+    editorEventExistingAttachments = [];
+    [
+      editorEventDateWrap,
+      editorEventRecurrenceShell,
+      editorEventRecurrenceTabs,
+      editorEventCadenceShell,
+      editorEventCadenceTabs,
+    ].forEach((node) => setInputValidity(node, true));
+    syncEditorEventCadenceUi();
+    updateEditorEventPhotosStatus();
     markSubmissionContactFieldsValid();
     resetEditorResourceLanguageItems(selectedCountryId || "");
     renderEditorResourceLanguageItems();
@@ -4658,6 +5091,7 @@
       editorCropStatus.textContent = "No new image selected.";
     }
     setSubmissionEntryFieldsVisible(false);
+    syncEditorStepThreeMode();
   }
 
   function setCropStatus(message) {
@@ -6349,6 +6783,23 @@
       String(contact.role || "").trim() ? `Role: ${String(contact.role || "").trim()}` : "",
       String(contact.email || "").trim() ? `Email: ${String(contact.email || "").trim()}` : "",
     ].filter(Boolean);
+    const eventDetails =
+      safeItem.eventDetails && typeof safeItem.eventDetails === "object"
+        ? safeItem.eventDetails
+        : {};
+    const normalizedEventDate = String(
+      eventDetails.date || safeItem.eventDate || "",
+    ).trim();
+    const normalizedEventRecurrence = String(
+      eventDetails.recurrence || safeItem.eventRecurrence || "non_recurrent",
+    )
+      .trim()
+      .toLowerCase();
+    const normalizedEventCadence = String(
+      eventDetails.cadence || safeItem.eventCadence || "",
+    )
+      .trim()
+      .toLowerCase();
 
     return {
       title,
@@ -6379,6 +6830,19 @@
       programs: [],
       impact,
       badges: [],
+      links,
+      attachments: fallbackAttachments,
+      eventDetails:
+        normalizedEventDate || normalizedEventRecurrence || normalizedEventCadence
+          ? {
+              date: normalizedEventDate,
+              recurrence: normalizedEventRecurrence || "non_recurrent",
+              cadence:
+                normalizedEventRecurrence === "recurrent"
+                  ? normalizedEventCadence
+                  : "",
+            }
+          : null,
     };
   }
 
@@ -6451,7 +6915,19 @@
       ).trim();
     }
     updateEditorTextCounters();
-    loadEditorResourceLanguageItems(code, item);
+    const submissionPillarId =
+      String(item && item.pillarId ? item.pillarId : "")
+        .trim()
+        .toLowerCase() || "resources";
+    if (submissionPillarId === "events") {
+      hydrateEditorEventFieldsFromSubmission(item);
+      resetEditorResourceLanguageItems(code);
+      renderEditorResourceLanguageItems();
+    } else {
+      loadEditorResourceLanguageItems(code, item);
+      editorEventExistingAttachments = [];
+      updateEditorEventPhotosStatus();
+    }
     const ownership =
       item.ownership && typeof item.ownership === "object" ? item.ownership : {};
     const ownershipTypeValue = String(ownership.type || "").trim();
@@ -6490,10 +6966,7 @@
       type: "submission-article",
       countryId: code,
       submissionId: String(item.id),
-      pillarId:
-        String(item && item.pillarId ? item.pillarId : "")
-          .trim()
-          .toLowerCase() || "resources",
+      pillarId: submissionPillarId,
     };
     setEditorMode("entry");
     openEditorModal();
@@ -7419,6 +7892,44 @@
     });
   }
 
+  if (editorEventDate) {
+    editorEventDate.addEventListener("input", () => {
+      validateEditorEventScheduleFields(false);
+      refreshEditorReviewProgress();
+    });
+    editorEventDate.addEventListener("change", () => {
+      validateEditorEventScheduleFields(false);
+      refreshEditorReviewProgress();
+    });
+  }
+
+  if (editorStepLanguagesPanel) {
+    editorStepLanguagesPanel
+      .querySelectorAll('input[name="editorEventRecurrence"]')
+      .forEach((input) => {
+        input.addEventListener("change", () => {
+          syncEditorEventCadenceUi();
+          validateEditorEventScheduleFields(false);
+          refreshEditorReviewProgress();
+        });
+      });
+    editorStepLanguagesPanel
+      .querySelectorAll('input[name="editorEventCadence"]')
+      .forEach((input) => {
+        input.addEventListener("change", () => {
+          validateEditorEventScheduleFields(false);
+          refreshEditorReviewProgress();
+        });
+      });
+  }
+
+  if (editorEventPhotosInput) {
+    editorEventPhotosInput.addEventListener("change", () => {
+      updateEditorEventPhotosStatus();
+      refreshEditorReviewProgress();
+    });
+  }
+
   if (editorForm) {
     editorForm.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -7457,6 +7968,7 @@
       }
 
       if (editorMode === "entry" && target.type === "submission-article") {
+        const eventsFlow = isEditorEventsPillarTarget(target);
         const translationRequired = requiresSubmissionTranslation(
           target.countryId,
           "article",
@@ -7506,9 +8018,18 @@
         const nativeDescription = editorDescription
           ? editorDescription.value
           : "";
-        const languageError = validateEditorLanguageAndLinkFields(true);
-        if (languageError) {
-          showToast(languageError, true);
+        const eventRecurrenceValue = getEditorEventRecurrenceValue();
+        const eventCadenceInput = getEditorEventCadenceInput();
+        const eventCadenceValue = String(
+          (eventCadenceInput && eventCadenceInput.value) || "",
+        )
+          .trim()
+          .toLowerCase();
+        const stepThreeError = eventsFlow
+          ? validateEditorEventScheduleFields(true)
+          : validateEditorLanguageAndLinkFields(true);
+        if (stepThreeError) {
+          showToast(stepThreeError, true);
           return;
         }
         const contactError = validateEditorContactFields(true);
@@ -7528,7 +8049,9 @@
           editorAcceptBtn.disabled = true;
         }
         try {
-          resourcePayload = await buildEditorResourceSubmissionPayload();
+          resourcePayload = eventsFlow
+            ? await buildEditorEventSubmissionPayload()
+            : await buildEditorResourceSubmissionPayload();
         } catch (error) {
           const code = String((error && error.message) || "").trim();
           if (code === "attachment_file_too_large") {
@@ -7576,6 +8099,32 @@
           )
             ? resourcePayload.resourceLanguages
             : [],
+          eventDate: eventsFlow
+            ? String((editorEventDate && editorEventDate.value) || "").trim()
+            : "",
+          eventRecurrence: eventsFlow
+            ? eventRecurrenceValue || "non_recurrent"
+            : "",
+          eventCadence: eventsFlow
+            ? String(
+                (eventRecurrenceValue === "recurrent" && eventCadenceValue) ||
+                  "",
+              )
+                .trim()
+                .toLowerCase()
+            : "",
+          eventDetails: eventsFlow
+            ? {
+                date: String(
+                  (editorEventDate && editorEventDate.value) || "",
+                ).trim(),
+                recurrence: eventRecurrenceValue || "non_recurrent",
+                cadence:
+                  eventRecurrenceValue === "recurrent"
+                    ? eventCadenceValue
+                    : "",
+              }
+            : null,
           ownership: {
             type: String(
               (editorOwnershipType && editorOwnershipType.value) || "",
