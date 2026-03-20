@@ -5283,6 +5283,15 @@
           transform 180ms ease;
       }
 
+      .ecva-editor-stepper-item.is-locked {
+        cursor: not-allowed;
+      }
+
+      .ecva-editor-stepper-item.is-locked:hover {
+        background: transparent;
+        transform: none;
+      }
+
       .ecva-editor-stepper-item:not(:last-child)::after {
         display: none;
       }
@@ -10837,12 +10846,18 @@
             const rawError = getContributeWizardStepError(index, false);
             const isValid = !rawError;
             const classes = ["ecva-editor-stepper-item"];
+            const isLocked =
+              index > contributeWizardStepIndex &&
+              !canActivateContributeWizardStep(index);
             if (index < contributeWizardStepIndex && isValid) {
               classes.push("is-done");
             } else if (index < contributeWizardStepIndex && !isValid) {
               classes.push("is-error");
             } else if (index === contributeWizardStepIndex) {
               classes.push("is-active");
+            }
+            if (isLocked) {
+              classes.push("is-locked");
             }
             const dotText =
               index < contributeWizardStepIndex && isValid
@@ -10858,6 +10873,7 @@
           .querySelectorAll("[data-contribute-review-step]")
           .forEach((node) => {
             node.addEventListener("click", () => {
+              if (node.classList.contains("is-locked")) return;
               const index = Number(
                 node.getAttribute("data-contribute-review-step"),
               );

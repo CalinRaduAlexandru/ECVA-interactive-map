@@ -2984,12 +2984,18 @@
         const rawMessage = getEditorReviewStepError(index, false);
         const isValid = !rawMessage;
         const classes = ["ecva-editor-stepper-item"];
+        const isLocked =
+          index > editorReviewStepIndex &&
+          !canActivateEditorReviewStep(index);
         if (index < editorReviewStepIndex && isValid) {
           classes.push("is-done");
         } else if (index < editorReviewStepIndex && !isValid) {
           classes.push("is-error");
         } else if (index === editorReviewStepIndex) {
           classes.push("is-active");
+        }
+        if (isLocked) {
+          classes.push("is-locked");
         }
         const dotText = index < editorReviewStepIndex && isValid ? "✓" : String(index + 1);
         return `<li class="${classes.join(" ")}" data-editor-review-step="${index}">
@@ -3002,6 +3008,7 @@
       .querySelectorAll("[data-editor-review-step]")
       .forEach((node) => {
         node.addEventListener("click", () => {
+          if (node.classList.contains("is-locked")) return;
           const index = Number(node.getAttribute("data-editor-review-step"));
           if (!Number.isFinite(index)) return;
           if (!canActivateEditorReviewStep(index)) return;
