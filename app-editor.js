@@ -1312,6 +1312,8 @@
       copyBtn.addEventListener("click", async () => {
         const fallbackCopy = () => {
           const area = document.createElement("textarea");
+          area.name = "ecva-copy-helper";
+          area.id = "ecva-copy-helper";
           area.value = code;
           area.setAttribute("readonly", "");
           area.style.position = "fixed";
@@ -2170,10 +2172,18 @@
         </header>
         <div class="ecva-label-manage-items">
           ${rows
-            .map((item) => {
+            .map((item, index) => {
               const key = String(item.key || "");
               const english = String(item.english || "").trim();
               const value = String(draft[key] || "");
+              const inputId = `ecva-label-manage-input-${String(key || index)
+                .trim()
+                .replace(/[^a-z0-9_-]+/gi, "-")
+                .replace(/^-+|-+$/g, "") || index}`;
+              const inputName = `label-override-${String(key || index)
+                .trim()
+                .replace(/[^a-z0-9_-]+/gi, "-")
+                .replace(/^-+|-+$/g, "") || index}`;
               const placeholderTemplate = String(
                 copy.nativePlaceholderWithDefault ||
                   "Default: {default}",
@@ -2186,6 +2196,8 @@
                   <span class="ecva-label-manage-english" title="${escapeHtml(english)}">${escapeHtml(english)}</span>
                   <input
                     type="text"
+                    id="${escapeHtml(inputId)}"
+                    name="${escapeHtml(inputName)}"
                     class="ecva-label-manage-native-input"
                     data-label-input="${escapeHtml(key)}"
                     value="${escapeHtml(value)}"
@@ -2337,7 +2349,7 @@
         <section class="ecva-label-manage-filters">
           <label class="ecva-label-manage-search-wrap">
             <span>Caută cuvinte sau sintagme</span>
-            <input type="search" class="ecva-label-manage-search" placeholder="Caută cuvinte sau sintagme" />
+            <input type="search" name="label-manage-search" class="ecva-label-manage-search" placeholder="Caută cuvinte sau sintagme" />
           </label>
         </section>
         <div class="ecva-label-manage-categories"></div>

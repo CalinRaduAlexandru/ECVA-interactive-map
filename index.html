@@ -12863,6 +12863,8 @@
           // Clipboard API can be blocked by iframe permissions policy.
         }
         const helper = document.createElement("textarea");
+        helper.name = "ecva-copy-helper";
+        helper.id = "ecva-copy-helper";
         helper.value = value;
         helper.setAttribute("readonly", "readonly");
         helper.style.position = "fixed";
