@@ -15,6 +15,7 @@ try {
 const ROOT = __dirname;
 const PORT = Number(process.env.PORT || 8081);
 const DATA_FILE = path.join(ROOT, 'editor-data.json');
+const NIGHTLY_BACKUP_DIR = path.join(ROOT, 'backups', 'nightly');
 const ASSETS_UPLOAD_DIR = path.join(ROOT, 'assets', 'uploads');
 const ASSETS_ATTACHMENTS_DIR = path.join(ASSETS_UPLOAD_DIR, 'attachments');
 const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
@@ -23,6 +24,10 @@ const EDITOR_STATE_KEY = 'global';
 const GLOBAL_SCOPE_KEY = 'global';
 const VERSION_LIMIT_DEFAULT = 25;
 const VERSION_LIMIT_MAX = 80;
+const BACKUP_LIMIT_DEFAULT = 30;
+const BACKUP_LIMIT_MAX = 365;
+const NIGHTLY_BACKUP_HOUR = 3;
+const NIGHTLY_BACKUP_MINUTE = 0;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -49,6 +54,41 @@ function parseLimit(value, fallback = VERSION_LIMIT_DEFAULT) {
   const num = Number(value);
   if (!Number.isFinite(num)) return fallback;
   return Math.max(1, Math.min(VERSION_LIMIT_MAX, Math.trunc(num)));
+}
+
+function parseBackupLimit(value, fallback = BACKUP_LIMIT_DEFAULT) {
+  const num = Number(value);
+  if (!Number.isFinite(num)) return fallback;
+  return Math.max(1, Math.min(BACKUP_LIMIT_MAX, Math.trunc(num)));
+}
+
+function ensureNightlyBackupDir() {
+  fs.mkdirSync(NIGHTLY_BACKUP_DIR, { recursive: true });
+}
+
+function pad2(value) {
+  return String(value).padStart(2, '0');
+}
+
+function getNightlyBackupFileName(now) {
+  const d = now instanceof Date ? now : new Date();
+  const yyyy = d.getFullYear();
+  const mm = pad2(d.getMonth() + 1);
+  const dd = pad2(d.getDate());
+  const hh = pad2(d.getHours());
+  const mi = pad2(d.getMinutes());
+  const ss = pad2(d.getSeconds());
+  return `editor-state-${yyyy}-${mm}-${dd}_${hh}-${mi}-${ss}.json`;
+}
+
+function msUntilNextNightlyBackup(now = new Date()) {
+  const next = new Date(now);
+  next.setHours(NIGHTLY_BACKUP_HOUR, NIGHTLY_BACKUP_MINUTE, 0, 0);
+  if (next <= now) {
+    next.setDate(next.getDate() + 1);
+  }
+  const delta = Number(next.getTime() - now.getTime());
+  return Number.isFinite(delta) && delta > 0 ? delta : 60 * 1000;
 }
 
 function hashState(state) {
@@ -435,6 +475,22 @@ async function ensurePostgresReady() {
   return pgReadyPromise;
 }
 
+async function getEditorStoreStatus() {
+  const ready = await ensurePostgresReady();
+  if (ready && pgPool) {
+    return {
+      store: 'postgres',
+      editable: true,
+      reason: '',
+    };
+  }
+  return {
+    store: 'file',
+    editable: false,
+    reason: 'postgres_unavailable',
+  };
+}
+
 async function readEditorDataFromPostgres() {
   const ready = await ensurePostgresReady();
   if (!ready || !pgPool) return null;
@@ -609,8 +665,10 @@ async function readEditorData() {
   return readEditorDataFromFile();
 }
 
-async function writeEditorData(data) {
+async function writeEditorData(data, options) {
   const payload = data && typeof data === 'object' ? data : { state: {} };
+  const opts = options && typeof options === 'object' ? options : {};
+  const requirePostgres = Boolean(opts.requirePostgres);
   const scopeKey = normalizeScopeKey(payload.scopeKey);
   const state = payload.state && typeof payload.state === 'object' ? payload.state : {};
   let persistedToDb = false;
@@ -626,6 +684,9 @@ async function writeEditorData(data) {
     // eslint-disable-next-line no-console
     console.error('Postgres write failed:', error);
     persistedToDb = false;
+  }
+  if (requirePostgres && !persistedToDb) {
+    return false;
   }
   if (!persistedToDb) {
     const current = readEditorDataFromFile();
@@ -666,6 +727,93 @@ async function writeEditorData(data) {
     });
   }
   return persistedToDb;
+}
+
+function listNightlyBackups(limit) {
+  ensureNightlyBackupDir();
+  const safeLimit = parseBackupLimit(limit);
+  const files = fs
+    .readdirSync(NIGHTLY_BACKUP_DIR)
+    .filter((name) => String(name || '').toLowerCase().endsWith('.json'))
+    .sort((a, b) => b.localeCompare(a))
+    .slice(0, safeLimit);
+  return files.map((name) => {
+    const fullPath = path.join(NIGHTLY_BACKUP_DIR, name);
+    let size = 0;
+    let createdAt = '';
+    try {
+      const stat = fs.statSync(fullPath);
+      size = Number(stat.size || 0);
+      createdAt = stat.birthtime ? new Date(stat.birthtime).toISOString() : '';
+    } catch (error) {
+      size = 0;
+      createdAt = '';
+    }
+    return { file: name, sizeBytes: size, createdAt };
+  });
+}
+
+function readNightlyBackupByFile(fileName) {
+  ensureNightlyBackupDir();
+  const raw = String(fileName || '').trim();
+  const safeName = path.basename(raw);
+  if (!safeName || safeName !== raw) return null;
+  const fullPath = path.join(NIGHTLY_BACKUP_DIR, safeName);
+  if (!fs.existsSync(fullPath)) return null;
+  const parsed = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
+  if (!parsed || typeof parsed !== 'object') return null;
+  const state = parsed.state && typeof parsed.state === 'object' ? parsed.state : null;
+  if (!state) return null;
+  return {
+    file: safeName,
+    state,
+    backedUpAt: String(parsed.backedUpAt || ''),
+    sourceUpdatedAt: String(parsed.sourceUpdatedAt || ''),
+  };
+}
+
+async function runNightlyBackup(reason) {
+  const status = await getEditorStoreStatus();
+  if (!status.editable || status.store !== 'postgres') {
+    // eslint-disable-next-line no-console
+    console.error(
+      `[backup] skipped (${String(reason || 'scheduled')}): postgres unavailable`,
+    );
+    return { ok: false, skipped: true, reason: 'postgres_unavailable' };
+  }
+  const data = await readEditorDataFromPostgres();
+  const state = data && data.state && typeof data.state === 'object' ? data.state : {};
+  const now = new Date();
+  const payload = {
+    backedUpAt: now.toISOString(),
+    sourceStore: 'postgres',
+    sourceUpdatedAt: String((data && data.updatedAt) || ''),
+    state,
+  };
+  ensureNightlyBackupDir();
+  const file = getNightlyBackupFileName(now);
+  const outPath = path.join(NIGHTLY_BACKUP_DIR, file);
+  fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
+  // eslint-disable-next-line no-console
+  console.log(`[backup] saved ${file}`);
+  return { ok: true, file, backedUpAt: payload.backedUpAt };
+}
+
+function scheduleNightlyBackup() {
+  const scheduleNext = () => {
+    const delay = msUntilNextNightlyBackup(new Date());
+    setTimeout(async () => {
+      try {
+        await runNightlyBackup('scheduled');
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('[backup] nightly backup failed:', error);
+      } finally {
+        scheduleNext();
+      }
+    }, delay);
+  };
+  scheduleNext();
 }
 
 function httpGetJson(targetUrl) {
@@ -774,7 +922,13 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET') {
       try {
         const data = await readEditorData();
-        return sendJson(res, 200, data);
+        const status = await getEditorStoreStatus();
+        return sendJson(res, 200, {
+          ...data,
+          store: status.store,
+          editable: status.editable,
+          reason: status.reason,
+        });
       } catch (error) {
         return sendJson(res, 500, { ok: false, error: 'state_read_failed' });
       }
@@ -794,12 +948,36 @@ const server = http.createServer(async (req, res) => {
         const scopeKey = normalizeScopeKey(parsedBody && parsedBody.scope);
         const payload = { state, updatedAt: new Date().toISOString(), scopeKey };
         try {
-          const persistedToDb = await writeEditorData(payload);
+          const status = await getEditorStoreStatus();
+          if (!status.editable || status.store !== 'postgres') {
+            return sendJson(res, 503, {
+              ok: false,
+              error: 'storage_read_only',
+              store: status.store,
+              editable: false,
+              reason: status.reason,
+              message: 'Editing is locked because PostgreSQL storage is unavailable.',
+            });
+          }
+          const persistedToDb = await writeEditorData(payload, {
+            requirePostgres: true,
+          });
+          if (!persistedToDb) {
+            return sendJson(res, 503, {
+              ok: false,
+              error: 'storage_read_only',
+              store: 'file',
+              editable: false,
+              reason: 'postgres_unavailable',
+              message: 'Editing is locked because PostgreSQL storage is unavailable.',
+            });
+          }
           return sendJson(res, 200, {
             ok: true,
             updatedAt: payload.updatedAt,
             scope: scopeKey,
-            store: persistedToDb ? 'postgres' : 'file',
+            store: 'postgres',
+            editable: true,
           });
         } catch (writeError) {
           return sendJson(res, 500, { ok: false, error: 'state_write_failed' });
@@ -809,6 +987,86 @@ const server = http.createServer(async (req, res) => {
     }
 
     return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
+  }
+
+  if (pathname === '/api/editor-data/backups') {
+    if (req.method === 'GET') {
+      try {
+        const limit = parseBackupLimit(parsed.query && parsed.query.limit);
+        const backups = listNightlyBackups(limit);
+        return sendJson(res, 200, {
+          ok: true,
+          backupDir: NIGHTLY_BACKUP_DIR,
+          scheduleLocal: `${pad2(NIGHTLY_BACKUP_HOUR)}:${pad2(NIGHTLY_BACKUP_MINUTE)}`,
+          backups,
+        });
+      } catch (error) {
+        return sendJson(res, 500, { ok: false, error: 'backup_list_failed' });
+      }
+    }
+
+    return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
+  }
+
+  if (pathname === '/api/editor-data/backups/restore') {
+    if (req.method !== 'POST') {
+      return sendJson(res, 405, { ok: false, error: 'method_not_allowed' });
+    }
+    readJsonBody(req, 256 * 1024, async (error, parsedBody) => {
+      if (error) {
+        if (error.code === 'payload_too_large') {
+          return sendJson(res, 413, { ok: false, error: 'payload_too_large' });
+        }
+        return sendJson(res, 400, { ok: false, error: 'invalid_json' });
+      }
+      const file = String(parsedBody && parsedBody.file ? parsedBody.file : '').trim();
+      if (!file) {
+        return sendJson(res, 400, { ok: false, error: 'backup_file_required' });
+      }
+      try {
+        const status = await getEditorStoreStatus();
+        if (!status.editable || status.store !== 'postgres') {
+          return sendJson(res, 503, {
+            ok: false,
+            error: 'storage_read_only',
+            store: status.store,
+            editable: false,
+            reason: status.reason,
+          });
+        }
+        const backup = readNightlyBackupByFile(file);
+        if (!backup) {
+          return sendJson(res, 404, { ok: false, error: 'backup_not_found' });
+        }
+        const payload = {
+          state: backup.state,
+          updatedAt: new Date().toISOString(),
+          note: `restore_backup:${backup.file}`,
+          scopeKey: GLOBAL_SCOPE_KEY,
+        };
+        const persistedToDb = await writeEditorData(payload, {
+          requirePostgres: true,
+        });
+        if (!persistedToDb) {
+          return sendJson(res, 503, {
+            ok: false,
+            error: 'storage_read_only',
+            store: 'file',
+            editable: false,
+            reason: 'postgres_unavailable',
+          });
+        }
+        return sendJson(res, 200, {
+          ok: true,
+          restoredFrom: backup.file,
+          updatedAt: payload.updatedAt,
+          store: 'postgres',
+        });
+      } catch (restoreError) {
+        return sendJson(res, 500, { ok: false, error: 'backup_restore_failed' });
+      }
+    });
+    return;
   }
 
   if (pathname === '/api/editor-data/versions') {
@@ -845,6 +1103,16 @@ const server = http.createServer(async (req, res) => {
           return sendJson(res, 400, { ok: false, error: 'invalid_version_id' });
         }
         try {
+          const status = await getEditorStoreStatus();
+          if (!status.editable || status.store !== 'postgres') {
+            return sendJson(res, 503, {
+              ok: false,
+              error: 'storage_read_only',
+              store: status.store,
+              editable: false,
+              reason: status.reason,
+            });
+          }
           const version = pgPool
             ? await readVersionStateFromPostgres(versionId, scopeKey)
             : readVersionStateFromFile(versionId, scopeKey);
@@ -859,14 +1127,25 @@ const server = http.createServer(async (req, res) => {
             note: `rollback:${version.versionId}`,
             scopeKey,
           };
-          const persistedToDb = await writeEditorData(payload);
+          const persistedToDb = await writeEditorData(payload, {
+            requirePostgres: true,
+          });
+          if (!persistedToDb) {
+            return sendJson(res, 503, {
+              ok: false,
+              error: 'storage_read_only',
+              store: 'file',
+              editable: false,
+              reason: 'postgres_unavailable',
+            });
+          }
           return sendJson(res, 200, {
             ok: true,
             state: mergedState,
             restoredFrom: version.versionId,
             updatedAt: payload.updatedAt,
             scope: scopeKey,
-            store: persistedToDb ? 'postgres' : 'file',
+            store: 'postgres',
           });
         } catch (rollbackError) {
           return sendJson(res, 500, { ok: false, error: 'rollback_failed' });
@@ -1047,11 +1326,18 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
+ensureNightlyBackupDir();
+scheduleNightlyBackup();
+
 server.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`ECVA server running at http://localhost:${PORT}`);
   // eslint-disable-next-line no-console
   console.log(
     `State store: ${pgPool ? 'postgres' : 'file'} | Image store: ${isCloudinaryConfigured() ? 'cloudinary' : 'local'}`,
+  );
+  // eslint-disable-next-line no-console
+  console.log(
+    `Nightly backup: ${pad2(NIGHTLY_BACKUP_HOUR)}:${pad2(NIGHTLY_BACKUP_MINUTE)} local time -> ${NIGHTLY_BACKUP_DIR}`,
   );
 });

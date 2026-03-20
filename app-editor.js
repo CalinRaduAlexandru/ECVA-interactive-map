@@ -542,8 +542,54 @@
     return normalizeLanguageCode(document.documentElement.lang || "en");
   }
 
+  function getStorageLockMessage() {
+    const lang = normalizeLanguageCode(getCurrentLang());
+    if (lang === "ro") {
+      return "Editarea este blocată temporar: stocarea securizată (PostgreSQL) este indisponibilă.";
+    }
+    return "Editing is temporarily locked: secure PostgreSQL storage is unavailable.";
+  }
+
+  function markEditorStorageStatus(payload) {
+    const store = String((payload && payload.store) || "")
+      .trim()
+      .toLowerCase();
+    const editable =
+      payload && typeof payload.editable === "boolean"
+        ? payload.editable
+        : store === "postgres";
+    editorStateStore = store || editorStateStore || "unknown";
+    editorStoreEditable = Boolean(editable && editorStateStore === "postgres");
+    if (!editorStoreEditable) {
+      if (manageBtn) {
+        manageBtn.setAttribute("title", getStorageLockMessage());
+      }
+      if (!editorStorageLockToastShown) {
+        showToast(getStorageLockMessage(), true);
+        editorStorageLockToastShown = true;
+      }
+    } else {
+      if (manageBtn) {
+        manageBtn.removeAttribute("title");
+      }
+      editorStorageLockToastShown = false;
+      if (accessCodeError && accessCodeError.classList.contains("is-visible")) {
+        const msg = String(accessCodeError.textContent || "").trim();
+        if (msg === getStorageLockMessage()) {
+          clearAccessCodeError();
+        }
+      }
+    }
+    updateEditorSaveAvailability();
+    updateVersionHistoryButtonVisibility();
+    updateLabelManageButtonVisibility();
+    if (labelManageModal && labelManageModal.classList.contains("is-visible")) {
+      renderLabelManageList();
+    }
+  }
+
   function canEditContent() {
-    return true;
+    return Boolean(editorStoreEditable);
   }
 
   function normalizeManageCountryCode(rawCode) {
@@ -957,6 +1003,9 @@
   let persistTimer = null;
   let inboxRequestCounter = 0;
   let pendingInboxRequests = new Map();
+  let editorStateStore = "unknown";
+  let editorStoreEditable = false;
+  let editorStorageLockToastShown = false;
   let versionHistoryBtn = null;
   let versionHistoryModal = null;
   let versionHistoryList = null;
@@ -1031,8 +1080,21 @@
   }
 
   function postToMap(type, payload) {
-    if (!mapFrame.contentWindow) return;
+    if (!mapFrame.contentWindow) return false;
+    const actionType = String(type || "").trim().toLowerCase();
+    const mutating =
+      actionType.startsWith("ecva-editor-update-") ||
+      actionType.startsWith("ecva-editor-add-") ||
+      actionType.startsWith("ecva-editor-remove-") ||
+      actionType.startsWith("ecva-editor-delete-") ||
+      actionType.startsWith("ecva-editor-reorder-") ||
+      actionType === "ecva-editor-apply-state";
+    if (mutating && !canEditContent() && actionType !== "ecva-editor-apply-state") {
+      showToast(getStorageLockMessage(), true);
+      return false;
+    }
     mapFrame.contentWindow.postMessage({ type, payload: payload || {} }, "*");
+    return true;
   }
 
   function escapeHtml(value) {
@@ -1097,8 +1159,9 @@
     const hasSelectedCountry = Boolean(
       normalizeManageCountryCode(selectedCountryId),
     );
-    labelManageBtn.style.display = hasSelectedCountry ? "inline-flex" : "none";
-    if (!hasSelectedCountry) {
+    const shouldShow = hasSelectedCountry && canEditContent();
+    labelManageBtn.style.display = shouldShow ? "inline-flex" : "none";
+    if (!shouldShow) {
       closeLabelManageModal();
     }
   }
@@ -1781,6 +1844,9 @@
       }
       clearAccessCodeError();
       accessScope = resolved;
+      if (!canEditContent()) {
+        showAccessCodeError(getStorageLockMessage());
+      }
       if (accessScope.mode === "country") {
         selectedCountryId = accessScope.countryId;
       } else {
@@ -2156,7 +2222,7 @@
         : "";
     const rows = getResourceLabelSchemaRows(lang, searchTerm, labelManageCategory);
     const langLabel = getLanguageDisplayLabel(lang);
-    const isEditable = lang !== "en";
+    const isEditable = lang !== "en" && canEditContent();
     if (labelManageSaveBtn) {
       labelManageSaveBtn.disabled = !isEditable;
     }
@@ -2228,6 +2294,11 @@
   }
 
   function saveLabelOverridesFromModal() {
+    if (!canEditContent()) {
+      updateLabelManageNotice(getStorageLockMessage(), true);
+      showToast(getStorageLockMessage(), true);
+      return;
+    }
     const lang = normalizeLanguageCode(labelManageLanguage || "en");
     labelManageLanguage = lang;
     const copy = getLabelManageUiCopy();
@@ -2244,6 +2315,11 @@
   }
 
   function resetLabelOverridesForCurrentLanguage() {
+    if (!canEditContent()) {
+      updateLabelManageNotice(getStorageLockMessage(), true);
+      showToast(getStorageLockMessage(), true);
+      return;
+    }
     const lang = normalizeLanguageCode(labelManageLanguage || "en");
     labelManageLanguage = lang;
     const copy = getLabelManageUiCopy();
@@ -2425,6 +2501,11 @@
   }
 
   async function openLabelManageModal() {
+    if (!canEditContent()) {
+      showToast(getStorageLockMessage(), true);
+      showAccessCodeError(getStorageLockMessage());
+      return;
+    }
     ensureLabelManageUi();
     if (!labelManageModal) return;
     labelManageLanguage = normalizeLanguageCode(getDefaultLabelManageLanguage());
@@ -4696,6 +4777,21 @@
 
   function updateEditorSaveAvailability() {
     if (!editorSaveBtn && !editorPendingBtn && !editorAcceptBtn) return;
+    if (!canEditContent()) {
+      if (editorSaveBtn) {
+        editorSaveBtn.style.display = "inline-flex";
+        editorSaveBtn.disabled = true;
+      }
+      if (editorPendingBtn) {
+        editorPendingBtn.style.display = "inline-flex";
+        editorPendingBtn.disabled = true;
+      }
+      if (editorAcceptBtn) {
+        editorAcceptBtn.style.display = "inline-flex";
+        editorAcceptBtn.disabled = true;
+      }
+      return;
+    }
     const copy = getEditorUiCopy(editorUiCopyLang);
     const state = submissionTranslationState;
     const checking = Boolean(state && state.checking);
@@ -7558,11 +7654,19 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!response.ok) throw new Error("persist failed");
       const payload = await response.json().catch(() => null);
+      if (!response.ok) {
+        if (payload && payload.error === "storage_read_only") {
+          markEditorStorageStatus(payload);
+          showAccessCodeError(getStorageLockMessage());
+          return;
+        }
+        throw new Error("persist failed");
+      }
+      markEditorStorageStatus(payload);
       const store = payload && payload.store ? String(payload.store) : "";
       if (store && store !== "postgres") {
-        showToast("Saved on temporary storage only. Check Postgres.", true);
+        showToast(getStorageLockMessage(), true);
         return;
       }
     } catch (error) {
@@ -7586,6 +7690,7 @@
       const response = await fetch(EDITOR_API, { cache: "no-store" });
       if (!response.ok) return;
       const payload = await response.json();
+      markEditorStorageStatus(payload);
       if (payload && payload.state && typeof payload.state === "object") {
         postToMap("ecva-editor-apply-state", { state: payload.state });
       }
@@ -7952,6 +8057,10 @@
 
   if (editorPendingBtn) {
     editorPendingBtn.addEventListener("click", () => {
+      if (!canEditContent()) {
+        showToast(getStorageLockMessage(), true);
+        return;
+      }
       if (editorPendingBtn.disabled) return;
       editorSubmissionFinalStatus = "pending";
       if (editorForm && typeof editorForm.requestSubmit === "function") {
@@ -7962,6 +8071,10 @@
 
   if (editorAcceptBtn) {
     editorAcceptBtn.addEventListener("click", () => {
+      if (!canEditContent()) {
+        showToast(getStorageLockMessage(), true);
+        return;
+      }
       if (editorAcceptBtn.disabled) return;
       editorSubmissionFinalStatus = "archived";
       if (editorForm && typeof editorForm.requestSubmit === "function") {
@@ -8036,6 +8149,10 @@
   if (editorForm) {
     editorForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      if (!canEditContent()) {
+        showToast(getStorageLockMessage(), true);
+        return;
+      }
       if (!editorTarget) return;
       const target = { ...editorTarget };
       const requestedFinalStatus = String(editorSubmissionFinalStatus || "")
@@ -8446,6 +8563,10 @@
 
   if (editorRemoveBtn) {
     editorRemoveBtn.addEventListener("click", () => {
+      if (!canEditContent()) {
+        showToast(getStorageLockMessage(), true);
+        return;
+      }
       if (!editorTarget) return;
       const isPublishedRepresentative =
         editorMode === "representative" &&
