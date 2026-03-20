@@ -1233,6 +1233,17 @@
               government: "/assets/Government.png",
             };
 
+            function preloadPillarSymbolIcons() {
+              const uniqueIcons = Array.from(new Set(Object.values(pillarSymbolIcons)));
+              uniqueIcons.forEach((src) => {
+                if (!src) return;
+                const img = new Image();
+                img.decoding = "async";
+                img.src = src;
+              });
+            }
+            preloadPillarSymbolIcons();
+
             const pillarInfoText = {
               resources: {
                 title: "Resources",
@@ -2467,7 +2478,7 @@
                   const languageCounts = getLanguageCounts(config.entries);
                   const dotTextHtml = config.active
                     ? `
-                    <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="lazy" decoding="async" /></span>
+                    <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="eager" decoding="async" /></span>
                     <span class="country-modal-pillar-dot-meta">
                       ${languageCounts
                         .map(
@@ -2478,7 +2489,7 @@
                     </span>
                     `
                     : `
-                    <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="lazy" decoding="async" /></span>
+                    <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="eager" decoding="async" /></span>
                     `;
                   return `
                   <article class="country-modal-pillar ${config.active ? "is-active" : "is-unavailable"} ${escapeHtml(pillarThemeClass)}">

@@ -256,12 +256,11 @@
     reviewEntry: "Review Entry",
     editRepresentative: "Edit representative",
     stepWord: "Step",
-    stepWriteNativeBeforeSubmit:
-      "Write title and description in {language} before submitting.",
+    stepWriteNativeBeforeSubmit: "Text in {language}",
     stepReviewText: "Review text",
     stepCheckTranslation: "Check translation",
     stepLanguagesLinks: "Languages & links",
-    stepContactDetails: "Contact details",
+    stepContactDetails: "Contact",
     back: "Back",
     cancel: "Cancel",
     removeItem: "Delete",
@@ -310,12 +309,11 @@
       reviewEntry: "Revizuire intrare",
       editRepresentative: "Editează reprezentantul",
       stepWord: "Pasul",
-      stepWriteNativeBeforeSubmit:
-        "Scrie titlul și descrierea în limba {language} înainte de trimitere.",
+      stepWriteNativeBeforeSubmit: "Text în {language}",
       stepReviewText: "Revizuiește textul",
       stepCheckTranslation: "Verifică traducerea",
-      stepLanguagesLinks: "Limbi disponibile și linkuri",
-      stepContactDetails: "Date de contact",
+      stepLanguagesLinks: "Limbi și linkuri",
+      stepContactDetails: "Contact",
       back: "Înapoi",
       cancel: "Anulează",
       removeItem: "Șterge",
@@ -771,6 +769,41 @@
     government: "/assets/Government.png",
   };
 
+  function wirePillarIconLoading(scope) {
+    if (!scope) return;
+    const images = scope.querySelectorAll(
+      ".ecva-manage-pillars-dot, .country-modal-pillar-symbol img",
+    );
+    images.forEach((img) => {
+      if (!(img instanceof HTMLImageElement)) return;
+      if (img.dataset.pillarLoadWired === "1") return;
+      img.dataset.pillarLoadWired = "1";
+      const minSkeletonMs = 180;
+      const wiredAt = Date.now();
+      const symbolWrap = img.closest(".country-modal-pillar-symbol");
+      const revealLoaded = () => {
+        const elapsed = Date.now() - wiredAt;
+        const waitMs = elapsed < minSkeletonMs ? minSkeletonMs - elapsed : 0;
+        window.setTimeout(() => {
+          requestAnimationFrame(() => {
+            img.classList.add("is-loaded");
+            if (symbolWrap) symbolWrap.classList.add("is-loaded");
+          });
+        }, waitMs);
+      };
+      const markError = () => {
+        img.classList.add("is-error");
+        if (symbolWrap) symbolWrap.classList.add("is-error");
+      };
+      if (img.complete && img.naturalWidth > 0) {
+        revealLoaded();
+        return;
+      }
+      img.addEventListener("load", revealLoaded, { once: true });
+      img.addEventListener("error", markError, { once: true });
+    });
+  }
+
   function buildOverviewPillarStatusHtml(country) {
     const statusValue = normalizeStatusValue(
       country && (country.statusValue || country.status),
@@ -791,7 +824,7 @@
       const iconPath =
         OVERVIEW_PILLAR_ICON[pillarId] || OVERVIEW_PILLAR_ICON.resources;
       const title = `${String(pillarId).charAt(0).toUpperCase()}${String(pillarId).slice(1)}: ${isActive ? "active" : "pending/no data"}`;
-      return `<img class="ecva-manage-pillars-dot${isActive ? " is-active" : ""}" src="${iconPath}" alt="" loading="lazy" decoding="async" title="${escapeHtml(title)}" />`;
+      return `<img class="ecva-manage-pillars-dot${isActive ? " is-active" : ""}" src="${iconPath}" alt="" loading="eager" decoding="async" title="${escapeHtml(title)}" />`;
     }).join("");
     return `<span class="ecva-manage-pillars-status" aria-hidden="true">${icons}</span>`;
   }
@@ -1463,6 +1496,7 @@
       </article>
     `;
     manageBody.prepend(panel);
+    wirePillarIconLoading(panel);
     wireAccessPanel(panel);
     wireStatusSelects(panel);
   }
@@ -2716,8 +2750,10 @@
     }
     const stepWord = copy.stepWord || EDITOR_UI_COPY_BASE.stepWord;
     const stepLabel = String(currentStep.label || "").trim();
-    const stepTitle = `${stepWord} ${editorReviewStepIndex + 1}. ${stepLabel}`;
-    editorHeading.textContent = `${copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry} - ${stepTitle}`;
+    const stepTitle = `${stepWord} ${editorReviewStepIndex + 1}`;
+    editorHeading.textContent = stepLabel
+      ? `${copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry} - ${stepTitle}: ${stepLabel}`
+      : `${copy.reviewEntry || EDITOR_UI_COPY_BASE.reviewEntry} - ${stepTitle}`;
   }
 
   function refreshEditorUiLanguage() {
@@ -6796,6 +6832,7 @@
   function enhanceManageContent() {
     if (!manageBody) return;
     renderCountryFlowPanel(manageBody);
+    wirePillarIconLoading(manageBody);
     wireManageOutlookCarousels(manageBody);
     wireManageEntryExpanders(manageBody);
     wireManageSeeMore(manageBody);
