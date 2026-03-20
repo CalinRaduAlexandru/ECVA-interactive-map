@@ -8729,7 +8729,7 @@
           "File too large. Maximum allowed size is 15MB per file.",
         fileFormatUnsupportedError: "File format is not supported.",
         invalidLinkForLanguage:
-          "Invalid link for {language}. Use a full URL (https://...) or www....",
+          "Invalid link. Use a full URL (https://...) or www....",
         completeName: "Complete the name.",
         completeRole: "Complete the role.",
         completeEmailValid: "Complete email in a valid format.",
@@ -8856,7 +8856,7 @@
           "Fișierul este prea mare. Limita este 15MB per fișier.",
         fileFormatUnsupportedError: "Formatul fișierului nu este acceptat.",
         invalidLinkForLanguage:
-          "Link invalid pentru {language}. Folosește un URL complet (https://...) sau www....",
+          "Link invalid. Folosește un URL complet (https://...) sau www....",
         completeName: "Completează numele.",
         completeRole: "Completează rolul.",
         completeEmailValid: "Completează un email valid.",
@@ -10158,14 +10158,7 @@
             item.resourceUrl = normalizedUrl;
             const urlOk = isLikelyValidUrl(normalizedUrl);
             if (!urlOk) {
-              const languageName = (
-                getResourceLanguageOption(languageCode).label || "this language"
-              ).trim();
-              errors.push(
-                getResourceUiText("invalidLinkForLanguage", {
-                  language: languageName,
-                }),
-              );
+              errors.push(getResourceUiText("invalidLinkForLanguage"));
               setFieldError(valueInput, Boolean(shouldPaintInvalid));
             } else {
               setFieldError(valueInput, false);
