@@ -6024,6 +6024,12 @@
         transform: translateY(0);
       }
 
+      .ecva-toast.is-error {
+        background: #7a2f35;
+        color: #fff2f2;
+        border-color: rgba(255, 183, 192, 0.6);
+      }
+
       .ecva-reset-code-modal {
         position: fixed;
         inset: 0;
@@ -8272,6 +8278,7 @@
       const languageSwitchToast = document.getElementById(
         "language-switch-toast",
       );
+      const ecvaToast = document.getElementById("ecva-toast");
       const embedCodeModal = document.getElementById("embed-code-modal");
       const embedCodeClose = document.getElementById("embed-code-close");
       const embedLanguageSelect = document.getElementById(
@@ -8584,6 +8591,7 @@
       let contributeAutoTranslationPrimed = false;
       const MODAL_CLOSE_MS = 320;
       let embedCopyStatusTimer = null;
+      let ecvaToastTimer = null;
       const REP_FORM_COPY = {
         en: {
           title: "Recommend a representative",
@@ -8747,6 +8755,8 @@
           "Run Refresh translation before continuing.",
         translationCheckedToast: "Translation checked.",
         translationCheckFailedToast: "Could not check translation right now.",
+        countryOpenFailedRetry:
+          "Could not open this country right now. Click once more to retry.",
         addTitleOrDescriptionBeforeCheck:
           "Add title or description before translation check.",
         notCheckedYet: "Not checked yet.",
@@ -8875,6 +8885,8 @@
         translationCheckedToast: "Traducerea a fost verificată.",
         translationCheckFailedToast:
           "Traducerea nu a putut fi verificată în acest moment.",
+        countryOpenFailedRetry:
+          "Țara nu s-a putut deschide acum. Apasă încă o dată pentru reîncercare.",
         addTitleOrDescriptionBeforeCheck:
           "Adaugă titlu sau descriere înainte de verificarea traducerii.",
         notCheckedYet: "Nu este verificat încă.",
@@ -11611,6 +11623,36 @@
         );
       }
 
+      function notifyMapCountryOpenFailed(countryCode) {
+        if (!frame || !frame.contentWindow) return;
+        frame.contentWindow.postMessage(
+          {
+            type: "ecva-country-open-failed",
+            payload: { countryId: normalizeCountryCode(countryCode) },
+          },
+          "*",
+        );
+      }
+
+      function showEcvaToast(message, tone) {
+        if (!ecvaToast) return;
+        const text = String(message || "").trim();
+        if (!text) return;
+        ecvaToast.textContent = text;
+        ecvaToast.classList.toggle("is-error", tone === "error");
+        ecvaToast.classList.add("is-visible");
+        if (ecvaToastTimer) {
+          window.clearTimeout(ecvaToastTimer);
+        }
+        ecvaToastTimer = window.setTimeout(() => {
+          ecvaToast.classList.remove("is-visible", "is-error");
+        }, 2600);
+      }
+
+      function showCountryOpenFailedFeedback() {
+        showEcvaToast(`⚠️ ${getResourceUiText("countryOpenFailedRetry")}`, "error");
+      }
+
       function forceScrollToTopAcrossContexts() {
         try {
           window.scrollTo({ top: 0, behavior: "smooth" });
@@ -13246,7 +13288,22 @@
           return;
         }
         if (event.data.type === "ecva-open-country-modal") {
-          openDesktopModal(event.data.payload && event.data.payload.html);
+          const payload = event.data.payload || {};
+          const countryId = String(payload.countryId || "").trim();
+          const html = String(payload.html || "").trim();
+          if (!html) {
+            showCountryOpenFailedFeedback();
+            notifyMapCountryOpenFailed(countryId);
+            return;
+          }
+          openDesktopModal(html).catch((_error) => {
+            showCountryOpenFailedFeedback();
+            notifyMapCountryOpenFailed(countryId);
+          });
+          return;
+        }
+        if (event.data.type === "ecva-country-open-timeout") {
+          showCountryOpenFailedFeedback();
           return;
         }
         if (event.data.type === "ecva-open-contribute-modal") {
@@ -14163,7 +14220,8 @@
             setMobileCountryLoading(countryCode, true);
             await openCountryByCode(countryCode);
           } catch (_error) {
-            // ignore silent failure in UI
+            showCountryOpenFailedFeedback();
+            notifyMapCountryOpenFailed(countryCode);
           } finally {
             setMobileCountryLoading(countryCode, false);
           }

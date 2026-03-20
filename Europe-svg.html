@@ -3668,8 +3668,15 @@
               window.setTimeout(() => {
                 if (loadingCountryCode === code) {
                   clearLoadingCountry();
+                  window.parent.postMessage(
+                    {
+                      type: "ecva-country-open-timeout",
+                      payload: { countryId: code },
+                    },
+                    "*",
+                  );
                 }
-              }, 4500);
+              }, 6200);
             }
 
             function ensurePendingHintLayer() {
@@ -4242,6 +4249,14 @@
 
               if (type === "ecva-country-open-complete") {
                 clearLoadingCountry();
+                return;
+              }
+
+              if (type === "ecva-country-open-failed") {
+                const failedCode = String(payload.countryId || "").trim().toUpperCase();
+                if (!failedCode || failedCode === loadingCountryCode) {
+                  clearLoadingCountry();
+                }
                 return;
               }
 
