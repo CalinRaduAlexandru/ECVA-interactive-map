@@ -4020,6 +4020,7 @@
 
       .ecva-editor-modal-dialog {
         width: min(760px, calc(100vw - 28px));
+        transition: height 280ms cubic-bezier(0.22, 1, 0.36, 1);
         --ecva-editor-step-shell-border: rgba(132, 153, 165, 0.4);
         --ecva-editor-step-shell-bg-a: rgba(248, 252, 254, 0.96);
         --ecva-editor-step-shell-bg-b: rgba(240, 247, 251, 0.92);
@@ -4034,6 +4035,10 @@
         --ecva-editor-step-done-dot-color: #1f6b49;
         --ecva-editor-step-done-label: #2b6650;
         --ecva-editor-step-done-line: rgba(69, 149, 112, 0.62);
+      }
+
+      .ecva-editor-modal-dialog.is-height-animating {
+        overflow: hidden;
       }
 
       .ecva-editor-modal-dialog.is-pillar-default {

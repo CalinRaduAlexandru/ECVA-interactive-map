@@ -1000,6 +1000,8 @@
   let editorUiCopyLang = "en";
   let editorAutoTranslationPrimed = false;
   let editorSubmissionFinalStatus = "";
+  let editorDialogHeightAnimToken = 0;
+  let editorDialogHeightAnimTimeout = null;
   const editorUiCopyCache = new Map([
     ["en", { ...EDITOR_UI_COPY_BASE }],
     ["ro", { ...EDITOR_UI_COPY_PRESET.ro }],
@@ -1840,6 +1842,14 @@
     releaseFocusBeforeHide(editorModal, closeManageBtn || manageBtn);
     editorModal.classList.remove("is-visible");
     editorModal.setAttribute("aria-hidden", "true");
+    if (editorDialog) {
+      editorDialog.classList.remove("is-height-animating");
+      editorDialog.style.height = "auto";
+    }
+    if (editorDialogHeightAnimTimeout) {
+      window.clearTimeout(editorDialogHeightAnimTimeout);
+      editorDialogHeightAnimTimeout = null;
+    }
     resetEditorRemoveState();
     editorTarget = null;
     editorMode = "entry";
@@ -3276,6 +3286,62 @@
     runSubmissionTranslationCheck();
   }
 
+  function runEditorDialogHeightTransition(mutate) {
+    if (typeof mutate !== "function") return;
+    if (!editorDialog) {
+      mutate();
+      return;
+    }
+    const reduceMotion = Boolean(
+      window.matchMedia &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
+    if (reduceMotion) {
+      mutate();
+      return;
+    }
+    if (editorDialogHeightAnimTimeout) {
+      window.clearTimeout(editorDialogHeightAnimTimeout);
+      editorDialogHeightAnimTimeout = null;
+    }
+    const token = editorDialogHeightAnimToken + 1;
+    editorDialogHeightAnimToken = token;
+    editorDialog.style.height = "auto";
+    const fromHeight = Math.round(editorDialog.getBoundingClientRect().height);
+    mutate();
+    editorDialog.style.height = "auto";
+    const toHeight = Math.round(editorDialog.getBoundingClientRect().height);
+    if (!fromHeight || !toHeight || Math.abs(toHeight - fromHeight) < 4) {
+      editorDialog.style.height = "auto";
+      editorDialog.classList.remove("is-height-animating");
+      return;
+    }
+    editorDialog.classList.add("is-height-animating");
+    editorDialog.style.height = `${fromHeight}px`;
+    void editorDialog.offsetHeight;
+    const finalize = () => {
+      if (editorDialogHeightAnimToken !== token) return;
+      editorDialog.classList.remove("is-height-animating");
+      editorDialog.style.height = "auto";
+      if (editorDialogHeightAnimTimeout) {
+        window.clearTimeout(editorDialogHeightAnimTimeout);
+        editorDialogHeightAnimTimeout = null;
+      }
+    };
+    const onEnd = (event) => {
+      if (event && event.target !== editorDialog) return;
+      editorDialog.removeEventListener("transitionend", onEnd);
+      finalize();
+    };
+    editorDialog.removeEventListener("transitionend", onEnd);
+    editorDialog.addEventListener("transitionend", onEnd);
+    requestAnimationFrame(() => {
+      if (editorDialogHeightAnimToken !== token) return;
+      editorDialog.style.height = `${toHeight}px`;
+      editorDialogHeightAnimTimeout = window.setTimeout(finalize, 420);
+    });
+  }
+
   function setEditorReviewStep(nextIndex, options = {}) {
     if (!editorReviewWizardEnabled) return;
     const maxIndex = editorReviewSteps.length - 1;
@@ -3284,7 +3350,9 @@
     if (!options.force && !canActivateEditorReviewStep(targetIndex)) return;
     const previousIndex = editorReviewStepIndex;
     editorReviewStepIndex = targetIndex;
-    updateEditorReviewUi();
+    runEditorDialogHeightTransition(() => {
+      updateEditorReviewUi();
+    });
     maybePrimeTranslationStep(previousIndex, targetIndex);
   }
 
@@ -7908,9 +7976,11 @@
       .querySelectorAll('input[name="editorEventRecurrence"]')
       .forEach((input) => {
         input.addEventListener("change", () => {
-          syncEditorEventCadenceUi();
-          validateEditorEventScheduleFields(false);
-          refreshEditorReviewProgress();
+          runEditorDialogHeightTransition(() => {
+            syncEditorEventCadenceUi();
+            validateEditorEventScheduleFields(false);
+            refreshEditorReviewProgress();
+          });
         });
       });
     editorStepLanguagesPanel
