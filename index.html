@@ -11050,9 +11050,31 @@
       }
 
       function getContributeNativeLanguageLabelForWarning() {
-        const label = String(getContributeNativeLanguageLabel() || "").trim();
-        if (!label) return "";
-        return label.charAt(0).toLowerCase() + label.slice(1);
+        const langCode = getExpectedNativeLanguage(
+          contributeContext && contributeContext.countryId,
+        );
+        const code = String(langCode || "")
+          .trim()
+          .toLowerCase();
+        if (!code) return "";
+        try {
+          if (typeof Intl !== "undefined" && Intl.DisplayNames) {
+            const displayNames = new Intl.DisplayNames([activeLangBase], {
+              type: "language",
+            });
+            const localized = String(displayNames.of(code) || "").trim();
+            if (localized) {
+              const first = localized.charAt(0).toLocaleLowerCase(activeLangBase);
+              return `${first}${localized.slice(1)}`;
+            }
+          }
+        } catch (_error) {
+          // no-op
+        }
+        const fallback = String(getLanguageLabelFromCode(code) || "").trim();
+        if (!fallback) return "";
+        const first = fallback.charAt(0).toLocaleLowerCase(activeLangBase);
+        return `${first}${fallback.slice(1)}`;
       }
 
       function getNativeLanguageWarningMessage() {
