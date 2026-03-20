@@ -5660,25 +5660,51 @@
       }
 
       .ecva-editor-sync-field-btn {
-        width: 30px;
-        min-width: 30px;
-        height: 30px;
+        width: 34px;
+        min-width: 34px;
+        height: 34px;
         border-radius: 999px;
-        border: 1px solid rgba(106, 131, 144, 0.58);
-        background: linear-gradient(180deg, #eff5f8, #e3edf2);
-        color: #284451;
+        border: 1px solid rgba(127, 150, 163, 0.48);
+        background: linear-gradient(
+          180deg,
+          rgba(239, 246, 250, 0.85),
+          rgba(230, 239, 245, 0.85)
+        );
+        color: #3f5f6e;
         font-family: "Alexandria", sans-serif;
-        font-size: 14px;
-        font-weight: 800;
+        font-size: 20px;
+        font-weight: 700;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
         line-height: 1;
         position: absolute;
-        right: 8px;
-        top: 8px;
+        right: 9px;
+        top: 9px;
         z-index: 2;
+        transition:
+          background-color 160ms ease,
+          border-color 160ms ease,
+          color 160ms ease,
+          transform 160ms ease;
+      }
+
+      .ecva-editor-sync-field-btn:hover {
+        background: linear-gradient(
+          180deg,
+          rgba(231, 241, 247, 0.92),
+          rgba(222, 234, 242, 0.92)
+        );
+        border-color: rgba(113, 140, 156, 0.56);
+        color: #355465;
+        transform: translateY(-1px);
+      }
+
+      .ecva-editor-sync-field-btn:focus-visible {
+        outline: none;
+        border-color: rgba(79, 123, 171, 0.68);
+        box-shadow: 0 0 0 3px rgba(87, 131, 178, 0.2);
       }
 
       .ecva-editor-sync-field-btn:disabled {
