@@ -4743,6 +4743,22 @@
     setCropStatus("Move and resize frame. Save will keep this framing.");
   }
 
+  function hydrateRepresentativeCropPreview(sourceImage, cropNorm, statusText) {
+    const nextSource = String(sourceImage || "").trim();
+    const nextStatus = String(statusText || "").trim();
+    const applyPreview = () => {
+      setCropPreviewImage(nextSource, cropNorm || null);
+      if (nextStatus) {
+        setCropStatus(nextStatus);
+      }
+    };
+    // Wait until representative panel is visible and sized, otherwise crop preview
+    // can resolve with zero dimensions and remain hidden.
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(applyPreview);
+    });
+  }
+
   async function uploadRepresentativeImageData(dataUrl, filename) {
     const response = await fetch(UPLOAD_API, {
       method: "POST",
@@ -5589,8 +5605,6 @@
       editorRepOrganisation.value = organisation.trim();
     representativeImagePath = image;
     representativeSourceImagePath = sourceImage;
-    setCropPreviewImage(sourceImage, hasCrop ? crop : null);
-    setCropStatus("Current image loaded. Move or resize frame, then Save.");
     representativeInitial = {
       name: name.trim(),
       title: title.trim(),
@@ -5608,6 +5622,11 @@
     };
     setEditorMode("representative");
     openEditorModal();
+    hydrateRepresentativeCropPreview(
+      sourceImage,
+      hasCrop ? crop : null,
+      "Current image loaded. Move or resize frame, then Save.",
+    );
   }
 
   function openAddRepresentativeEditor(countryId) {
@@ -6355,8 +6374,6 @@
         );
       representativeImagePath = image;
       representativeSourceImagePath = sourceImage;
-      setCropPreviewImage(sourceImage, hasCrop ? draft.crop : null);
-      setCropStatus("Move and resize frame. Save will keep this framing.");
       representativeInitial = {
         name: String(draft.name || item.title || "").trim(),
         title: String(draft.title || "").trim(),
@@ -6372,6 +6389,11 @@
       };
       setEditorMode("representative");
       openEditorModal();
+      hydrateRepresentativeCropPreview(
+        sourceImage,
+        hasCrop ? draft.crop : null,
+        "Move and resize frame. Save will keep this framing.",
+      );
       return;
     }
     if (editorTitle) {
