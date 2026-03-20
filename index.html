@@ -5381,6 +5381,26 @@
         line-height: 1.15;
       }
 
+      .contribute-wizard-stepper.ecva-editor-stepper {
+        padding: 10px;
+      }
+
+      .contribute-wizard-stepper .ecva-editor-stepper-list {
+        gap: 6px;
+      }
+
+      .contribute-wizard-stepper .ecva-editor-stepper-item {
+        padding: 6px 7px;
+      }
+
+      .contribute-wizard-stepper .ecva-editor-stepper-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: none;
+        line-height: 1.15;
+      }
+
       @media (max-width: 860px) {
         .ecva-editor-stepper-list {
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -10901,7 +10921,30 @@
         return getLanguageLabelFromCode(langCode || "en");
       }
 
+      function isEditorManagedArticleFlow() {
+        return Boolean(
+          isContributeArticleMode() &&
+            contributeContext &&
+            (contributeContext.editEntryTarget || contributeContext.directPublish),
+        );
+      }
+
       function getContributeStepOneLabel() {
+        if (isEditorManagedArticleFlow()) {
+          const template = String(
+            getResourceUiText("stepWriteNativeBeforeSubmit") ||
+              getResourceUiText("stepDescribeResource") ||
+              getResourceUiText("stepReviewText") ||
+              "",
+          );
+          const languageLabel = String(
+            getContributeNativeLanguageLabel() || "English",
+          ).trim();
+          if (template.includes("{language}")) {
+            return template.replace(/\{language\}/g, languageLabel);
+          }
+          return template || getResourceUiText("stepReviewText");
+        }
         const fallback = getResourceUiText("stepReviewText");
         const localized = getResourceUiText("stepDescribeResource");
         const value = String(localized || "").trim();
@@ -12074,7 +12117,7 @@
           resourceSubmitBtn.textContent = contributeContext.editEntryTarget
             ? copy.saveChanges
             : contributeContext.directPublish
-              ? copy.post
+              ? copy.postArticle || copy.post
               : copy.sendForReview;
         }
         if (isContributeArticleMode()) {
@@ -12503,7 +12546,7 @@
             articleSubmitBtn.textContent = contributeContext.editEntryTarget
               ? ui.saveChanges
               : contributeContext.directPublish
-                ? ui.post
+                ? ui.postArticle || ui.post
                 : ui.sendForReview;
           }
           if (contributeRemoveBtn) {
