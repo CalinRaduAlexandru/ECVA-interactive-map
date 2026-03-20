@@ -4128,12 +4128,11 @@
     if (isEditorSubmissionArticleTarget() && editorReviewWizardEnabled) {
       const maxIndex = editorReviewSteps.length - 1;
       const isFinalStep = editorReviewStepIndex >= maxIndex;
-      const currentError = getEditorReviewStepError(editorReviewStepIndex, false);
       if (!isFinalStep) {
         if (editorSaveBtn) {
           editorSaveBtn.style.display = "inline-flex";
           editorSaveBtn.textContent = copy.next || EDITOR_UI_COPY_BASE.next;
-          editorSaveBtn.disabled = Boolean(currentError);
+          editorSaveBtn.disabled = false;
         }
         setDecisionButtonsVisible(false);
         return;
@@ -4163,6 +4162,24 @@
       editorSaveBtn.style.display = "inline-flex";
       editorSaveBtn.disabled = !ready;
       editorSaveBtn.textContent = copy.save || EDITOR_UI_COPY_BASE.save;
+    }
+  }
+
+  function focusFirstInvalidEditorField() {
+    if (!editorReviewWizardEnabled || !editorReviewSteps.length) return;
+    const currentStep =
+      editorReviewSteps[editorReviewStepIndex] ||
+      editorReviewSteps[editorReviewSteps.length - 1] ||
+      null;
+    const panel =
+      currentStep && currentStep.panel instanceof HTMLElement
+        ? currentStep.panel
+        : null;
+    const scope = panel || entryFieldsWrap || editorForm;
+    if (!scope) return;
+    const invalidNode = scope.querySelector(".is-invalid, [aria-invalid='true']");
+    if (invalidNode && typeof invalidNode.focus === "function") {
+      invalidNode.focus();
     }
   }
 
@@ -7349,6 +7366,7 @@
           const currentError = getEditorReviewStepError(currentIndex, true);
           if (currentError) {
             showToast(currentError, true);
+            focusFirstInvalidEditorField();
             return;
           }
           const lastStepIndex = Math.max(0, editorReviewSteps.length - 1);
@@ -7367,6 +7385,7 @@
                 EDITOR_UI_COPY_BASE.completeAllStepsBeforeSaving,
               true,
             );
+            focusFirstInvalidEditorField();
             return;
           }
           if (!requestedFinalStatus) {
