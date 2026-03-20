@@ -1069,16 +1069,17 @@
 
       .contribute-event-date-wrap {
         display: grid;
-        gap: 6px;
-        padding: 10px;
-        border-radius: 12px;
-        border: 1px solid rgba(132, 153, 165, 0.42);
-        background: rgba(250, 253, 255, 0.88);
-        text-transform: uppercase;
-        letter-spacing: 0.02em;
+        gap: 8px;
+        min-height: 100%;
+      }
+
+      .contribute-event-date-wrap legend {
+        padding: 0 6px;
         font-size: 12px;
-        font-weight: 700;
-        color: #2f4a58;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #2b4451;
       }
 
       .contribute-event-choice-tabs {
@@ -1109,6 +1110,7 @@
       .contribute-event-choice-tab span {
         width: 100%;
         min-width: 0;
+        box-sizing: border-box;
         min-height: 42px;
         border-radius: 10px;
         border: 1px solid rgba(132, 153, 165, 0.45);
@@ -6739,14 +6741,17 @@
                     Event schedule
                   </p>
                   <div class="contribute-event-primary-row">
-                    <label id="resource-event-date-wrap" class="contribute-event-date-wrap">
-                      <span id="resource-event-date-label">Date</span>
+                    <fieldset
+                      id="resource-event-date-wrap"
+                      class="contribute-event-fieldset contribute-event-date-wrap"
+                    >
+                      <legend id="resource-event-date-label">Date</legend>
                       <input
                         id="resource-event-date"
                         type="date"
                         name="eventDate"
                       />
-                    </label>
+                    </fieldset>
                     <fieldset
                       id="resource-event-recurrence-shell"
                       class="contribute-event-fieldset"
@@ -7527,17 +7532,17 @@
                   Event schedule
                 </p>
                 <div class="contribute-event-primary-row">
-                  <label
+                  <fieldset
                     id="ecva-editor-event-date-wrap"
-                    class="contribute-event-date-wrap"
+                    class="contribute-event-fieldset contribute-event-date-wrap"
                   >
-                    <span id="ecva-editor-event-date-label">Date</span>
+                    <legend id="ecva-editor-event-date-label">Date</legend>
                     <input
                       id="ecva-editor-event-date"
                       type="date"
                       name="editorEventDate"
                     />
-                  </label>
+                  </fieldset>
                   <fieldset
                     id="ecva-editor-event-recurrence-shell"
                     class="contribute-event-fieldset"

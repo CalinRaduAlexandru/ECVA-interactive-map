@@ -3123,6 +3123,27 @@
 
   function syncEditorEventCadenceUi() {
     const recurring = getEditorEventRecurrenceValue() === "recurrent";
+    if (
+      !recurring &&
+      editorStepLanguagesPanel &&
+      isEditorEventsPillarTarget()
+    ) {
+      editorStepLanguagesPanel
+        .querySelectorAll('input[name="editorEventCadence"]')
+        .forEach((input) => {
+          input.checked = false;
+        });
+    }
+    if (
+      isEditorEventsPillarTarget() &&
+      !getEditorEventRecurrenceValue() &&
+      editorStepLanguagesPanel
+    ) {
+      const fallback = editorStepLanguagesPanel.querySelector(
+        'input[name="editorEventRecurrence"][value="non_recurrent"]',
+      );
+      if (fallback) fallback.checked = true;
+    }
     if (editorEventCadenceShell) {
       editorEventCadenceShell.hidden = !recurring;
       if (!recurring) {
