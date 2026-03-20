@@ -1823,8 +1823,14 @@
         width: 100%;
         height: 100%;
         border-radius: 999px;
-        overflow: hidden;
         pointer-events: none;
+      }
+
+      .country-modal-pillar-symbol::before {
+        content: "";
+        position: absolute;
+        inset: 12%;
+        border-radius: 999px;
         background: linear-gradient(
           110deg,
           rgba(201, 216, 227, 0.66) 20%,
@@ -1833,15 +1839,8 @@
         );
         background-size: 230% 100%;
         animation: ecvaPillarSkeletonShift 1.15s ease-in-out infinite;
-      }
-
-      .country-modal-pillar-symbol::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: 999px;
-        border: 1px solid rgba(132, 157, 174, 0.34);
-        box-shadow: inset 0 0 0 1px rgba(240, 248, 252, 0.35);
+        opacity: 1;
+        transition: opacity 180ms ease;
       }
 
       .country-modal-pillar-symbol svg {
@@ -1863,12 +1862,12 @@
       }
 
       .country-modal-pillar-symbol.is-loaded {
-        animation: none;
         background: transparent;
       }
 
-      .country-modal-pillar-symbol.is-loaded::after {
+      .country-modal-pillar-symbol.is-loaded::before {
         opacity: 0;
+        visibility: hidden;
       }
 
       .country-modal-pillar-symbol img.is-loaded {
@@ -1884,7 +1883,12 @@
       }
 
       .country-modal-pillar-symbol.is-error {
-        animation: none;
+        background: transparent;
+      }
+
+      .country-modal-pillar-symbol.is-error::before {
+        opacity: 0;
+        visibility: hidden;
       }
 
       .country-modal-pillar-dot-text {
