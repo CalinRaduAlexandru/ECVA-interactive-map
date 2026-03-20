@@ -2162,16 +2162,16 @@
       .ecva-label-manage-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
       .ecva-label-manage-title{margin:0;font:800 24px/1.15 "Alexandria",sans-serif;color:#223a46}
       .ecva-label-manage-close{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(106,130,143,.58);background:#eef4f6;color:#2a414c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
-      .ecva-label-manage-filters{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+      .ecva-label-manage-filters{display:flex;align-items:flex-end;justify-content:flex-start;gap:10px;flex-wrap:wrap}
       .ecva-label-manage-search-wrap{display:grid;gap:4px;min-width:min(380px,100%);flex:1 1 420px}
       .ecva-label-manage-search-wrap>span{font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
       .ecva-label-manage-search-wrap input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#243e4b;font:700 13px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
       .ecva-label-manage-btn{height:38px;padding:0 12px;border-radius:10px;border:1px solid rgba(108,132,145,.58);background:#e8f1f4;color:#27404c;font:800 13px "Alexandria",sans-serif;cursor:pointer}
       .ecva-label-manage-btn.primary{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
       .ecva-label-manage-btn:disabled{opacity:.45;cursor:not-allowed}
-      .ecva-label-manage-reset{display:inline-flex;align-items:center;gap:8px}
+      .ecva-label-manage-reset{display:inline-flex;align-items:center;gap:8px;border-color:rgba(167,91,91,.62);background:#fff2f2;color:#8a3131}
       .ecva-label-manage-reset-icon{font:800 15px/1 "Alexandria",sans-serif}
-      .ecva-label-manage-reset.is-armed{border-color:rgba(167,91,91,.58);background:#fff4f4;color:#813737}
+      .ecva-label-manage-reset.is-armed{border-color:rgba(151,44,44,.8);background:#e74e4e;color:#ffffff}
       .ecva-label-manage-categories{display:flex;gap:8px;overflow:auto;padding-bottom:2px}
       .ecva-label-manage-category{height:34px;padding:0 11px;border-radius:999px;border:1px solid rgba(117,141,154,.5);background:#eef5f8;color:#2f4b58;font:800 12px "Alexandria",sans-serif;cursor:pointer;white-space:nowrap}
       .ecva-label-manage-category.is-active{background:#2f4f60;color:#f4fbff;border-color:#2f4f60}
@@ -2185,11 +2185,12 @@
       .ecva-label-manage-native-input{height:38px;border-radius:10px;border:1px solid rgba(116,139,151,.52);background:#fbfeff;color:#223f4c;font:700 12px "Alexandria",sans-serif;padding:0 10px;box-sizing:border-box}
       .ecva-label-manage-native-input[readonly]{background:#f0f4f7;color:#587180;cursor:not-allowed}
       .ecva-label-manage-foot{display:flex;align-items:center;justify-content:space-between;gap:10px}
+      .ecva-label-manage-left-actions{display:flex;align-items:center;gap:10px;min-width:0}
       .ecva-label-manage-notice{min-height:18px;font:700 12px/1.2 "Alexandria",sans-serif;color:#3f5d6b}
       .ecva-label-manage-notice.is-error{color:#b42318}
       .ecva-label-manage-actions{display:flex;align-items:center;gap:8px}
       .ecva-label-manage-empty{margin:0;padding:12px;border:1px dashed rgba(137,158,169,.45);border-radius:12px;color:#5a7785;font:700 13px/1.3 "Alexandria",sans-serif}
-      @media (max-width:900px){.ecva-label-manage-dialog{width:min(980px,calc(100vw - 14px));padding:12px}.ecva-label-manage-search-wrap{min-width:100%;flex:1 1 100%}.ecva-label-manage-filters{align-items:stretch}.ecva-label-manage-grid-head{display:none}.ecva-label-manage-item{grid-template-columns:1fr}}
+      @media (max-width:900px){.ecva-label-manage-dialog{width:min(980px,calc(100vw - 14px));padding:12px}.ecva-label-manage-search-wrap{min-width:100%;flex:1 1 100%}.ecva-label-manage-filters{align-items:stretch}.ecva-label-manage-grid-head{display:none}.ecva-label-manage-item{grid-template-columns:1fr}.ecva-label-manage-foot{flex-wrap:wrap}.ecva-label-manage-left-actions{width:100%;order:2}.ecva-label-manage-actions{width:100%;justify-content:flex-end;order:1}}
     `;
     document.head.appendChild(style);
 
@@ -2207,15 +2208,17 @@
             <span>Caută cuvinte sau sintagme</span>
             <input type="search" class="ecva-label-manage-search" placeholder="Caută cuvinte sau sintagme" />
           </label>
-          <button type="button" class="ecva-label-manage-btn ecva-label-manage-reset">
-            <span class="ecva-label-manage-reset-icon" aria-hidden="true">↻</span>
-            <span class="ecva-label-manage-reset-label">Resetare completă</span>
-          </button>
         </section>
         <div class="ecva-label-manage-categories"></div>
         <div class="ecva-label-manage-list"></div>
         <footer class="ecva-label-manage-foot">
-          <p class="ecva-label-manage-notice" aria-live="polite"></p>
+          <div class="ecva-label-manage-left-actions">
+            <button type="button" class="ecva-label-manage-btn ecva-label-manage-reset">
+              <span class="ecva-label-manage-reset-icon" aria-hidden="true">↻</span>
+              <span class="ecva-label-manage-reset-label">Resetare completă</span>
+            </button>
+            <p class="ecva-label-manage-notice" aria-live="polite"></p>
+          </div>
           <div class="ecva-label-manage-actions">
             <button type="button" class="ecva-label-manage-btn primary">Save translations</button>
             <button type="button" class="ecva-label-manage-btn" data-label-close="1">Close</button>
