@@ -5702,9 +5702,9 @@
       }
 
       .ecva-editor-sync-field-btn {
-        width: 34px;
-        min-width: 34px;
-        height: 34px;
+        width: 30px;
+        min-width: 30px;
+        height: 30px;
         border-radius: 999px;
         border: 1px solid rgba(127, 150, 163, 0.48);
         background: linear-gradient(
@@ -5712,10 +5712,10 @@
           rgba(239, 246, 250, 0.85),
           rgba(230, 239, 245, 0.85)
         );
-        color: #3f5f6e;
+        color: rgba(52, 84, 99, 0.7);
         font-family: "Alexandria", sans-serif;
-        font-size: 20px;
-        font-weight: 700;
+        font-size: 24px;
+        font-weight: 800;
         display: inline-flex;
         align-items: center;
         justify-content: center;
@@ -5723,13 +5723,20 @@
         line-height: 1;
         position: absolute;
         right: 9px;
-        top: 9px;
+        top: 50%;
+        transform: translateY(-50%);
         z-index: 2;
         transition:
           background-color 160ms ease,
           border-color 160ms ease,
           color 160ms ease,
           transform 160ms ease;
+      }
+
+      .ecva-editor-translation-input-wrap:has(.ecva-editor-translation-textarea)
+        .ecva-editor-sync-field-btn {
+        top: 9px;
+        transform: none;
       }
 
       .ecva-editor-sync-field-btn:hover {
@@ -5739,8 +5746,13 @@
           rgba(222, 234, 242, 0.92)
         );
         border-color: rgba(113, 140, 156, 0.56);
-        color: #355465;
+        color: rgba(44, 74, 91, 0.78);
         transform: translateY(-1px);
+      }
+
+      .ecva-editor-translation-input-wrap:has(.ecva-editor-translation-textarea)
+        .ecva-editor-sync-field-btn:hover {
+        transform: none;
       }
 
       .ecva-editor-sync-field-btn:focus-visible {
