@@ -47,43 +47,51 @@
       .map-ui-overlay {
         position: absolute;
         left: 50%;
-        top: clamp(18px, 2.2vw, 30px);
+        top: clamp(54px, 6vw, 92px);
         transform: translateX(-50%);
         width: min(980px, calc(100% - 180px));
-        margin-top: 0;
         z-index: 56;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
-        gap: clamp(8px, 1.4vw, 18px);
-        flex-wrap: nowrap;
         pointer-events: none;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
-        transform: translateZ(0);
+        transform: translateX(-50%) translateZ(0);
       }
 
       .map-ui-left,
       .map-ui-right {
         display: flex;
-        align-items: center;
-        gap: clamp(6px, 1vw, 10px);
-        min-width: 0;
+        flex-direction: column;
+        gap: 8px;
         pointer-events: none;
       }
 
       .map-ui-left {
-        opacity: 1;
+        transform: translate(60px, -26px);
+        opacity: 0;
+        animation: mapCornerUiIn 0.42s ease 1.86s forwards;
       }
 
       .map-ui-right {
-        opacity: 1;
+        transform: translate(-104px, -26px);
+        opacity: 0;
+        animation: mapCornerUiIn 0.42s ease 1.94s forwards;
       }
 
       @media (max-width: 1120px) {
         .map-ui-overlay {
           width: min(980px, calc(100% - 72px));
-          top: clamp(12px, 1.8vw, 20px);
+          top: clamp(28px, 4vw, 42px);
+        }
+
+        .map-ui-left {
+          transform: translate(52px, -12px);
+        }
+
+        .map-ui-right {
+          transform: translate(-52px, -6px);
         }
       }
 
@@ -101,27 +109,24 @@
       .embed-launch-btn {
         position: static;
         z-index: 1;
-        min-height: clamp(30px, 2.4vw, 38px);
-        margin-top: 0;
-        padding: 0 clamp(10px, 1.2vw, 16px);
+        min-height: 34px;
+        margin-top: 12px;
+        padding: 0 12px;
         border-radius: 10px;
         border: 1px solid rgba(132, 151, 161, 0.62);
         background: rgba(240, 248, 252, 0.86);
         backdrop-filter: none;
         -webkit-backdrop-filter: none;
         color: #27404c;
-        font-size: clamp(11px, 1.05vw, 14px);
+        font-size: 12px;
         font-weight: 700;
         letter-spacing: 0.015em;
-        line-height: 1;
-        white-space: nowrap;
         cursor: pointer;
         display: inline-flex;
         align-items: center;
         justify-content: center;
         box-shadow: 0 6px 16px rgba(24, 42, 52, 0.18);
         pointer-events: auto;
-        flex: 0 1 auto;
       }
 
       .embed-launch-btn:hover {
@@ -133,17 +138,15 @@
         position: static;
         z-index: 1;
         display: flex;
-        align-items: center;
-        gap: clamp(6px, 0.9vw, 10px);
-        flex-wrap: nowrap;
+        align-items: flex-end;
+        gap: 8px;
         user-select: none;
         pointer-events: auto;
-        min-width: 0;
       }
 
       .language-flag-btn {
-        min-width: clamp(34px, 3.2vw, 44px);
-        height: clamp(34px, 3.2vw, 44px);
+        min-width: 40px;
+        height: 40px;
         border: 1px solid rgba(126, 145, 156, 0.62);
         border-radius: 12px;
         background: rgba(241, 248, 252, 0.9);
@@ -152,7 +155,6 @@
         align-items: center;
         justify-content: center;
         padding: 0 8px;
-        flex: 0 1 auto;
         cursor: pointer;
         transition:
           transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
@@ -163,8 +165,8 @@
 
       .language-flag-btn[data-active="true"] {
         opacity: 1;
-        min-width: clamp(42px, 3.8vw, 56px);
-        height: clamp(42px, 3.8vw, 56px);
+        min-width: 54px;
+        height: 54px;
         transform: translateY(0) scale(1);
         filter: saturate(1.07);
       }
@@ -181,7 +183,7 @@
       }
 
       .language-flag-emoji {
-        font-size: clamp(19px, 1.8vw, 25px);
+        font-size: 24px;
         line-height: 1;
       }
 
