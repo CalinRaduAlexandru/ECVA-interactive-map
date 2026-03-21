@@ -1160,6 +1160,31 @@
         gap: 8px;
       }
 
+      .contribute-event-options-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        font-size: 13px;
+        font-weight: 700;
+        color: #2f4c59;
+        user-select: none;
+        cursor: pointer;
+      }
+
+      .contribute-event-options-toggle input {
+        margin: 0;
+        width: 16px;
+        height: 16px;
+        accent-color: #21a68a;
+        cursor: pointer;
+      }
+
+      .contribute-event-advanced-options {
+        display: grid;
+        gap: 10px;
+      }
+
       .contribute-event-photo-label {
         display: grid;
         gap: 8px;
@@ -6776,145 +6801,164 @@
                     Event schedule
                   </p>
                   <fieldset
-                    id="resource-event-mode-shell"
-                    class="contribute-event-fieldset"
+                    id="resource-event-date-wrap"
+                    class="contribute-event-fieldset contribute-event-date-wrap"
                   >
-                    <legend id="resource-event-mode-title">Date mode</legend>
-                    <div
-                      id="resource-event-mode-tabs"
-                      class="contribute-event-choice-tabs"
-                    >
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          id="resource-event-mode-fixed"
-                          type="radio"
-                          name="eventScheduleMode"
-                          value="fixed_date"
-                          checked
-                        />
-                        <span id="resource-event-mode-fixed-label"
-                          >Fixed date</span
-                        >
-                      </label>
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          id="resource-event-mode-period"
-                          type="radio"
-                          name="eventScheduleMode"
-                          value="period"
-                        />
-                        <span id="resource-event-mode-period-label"
-                          >Period</span
-                        >
-                      </label>
-                    </div>
+                    <legend id="resource-event-date-label">Date</legend>
+                    <input
+                      id="resource-event-date"
+                      type="date"
+                      name="eventDate"
+                    />
                   </fieldset>
-                  <div class="contribute-event-primary-row">
-                    <fieldset
-                      id="resource-event-date-wrap"
-                      class="contribute-event-fieldset contribute-event-date-wrap"
+                  <label
+                    class="contribute-event-options-toggle"
+                    for="resource-event-more-options"
+                  >
+                    <input
+                      id="resource-event-more-options"
+                      type="checkbox"
+                      name="eventMoreOptions"
+                    />
+                    <span id="resource-event-more-options-label"
+                      >More options</span
                     >
-                      <legend id="resource-event-date-label">Date</legend>
-                      <input
-                        id="resource-event-date"
-                        type="date"
-                        name="eventDate"
-                      />
-                    </fieldset>
+                  </label>
+                  <div
+                    id="resource-event-advanced-options"
+                    class="contribute-event-advanced-options"
+                    hidden
+                  >
                     <fieldset
-                      id="resource-event-end-date-wrap"
-                      class="contribute-event-fieldset contribute-event-date-wrap"
-                      hidden
-                    >
-                      <legend id="resource-event-end-date-label">End date</legend>
-                      <input
-                        id="resource-event-end-date"
-                        type="date"
-                        name="eventEndDate"
-                      />
-                    </fieldset>
-                    <fieldset
-                      id="resource-event-recurrence-shell"
+                      id="resource-event-mode-shell"
                       class="contribute-event-fieldset"
                     >
-                      <legend id="resource-event-recurrence-title">
-                        Recurrence
-                      </legend>
+                      <legend id="resource-event-mode-title">Date mode</legend>
                       <div
-                        id="resource-event-recurrence-tabs"
+                        id="resource-event-mode-tabs"
                         class="contribute-event-choice-tabs"
                       >
                         <label class="contribute-event-choice-tab">
                           <input
-                            id="resource-event-recurrence-single"
+                            id="resource-event-mode-fixed"
                             type="radio"
-                            name="eventRecurrence"
-                            value="non_recurrent"
+                            name="eventScheduleMode"
+                            value="fixed_date"
+                            checked
                           />
-                          <span id="resource-event-recurrence-single-label"
-                            >Non-recurrent</span
+                          <span id="resource-event-mode-fixed-label"
+                            >Fixed date</span
                           >
                         </label>
                         <label class="contribute-event-choice-tab">
                           <input
-                            id="resource-event-recurrence-repeating"
+                            id="resource-event-mode-period"
                             type="radio"
-                            name="eventRecurrence"
-                            value="recurrent"
+                            name="eventScheduleMode"
+                            value="period"
                           />
-                          <span id="resource-event-recurrence-repeating-label"
-                            >Recurrent</span
+                          <span id="resource-event-mode-period-label"
+                            >Period</span
                           >
                         </label>
                       </div>
                     </fieldset>
-                  </div>
-                  <fieldset
-                    id="resource-event-cadence-shell"
-                    class="contribute-event-fieldset"
-                    hidden
-                  >
-                    <legend id="resource-event-cadence-title">
-                      Repeat interval
-                    </legend>
-                    <div
-                      id="resource-event-cadence-tabs"
-                      class="contribute-event-choice-tabs is-compact"
-                    >
-                      <label class="contribute-event-choice-tab">
+                    <div class="contribute-event-primary-row">
+                      <fieldset
+                        id="resource-event-end-date-wrap"
+                        class="contribute-event-fieldset contribute-event-date-wrap"
+                        hidden
+                      >
+                        <legend id="resource-event-end-date-label">End date</legend>
                         <input
-                          type="radio"
-                          name="eventCadence"
-                          value="daily"
+                          id="resource-event-end-date"
+                          type="date"
+                          name="eventEndDate"
                         />
-                        <span id="resource-event-cadence-daily">Daily</span>
-                      </label>
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          type="radio"
-                          name="eventCadence"
-                          value="weekly"
-                        />
-                        <span id="resource-event-cadence-weekly">Weekly</span>
-                      </label>
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          type="radio"
-                          name="eventCadence"
-                          value="monthly"
-                        />
-                        <span id="resource-event-cadence-monthly">Monthly</span>
-                      </label>
-                      <label class="contribute-event-choice-tab">
-                        <input
-                          type="radio"
-                          name="eventCadence"
-                          value="yearly"
-                        />
-                        <span id="resource-event-cadence-yearly">Yearly</span>
-                      </label>
+                      </fieldset>
+                      <fieldset
+                        id="resource-event-recurrence-shell"
+                        class="contribute-event-fieldset"
+                      >
+                        <legend id="resource-event-recurrence-title">
+                          Recurrence
+                        </legend>
+                        <div
+                          id="resource-event-recurrence-tabs"
+                          class="contribute-event-choice-tabs"
+                        >
+                          <label class="contribute-event-choice-tab">
+                            <input
+                              id="resource-event-recurrence-single"
+                              type="radio"
+                              name="eventRecurrence"
+                              value="non_recurrent"
+                            />
+                            <span id="resource-event-recurrence-single-label"
+                              >Non-recurrent</span
+                            >
+                          </label>
+                          <label class="contribute-event-choice-tab">
+                            <input
+                              id="resource-event-recurrence-repeating"
+                              type="radio"
+                              name="eventRecurrence"
+                              value="recurrent"
+                            />
+                            <span id="resource-event-recurrence-repeating-label"
+                              >Recurrent</span
+                            >
+                          </label>
+                        </div>
+                      </fieldset>
                     </div>
-                  </fieldset>
+                    <fieldset
+                      id="resource-event-cadence-shell"
+                      class="contribute-event-fieldset"
+                      hidden
+                    >
+                      <legend id="resource-event-cadence-title">
+                        Repeat interval
+                      </legend>
+                      <div
+                        id="resource-event-cadence-tabs"
+                        class="contribute-event-choice-tabs is-compact"
+                      >
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            type="radio"
+                            name="eventCadence"
+                            value="daily"
+                          />
+                          <span id="resource-event-cadence-daily">Daily</span>
+                        </label>
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            type="radio"
+                            name="eventCadence"
+                            value="weekly"
+                          />
+                          <span id="resource-event-cadence-weekly">Weekly</span>
+                        </label>
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            type="radio"
+                            name="eventCadence"
+                            value="monthly"
+                          />
+                          <span id="resource-event-cadence-monthly">Monthly</span>
+                        </label>
+                        <label class="contribute-event-choice-tab">
+                          <input
+                            type="radio"
+                            name="eventCadence"
+                            value="yearly"
+                          />
+                          <span id="resource-event-cadence-yearly">Yearly</span>
+                        </label>
+                      </div>
+                    </fieldset>
+                  </div>
                   <div class="contribute-event-photo-block">
                     <p
                       class="contribute-form-section-title"
@@ -9054,6 +9098,15 @@
       const resourceEventScheduleTitle = document.getElementById(
         "resource-event-schedule-title",
       );
+      const resourceEventAdvancedOptions = document.getElementById(
+        "resource-event-advanced-options",
+      );
+      const resourceEventMoreOptionsInput = document.getElementById(
+        "resource-event-more-options",
+      );
+      const resourceEventMoreOptionsLabel = document.getElementById(
+        "resource-event-more-options-label",
+      );
       const resourceEventModeShell = document.getElementById(
         "resource-event-mode-shell",
       );
@@ -9466,6 +9519,7 @@
         addOneVersion: "Add one resource version per language",
         addLanguage: "Add another language",
         eventScheduleTitle: "Event schedule",
+        eventMoreOptions: "More options",
         eventMode: "Date mode",
         eventModeFixedDate: "Fixed date",
         eventModePeriod: "Period",
@@ -9627,6 +9681,7 @@
         addOneVersion: "Adaugă o versiune a resursei pentru fiecare limbă",
         addLanguage: "Adaugă altă limbă",
         eventScheduleTitle: "Program eveniment",
+        eventMoreOptions: "Mai multe opțiuni",
         eventMode: "Tip dată",
         eventModeFixedDate: "Dată fixă",
         eventModePeriod: "Perioadă",
@@ -9851,6 +9906,7 @@
         addOneVersion: "form",
         addLanguage: "form",
         eventScheduleTitle: "form",
+        eventMoreOptions: "form",
         eventMode: "form",
         eventModeFixedDate: "form",
         eventModePeriod: "form",
@@ -10241,6 +10297,7 @@
           eventEndDate: String(
             (resourceEventEndDateInput && resourceEventEndDateInput.value) || "",
           ),
+          eventMoreOptions: hasEventAdvancedOptionsEnabled(),
           eventScheduleMode: getEventScheduleModeValue() || "fixed_date",
           eventRecurrence: getEventRecurrenceValue(),
           eventCadence: String(
@@ -10348,22 +10405,31 @@
         const recurrence = String(payload.eventRecurrence || "")
           .trim()
           .toLowerCase();
+        const cadence = String(payload.eventCadence || "")
+          .trim()
+          .toLowerCase();
+        const enableAdvancedOptions =
+          Boolean(payload.eventMoreOptions) ||
+          scheduleMode === "period" ||
+          recurrence === "recurrent" ||
+          Boolean(cadence) ||
+          Boolean(String(payload.eventEndDate || "").trim());
+        if (resourceEventMoreOptionsInput) {
+          resourceEventMoreOptionsInput.checked = enableAdvancedOptions;
+        }
         if (contributeForm) {
           contributeForm
             .querySelectorAll('input[name="eventRecurrence"]')
             .forEach((input) => {
               input.checked = String(input.value || "").trim().toLowerCase() === recurrence;
             });
-          const cadence = String(payload.eventCadence || "")
-            .trim()
-            .toLowerCase();
           contributeForm
             .querySelectorAll('input[name="eventCadence"]')
             .forEach((input) => {
               input.checked = String(input.value || "").trim().toLowerCase() === cadence;
             });
         }
-        updateEventCadenceUi();
+        syncEventAdvancedOptionsUi({ preserveSelection: true });
         if (
           Array.isArray(payload.resourceLanguages) &&
           payload.resourceLanguages.length
@@ -10793,6 +10859,9 @@
             resourceEventFormatPhysicalInput.checked = true;
           }
           if (resourceEventEndDateInput) resourceEventEndDateInput.value = "";
+          if (resourceEventMoreOptionsInput) {
+            resourceEventMoreOptionsInput.checked = false;
+          }
           if (resourceEventModeFixedInput) {
             resourceEventModeFixedInput.checked = true;
           }
@@ -10841,7 +10910,7 @@
           resourceEventEndDateWrap.classList.remove("is-invalid");
         }
         updateEventFormatUi();
-        updateEventCadenceUi();
+        syncEventAdvancedOptionsUi({ preserveSelection: restored });
         updateEventPhotosStatus();
         updateResourceCounter(
           resourceTitleInput,
@@ -11023,17 +11092,25 @@
         )
           .trim()
           .toLowerCase();
+        const cadence = String(
+          eventDetails.cadence || safeEntry.eventCadence || "",
+        )
+          .trim()
+          .toLowerCase();
+        const enableAdvancedOptions =
+          eventMode === "period" ||
+          recurrence === "recurrent" ||
+          Boolean(cadence) ||
+          Boolean(String(eventDetails.endDate || "").trim());
+        if (resourceEventMoreOptionsInput) {
+          resourceEventMoreOptionsInput.checked = enableAdvancedOptions;
+        }
         if (contributeForm) {
           contributeForm
             .querySelectorAll('input[name="eventRecurrence"]')
             .forEach((input) => {
               input.checked = String(input.value || "").trim().toLowerCase() === recurrence;
             });
-          const cadence = String(
-            eventDetails.cadence || safeEntry.eventCadence || "",
-          )
-            .trim()
-            .toLowerCase();
           contributeForm
             .querySelectorAll('input[name="eventCadence"]')
             .forEach((input) => {
@@ -11074,7 +11151,7 @@
           resourceEventEndDateWrap.classList.remove("is-invalid");
         }
         updateEventFormatUi();
-        updateEventCadenceUi();
+        syncEventAdvancedOptionsUi({ preserveSelection: true });
         updateEventPhotosStatus();
         updateResourceCounter(
           resourceTitleInput,
@@ -11426,10 +11503,62 @@
           .toLowerCase();
       }
 
+      function hasEventAdvancedOptionsEnabled() {
+        return Boolean(
+          resourceEventMoreOptionsInput && resourceEventMoreOptionsInput.checked,
+        );
+      }
+
+      function syncEventAdvancedOptionsUi(options = {}) {
+        const preserveSelection =
+          options && typeof options === "object"
+            ? Boolean(options.preserveSelection)
+            : false;
+        const enabled = hasEventAdvancedOptionsEnabled();
+        if (resourceEventAdvancedOptions) {
+          resourceEventAdvancedOptions.hidden = !enabled;
+        }
+        if (!enabled && !preserveSelection) {
+          if (resourceEventModeFixedInput) {
+            resourceEventModeFixedInput.checked = true;
+          }
+          if (resourceEventEndDateInput) {
+            resourceEventEndDateInput.value = "";
+          }
+          if (resourceEventRecurrenceSingleInput) {
+            resourceEventRecurrenceSingleInput.checked = true;
+          }
+          if (contributeForm) {
+            contributeForm
+              .querySelectorAll('input[name="eventCadence"]')
+              .forEach((input) => {
+                input.checked = false;
+              });
+          }
+        }
+        if (!enabled) {
+          [
+            resourceEventModeShell,
+            resourceEventModeTabs,
+            resourceEventRecurrenceShell,
+            resourceEventRecurrenceTabs,
+            resourceEventCadenceShell,
+            resourceEventCadenceTabs,
+            resourceEventEndDateWrap,
+          ].forEach((node) => {
+            if (!node || !node.classList) return;
+            node.classList.remove("is-invalid");
+          });
+          setFieldError(resourceEventEndDateInput, false);
+        }
+        updateEventCadenceUi();
+      }
+
       function updateEventCadenceUi() {
         if (!resourceEventCadenceShell) return;
+        const advancedEnabled = hasEventAdvancedOptionsEnabled();
         const mode = getEventScheduleModeValue();
-        const periodMode = mode === "period";
+        const periodMode = advancedEnabled && mode === "period";
         if (
           isContributeEventsFlow() &&
           !mode &&
@@ -11437,14 +11566,17 @@
         ) {
           resourceEventModeFixedInput.checked = true;
         }
+        if (resourceEventModeShell) {
+          resourceEventModeShell.hidden = !advancedEnabled;
+        }
         if (resourceEventDateWrap) {
           resourceEventDateWrap.hidden = false;
         }
         if (resourceEventEndDateWrap) {
-          resourceEventEndDateWrap.hidden = !periodMode;
+          resourceEventEndDateWrap.hidden = !advancedEnabled || !periodMode;
         }
         if (resourceEventRecurrenceShell) {
-          resourceEventRecurrenceShell.hidden = periodMode;
+          resourceEventRecurrenceShell.hidden = !advancedEnabled || periodMode;
         }
         if (resourceEventDateLabel) {
           resourceEventDateLabel.textContent = getResourceUiText(
@@ -11462,8 +11594,9 @@
         ) {
           resourceEventRecurrenceSingleInput.checked = true;
         }
-        const recurrence = getEventRecurrenceValue();
-        const recurring = !periodMode && recurrence === "recurrent";
+        const recurrence = advancedEnabled ? getEventRecurrenceValue() : "non_recurrent";
+        const recurring =
+          advancedEnabled && !periodMode && recurrence === "recurrent";
         resourceEventCadenceShell.hidden = !recurring;
         if (!recurring && contributeForm) {
           contributeForm
@@ -11521,6 +11654,9 @@
         }
         if (resourceEventScheduleSegment) {
           resourceEventScheduleSegment.hidden = !eventsFlow;
+        }
+        if (eventsFlow) {
+          syncEventAdvancedOptionsUi({ preserveSelection: true });
         }
         if (eventsFlow && resourceLanguageList) {
           resourceLanguageList.innerHTML = "";
@@ -12105,26 +12241,33 @@
         if (!isContributeEventsFlow()) return "";
         const shouldPaint = Boolean(paintInvalid);
         const errors = [];
-        const scheduleMode = getEventScheduleModeValue() || "fixed_date";
-        const periodMode = scheduleMode === "period";
+        const advancedEnabled = hasEventAdvancedOptionsEnabled();
+        const scheduleMode = advancedEnabled
+          ? getEventScheduleModeValue() || "fixed_date"
+          : "fixed_date";
+        const periodMode = advancedEnabled && scheduleMode === "period";
         const eventDate = String(
           (resourceEventDateInput && resourceEventDateInput.value) || "",
         ).trim();
         const eventEndDate = String(
           (resourceEventEndDateInput && resourceEventEndDateInput.value) || "",
         ).trim();
-        const recurrence = getEventRecurrenceValue();
-        const cadenceInput = getEventCadenceInput();
+        const recurrence = advancedEnabled ? getEventRecurrenceValue() : "non_recurrent";
+        const cadenceInput = advancedEnabled ? getEventCadenceInput() : null;
         const cadence = String((cadenceInput && cadenceInput.value) || "")
           .trim()
           .toLowerCase();
         const hasDate = Boolean(eventDate);
         const hasEndDate = Boolean(eventEndDate);
-        const hasRecurrence = Boolean(recurrence);
-        const recurrenceIsRecurring = !periodMode && recurrence === "recurrent";
+        const hasRecurrence = advancedEnabled ? Boolean(recurrence) : true;
+        const recurrenceIsRecurring =
+          advancedEnabled && !periodMode && recurrence === "recurrent";
         const hasCadence = !recurrenceIsRecurring || Boolean(cadence);
         setFieldError(resourceEventDateInput, shouldPaint && !hasDate);
-        setFieldError(resourceEventEndDateInput, shouldPaint && periodMode && !hasEndDate);
+        setFieldError(
+          resourceEventEndDateInput,
+          shouldPaint && periodMode && !hasEndDate,
+        );
         if (resourceEventDateWrap) {
           resourceEventDateWrap.classList.toggle("is-invalid", shouldPaint && !hasDate);
         }
@@ -12137,37 +12280,45 @@
         if (resourceEventModeShell) {
           resourceEventModeShell.classList.toggle(
             "is-invalid",
-            shouldPaint && !scheduleMode,
+            shouldPaint && advancedEnabled && !scheduleMode,
           );
         }
         if (resourceEventModeTabs) {
           resourceEventModeTabs.classList.toggle(
             "is-invalid",
-            shouldPaint && !scheduleMode,
+            shouldPaint && advancedEnabled && !scheduleMode,
           );
         }
         if (resourceEventRecurrenceShell) {
           resourceEventRecurrenceShell.classList.toggle(
             "is-invalid",
-            shouldPaint && !periodMode && !hasRecurrence,
+            shouldPaint && advancedEnabled && !periodMode && !hasRecurrence,
           );
         }
         if (resourceEventRecurrenceTabs) {
           resourceEventRecurrenceTabs.classList.toggle(
             "is-invalid",
-            shouldPaint && !periodMode && !hasRecurrence,
+            shouldPaint && advancedEnabled && !periodMode && !hasRecurrence,
           );
         }
         if (resourceEventCadenceShell) {
           resourceEventCadenceShell.classList.toggle(
             "is-invalid",
-            shouldPaint && !periodMode && recurrenceIsRecurring && !hasCadence,
+            shouldPaint &&
+              advancedEnabled &&
+              !periodMode &&
+              recurrenceIsRecurring &&
+              !hasCadence,
           );
         }
         if (resourceEventCadenceTabs) {
           resourceEventCadenceTabs.classList.toggle(
             "is-invalid",
-            shouldPaint && !periodMode && recurrenceIsRecurring && !hasCadence,
+            shouldPaint &&
+              advancedEnabled &&
+              !periodMode &&
+              recurrenceIsRecurring &&
+              !hasCadence,
           );
         }
         if (!hasDate) {
@@ -12175,12 +12326,17 @@
             getResourceUiText(periodMode ? "completeEventStartDate" : "completeEventDate"),
           );
         }
-        if (periodMode && !hasEndDate) {
+        if (advancedEnabled && periodMode && !hasEndDate) {
           errors.push(getResourceUiText("completeEventEndDate"));
         }
-        if (!periodMode && !hasRecurrence) {
+        if (advancedEnabled && !periodMode && !hasRecurrence) {
           errors.push(getResourceUiText("chooseRecurrence"));
-        } else if (!periodMode && recurrenceIsRecurring && !hasCadence) {
+        } else if (
+          advancedEnabled &&
+          !periodMode &&
+          recurrenceIsRecurring &&
+          !hasCadence
+        ) {
           errors.push(getResourceUiText("chooseRecurrenceCadence"));
         }
         return errors[0] || "";
@@ -12798,6 +12954,13 @@
               validateResourceForm(resourceValidationTriggered);
             });
           });
+        if (resourceEventMoreOptionsInput) {
+          resourceEventMoreOptionsInput.addEventListener("change", () => {
+            syncEventAdvancedOptionsUi();
+            saveResourceDraft();
+            validateResourceForm(resourceValidationTriggered);
+          });
+        }
         if (resourceEventDateInput) {
           resourceEventDateInput.addEventListener("change", () => {
             saveResourceDraft();
@@ -13823,6 +13986,10 @@
         if (resourceEventScheduleTitle) {
           resourceEventScheduleTitle.textContent =
             copy.eventScheduleTitle || RESOURCE_UI_BASE.eventScheduleTitle;
+        }
+        if (resourceEventMoreOptionsLabel) {
+          resourceEventMoreOptionsLabel.textContent =
+            copy.eventMoreOptions || RESOURCE_UI_BASE.eventMoreOptions;
         }
         if (resourceEventModeTitle) {
           resourceEventModeTitle.textContent =
@@ -15207,8 +15374,12 @@
           try {
             const eventsFlow = isContributeEventsFlow();
             const eventFormat = getEventFormatValue() || "physical";
-            const eventScheduleMode = getEventScheduleModeValue() || "fixed_date";
-            const periodMode = eventScheduleMode === "period";
+            const eventAdvancedOptionsEnabled = hasEventAdvancedOptionsEnabled();
+            const eventScheduleMode = eventAdvancedOptionsEnabled
+              ? getEventScheduleModeValue() || "fixed_date"
+              : "fixed_date";
+            const periodMode =
+              eventAdvancedOptionsEnabled && eventScheduleMode === "period";
             const eventDate = String(
               (resourceEventDateInput && resourceEventDateInput.value) || "",
             ).trim();
@@ -15219,9 +15390,14 @@
             const eventPrimaryDate = periodMode ? eventStartDate : eventDate;
             const eventRecurrence = periodMode
               ? "non_recurrent"
-              : getEventRecurrenceValue() || "non_recurrent";
+              : eventAdvancedOptionsEnabled
+                ? getEventRecurrenceValue() || "non_recurrent"
+                : "non_recurrent";
             const eventCadence = String(
-              (getEventCadenceInput() && getEventCadenceInput().value) || "",
+              (eventAdvancedOptionsEnabled &&
+                getEventCadenceInput() &&
+                getEventCadenceInput().value) ||
+                "",
             )
               .trim()
               .toLowerCase();
