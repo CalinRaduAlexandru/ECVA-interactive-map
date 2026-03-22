@@ -2770,6 +2770,108 @@
               return "new";
             }
 
+            function normalizeEventPayload(rawSource, pillarIdHint) {
+              const source = rawSource && typeof rawSource === "object" ? rawSource : {};
+              const details =
+                source.eventDetails && typeof source.eventDetails === "object"
+                  ? source.eventDetails
+                  : {};
+              const pillarId = String(
+                pillarIdHint || source.pillarId || "",
+              )
+                .trim()
+                .toLowerCase();
+              const hasExplicitEventInput = Boolean(
+                String(details.mode || "").trim() ||
+                  String(details.format || "").trim() ||
+                  String(details.date || "").trim() ||
+                  String(details.startDate || "").trim() ||
+                  String(details.endDate || "").trim() ||
+                  String(details.recurrence || "").trim() ||
+                  String(details.cadence || "").trim() ||
+                  String(source.eventScheduleMode || "").trim() ||
+                  String(source.eventFormat || "").trim() ||
+                  String(source.eventDate || "").trim() ||
+                  String(source.eventEndDate || "").trim() ||
+                  String(source.eventRecurrence || "").trim() ||
+                  String(source.eventCadence || "").trim(),
+              );
+              const includeEventData = pillarId === "events" || hasExplicitEventInput;
+              if (!includeEventData) {
+                return {
+                  eventDate: "",
+                  eventRecurrence: "",
+                  eventCadence: "",
+                  eventFormat: "",
+                  eventScheduleMode: "",
+                  eventEndDate: "",
+                  eventDetails: null,
+                };
+              }
+              const rawMode = String(
+                details.mode ||
+                  source.eventScheduleMode ||
+                  (details.startDate || details.endDate || source.eventEndDate
+                    ? "period"
+                    : "fixed_date"),
+              )
+                .trim()
+                .toLowerCase();
+              const mode = rawMode === "period" ? "period" : "fixed_date";
+              const rawFormat = String(details.format || source.eventFormat || "physical")
+                .trim()
+                .toLowerCase();
+              const format = rawFormat === "online" ? "online" : "physical";
+              const rawDate = String(
+                details.date || source.eventDate || details.startDate || "",
+              ).trim();
+              const rawStartDate = String(details.startDate || "").trim();
+              const startDate = mode === "period" ? rawStartDate || rawDate : "";
+              const date = mode === "period" ? startDate : rawDate;
+              const endDate =
+                mode === "period"
+                  ? String(details.endDate || source.eventEndDate || "").trim()
+                  : "";
+              const rawRecurrence = String(
+                details.recurrence || source.eventRecurrence || "non_recurrent",
+              )
+                .trim()
+                .toLowerCase();
+              const recurrence =
+                mode === "period"
+                  ? "non_recurrent"
+                  : rawRecurrence === "recurrent"
+                    ? "recurrent"
+                    : "non_recurrent";
+              const rawCadence = String(details.cadence || source.eventCadence || "")
+                .trim()
+                .toLowerCase();
+              const cadenceAllowed =
+                rawCadence === "daily" ||
+                rawCadence === "weekly" ||
+                rawCadence === "monthly" ||
+                rawCadence === "yearly";
+              const cadence =
+                recurrence === "recurrent" && cadenceAllowed ? rawCadence : "";
+              return {
+                eventDate: date,
+                eventRecurrence: recurrence,
+                eventCadence: cadence,
+                eventFormat: format,
+                eventScheduleMode: mode,
+                eventEndDate: endDate,
+                eventDetails: {
+                  mode,
+                  format,
+                  date,
+                  startDate,
+                  endDate,
+                  recurrence,
+                  cadence,
+                },
+              };
+            }
+
             function getCountryInbox(countryId) {
               const code = String(countryId || "").trim().toUpperCase();
               if (!code) return [];
@@ -2920,6 +3022,10 @@
               const englishDescription = translationRequired
                 ? englishDescriptionRaw
                 : englishDescriptionRaw || nativeDescription;
+              const normalizedEvent = normalizeEventPayload(
+                rawSubmission,
+                String(rawSubmission.pillarId || "").trim().toLowerCase(),
+              );
               return {
                 id:
                   String(rawSubmission.id || "").trim() ||
@@ -2949,6 +3055,13 @@
                 links,
                 attachments,
                 resourceLanguages,
+                eventDate: normalizedEvent.eventDate,
+                eventRecurrence: normalizedEvent.eventRecurrence,
+                eventCadence: normalizedEvent.eventCadence,
+                eventFormat: normalizedEvent.eventFormat,
+                eventScheduleMode: normalizedEvent.eventScheduleMode,
+                eventEndDate: normalizedEvent.eventEndDate,
+                eventDetails: normalizedEvent.eventDetails,
                 submittedBy,
                 representativeContact,
                 representativeDraft,
@@ -3144,6 +3257,33 @@
                       : null,
                 };
               }
+              const hasEventFieldUpdate =
+                Object.prototype.hasOwnProperty.call(fields, "eventDate") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventRecurrence") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventCadence") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventFormat") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventScheduleMode") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventEndDate") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventDetails");
+              if (hasEventFieldUpdate) {
+                const normalizedEvent = normalizeEventPayload(
+                  {
+                    ...record,
+                    ...fields,
+                    attachments: Array.isArray(record.attachments)
+                      ? record.attachments
+                      : [],
+                  },
+                  record.pillarId,
+                );
+                record.eventDate = normalizedEvent.eventDate;
+                record.eventRecurrence = normalizedEvent.eventRecurrence;
+                record.eventCadence = normalizedEvent.eventCadence;
+                record.eventFormat = normalizedEvent.eventFormat;
+                record.eventScheduleMode = normalizedEvent.eventScheduleMode;
+                record.eventEndDate = normalizedEvent.eventEndDate;
+                record.eventDetails = normalizedEvent.eventDetails;
+              }
               if (String(record.type || "").trim().toLowerCase() === "article") {
                 if (countryId === "GB") {
                   record.translationChecked = true;
@@ -3300,6 +3440,33 @@
                   email: String(fields.representativeContact.email || "").trim(),
                 };
               }
+              const hasEventFieldUpdate =
+                Object.prototype.hasOwnProperty.call(fields, "eventDate") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventRecurrence") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventCadence") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventFormat") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventScheduleMode") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventEndDate") ||
+                Object.prototype.hasOwnProperty.call(fields, "eventDetails");
+              if (hasEventFieldUpdate) {
+                const normalizedEvent = normalizeEventPayload(
+                  {
+                    ...entry,
+                    ...fields,
+                    attachments: Array.isArray(entry.attachments)
+                      ? entry.attachments
+                      : [],
+                  },
+                  pillarId,
+                );
+                entry.eventDate = normalizedEvent.eventDate;
+                entry.eventRecurrence = normalizedEvent.eventRecurrence;
+                entry.eventCadence = normalizedEvent.eventCadence;
+                entry.eventFormat = normalizedEvent.eventFormat;
+                entry.eventScheduleMode = normalizedEvent.eventScheduleMode;
+                entry.eventEndDate = normalizedEvent.eventEndDate;
+                entry.eventDetails = normalizedEvent.eventDetails;
+              }
               syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: index };
             }
@@ -3400,16 +3567,17 @@
 	              const englishTitle = String(
 	                rawEntry.englishTitle || rawEntry.title || rawEntry.nativeTitle || "",
 	              ).trim();
-	              const englishDescription = String(
-	                rawEntry.englishDescription ||
-	                  rawEntry.description ||
-	                  rawEntry.nativeDescription ||
-	                  rawEntry.summary ||
-	                  "",
-	              ).trim();
-	              const entry = {
-	                title: nativeTitle,
-	                subtitle: String(rawEntry.subtitle || "").trim(),
+		              const englishDescription = String(
+		                rawEntry.englishDescription ||
+		                  rawEntry.description ||
+		                  rawEntry.nativeDescription ||
+		                  rawEntry.summary ||
+		                  "",
+		              ).trim();
+		              const normalizedEvent = normalizeEventPayload(rawEntry, pillarId);
+		              const entry = {
+		                title: nativeTitle,
+		                subtitle: String(rawEntry.subtitle || "").trim(),
 	                summary: nativeDescription,
 	                description: nativeDescription,
 	                nativeTitle,
@@ -3467,8 +3635,15 @@
                     : { name: "", role: "", email: "" },
                 methods: Array.isArray(rawEntry.methods) ? rawEntry.methods : [],
                 programs: Array.isArray(rawEntry.programs) ? rawEntry.programs : [],
-                impact: Array.isArray(rawEntry.impact) ? rawEntry.impact : [],
-              };
+		                impact: Array.isArray(rawEntry.impact) ? rawEntry.impact : [],
+		                eventDate: normalizedEvent.eventDate,
+		                eventRecurrence: normalizedEvent.eventRecurrence,
+		                eventCadence: normalizedEvent.eventCadence,
+		                eventFormat: normalizedEvent.eventFormat,
+		                eventScheduleMode: normalizedEvent.eventScheduleMode,
+		                eventEndDate: normalizedEvent.eventEndDate,
+		                eventDetails: normalizedEvent.eventDetails,
+		              };
               pillar.entries.unshift(entry);
               syncPillarActiveFromEntries(countryId, pillarId);
               return { countryId, pillarId, entryIndex: 0 };
