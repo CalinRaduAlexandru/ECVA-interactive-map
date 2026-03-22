@@ -1160,24 +1160,33 @@
         gap: 8px;
       }
 
-      .contribute-event-options-toggle {
+      .contribute-form label.contribute-event-options-toggle {
         display: inline-flex;
         align-items: center;
         gap: 8px;
         width: fit-content;
         font-size: 13px;
-        font-weight: 700;
+        font-weight: 800;
         color: #2f4c59;
         user-select: none;
         cursor: pointer;
+        letter-spacing: 0.01em;
+        text-transform: none;
+        line-height: 1.2;
       }
 
-      .contribute-event-options-toggle input {
+      .contribute-form label.contribute-event-options-toggle input {
         margin: 0;
         width: 16px;
         height: 16px;
         accent-color: #21a68a;
         cursor: pointer;
+        flex: 0 0 auto;
+      }
+
+      .contribute-form label.contribute-event-options-toggle span {
+        display: inline-flex;
+        align-items: center;
       }
 
       .contribute-event-advanced-options {
