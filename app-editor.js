@@ -105,6 +105,9 @@
   const editorEventsSegment = document.getElementById(
     "ecva-editor-events-segment",
   );
+  const editorEventsPhotosSegment = document.getElementById(
+    "ecva-editor-events-photos-segment",
+  );
   const editorEventScheduleTitle = document.getElementById(
     "ecva-editor-event-schedule-title",
   );
@@ -3279,6 +3282,9 @@
     }
     if (editorEventsSegment) {
       editorEventsSegment.hidden = !eventsFlow;
+    }
+    if (editorEventsPhotosSegment) {
+      editorEventsPhotosSegment.hidden = !eventsFlow;
     }
     if (eventsFlow) {
       syncEditorEventCadenceUi();

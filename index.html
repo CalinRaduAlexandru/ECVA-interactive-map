@@ -6968,6 +6968,12 @@
                       </div>
                     </fieldset>
                   </div>
+                </section>
+                <section
+                  id="resource-events-photos-segment"
+                  class="contribute-form-segment"
+                  hidden
+                >
                   <div class="contribute-event-photo-block">
                     <p
                       class="contribute-form-section-title"
@@ -7658,7 +7664,11 @@
                   </button>
                 </div>
               </section>
-              <section id="ecva-editor-events-segment" hidden>
+              <section
+                id="ecva-editor-events-segment"
+                class="contribute-form-segment"
+                hidden
+              >
                 <p
                   class="contribute-form-segment-title"
                   id="ecva-editor-event-schedule-title"
@@ -7805,6 +7815,12 @@
                     </label>
                   </div>
                 </fieldset>
+              </section>
+              <section
+                id="ecva-editor-events-photos-segment"
+                class="contribute-form-segment"
+                hidden
+              >
                 <div class="contribute-event-photo-block">
                   <p
                     class="contribute-form-section-title"
@@ -9103,6 +9119,9 @@
       );
       const resourceEventScheduleSegment = document.getElementById(
         "resource-events-schedule-segment",
+      );
+      const resourceEventPhotosSegment = document.getElementById(
+        "resource-events-photos-segment",
       );
       const resourceEventScheduleTitle = document.getElementById(
         "resource-event-schedule-title",
@@ -11663,6 +11682,9 @@
         }
         if (resourceEventScheduleSegment) {
           resourceEventScheduleSegment.hidden = !eventsFlow;
+        }
+        if (resourceEventPhotosSegment) {
+          resourceEventPhotosSegment.hidden = !eventsFlow;
         }
         if (eventsFlow) {
           syncEventAdvancedOptionsUi({ preserveSelection: true });
