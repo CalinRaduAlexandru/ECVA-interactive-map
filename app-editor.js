@@ -166,6 +166,9 @@
   const editorEventPhotosStatus = document.getElementById(
     "ecva-editor-event-photos-status",
   );
+  const editorEventPhotosPreview = document.getElementById(
+    "ecva-editor-event-photos-preview",
+  );
   const editorContactName = document.getElementById("ecva-editor-contact-name");
   const editorContactRole = document.getElementById("ecva-editor-contact-role");
   const editorContactEmail = document.getElementById(
@@ -1046,6 +1049,7 @@
   let editorResourceLanguageItems = [];
   let editorResourceLangUid = 0;
   let editorEventExistingAttachments = [];
+  let editorEventPhotoPreviewObjectUrls = [];
   let editorReviewWizardEnabled = false;
   let editorReviewStepIndex = 0;
   let editorReviewSteps = [];
@@ -3251,27 +3255,78 @@
     }
   }
 
+  function clearEditorEventPhotoPreviewUrls() {
+    editorEventPhotoPreviewObjectUrls.forEach((url) => {
+      if (!url) return;
+      try {
+        URL.revokeObjectURL(url);
+      } catch (_) {}
+    });
+    editorEventPhotoPreviewObjectUrls = [];
+  }
+
+  function createEditorEventPhotoThumb(src, altText) {
+    const thumb = document.createElement("img");
+    thumb.className = "contribute-event-photo-thumb";
+    thumb.src = String(src || "");
+    thumb.alt = String(altText || "Event photo");
+    thumb.loading = "lazy";
+    thumb.decoding = "async";
+    return thumb;
+  }
+
   function updateEditorEventPhotosStatus() {
     if (!editorEventPhotosStatus) return;
-    const existingCount = editorEventExistingAttachments.length;
-    const selectedCount =
+    clearEditorEventPhotoPreviewUrls();
+    if (editorEventPhotosPreview) {
+      editorEventPhotosPreview.innerHTML = "";
+      editorEventPhotosPreview.hidden = true;
+    }
+    const selectedFiles =
       editorEventPhotosInput && editorEventPhotosInput.files
-        ? editorEventPhotosInput.files.length
-        : 0;
-    if (selectedCount > 0) {
-      editorEventPhotosStatus.textContent =
-        selectedCount === 1
-          ? "1 photo selected."
-          : `${selectedCount} photos selected.`;
+        ? Array.from(editorEventPhotosInput.files).filter(
+            (file) => file instanceof File,
+          )
+        : [];
+    if (selectedFiles.length) {
+      if (!editorEventPhotosPreview) {
+        editorEventPhotosStatus.textContent = String(selectedFiles.length);
+        return;
+      }
+      selectedFiles.forEach((file) => {
+        const objectUrl = URL.createObjectURL(file);
+        editorEventPhotoPreviewObjectUrls.push(objectUrl);
+        editorEventPhotosPreview.appendChild(
+          createEditorEventPhotoThumb(objectUrl, file.name || "Event photo"),
+        );
+      });
+      editorEventPhotosPreview.hidden = false;
+      editorEventPhotosStatus.textContent = "";
       return;
     }
-    if (existingCount > 0) {
-      editorEventPhotosStatus.textContent =
-        existingCount === 1
-          ? "1 existing photo."
-          : `${existingCount} existing photos.`;
+    const existingPhotos = Array.isArray(editorEventExistingAttachments)
+      ? editorEventExistingAttachments
+          .filter((item) => item && typeof item === "object")
+          .map((item) => ({
+            url: String(item.url || "").trim(),
+            name: String(item.name || "").trim(),
+          }))
+          .filter((item) => item.url)
+      : [];
+    if (!existingPhotos.length) {
+      editorEventPhotosStatus.textContent = "";
       return;
     }
+    if (!editorEventPhotosPreview) {
+      editorEventPhotosStatus.textContent = String(existingPhotos.length);
+      return;
+    }
+    existingPhotos.forEach((item) => {
+      editorEventPhotosPreview.appendChild(
+        createEditorEventPhotoThumb(item.url, item.name || "Event photo"),
+      );
+    });
+    editorEventPhotosPreview.hidden = false;
     editorEventPhotosStatus.textContent = "";
   }
 
