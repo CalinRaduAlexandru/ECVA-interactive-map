@@ -13069,7 +13069,7 @@
             input.addEventListener("change", () => {
               updateEventCadenceUi();
               saveResourceDraft();
-              validateResourceForm(resourceValidationTriggered);
+              validateResourceForm(false);
             });
           });
         [resourceEventFormatOnlineInput, resourceEventFormatPhysicalInput]
@@ -13086,7 +13086,7 @@
             input.addEventListener("change", () => {
               updateEventCadenceUi();
               saveResourceDraft();
-              validateResourceForm(resourceValidationTriggered);
+              validateResourceForm(false);
             });
           });
         if (resourceEventMoreOptionsInput) {

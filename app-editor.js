@@ -4480,7 +4480,7 @@
     }
     if (editorEventCadenceShell) {
       const cadenceValid = !recurring || Boolean(cadence);
-      if (shouldPaint || recurring) {
+      if (shouldPaint) {
         setInputValidity(editorEventCadenceShell, cadenceValid);
       } else {
         setInputValidity(editorEventCadenceShell, true);
@@ -4488,7 +4488,7 @@
     }
     if (editorEventCadenceTabs) {
       const cadenceValid = !recurring || Boolean(cadence);
-      if (shouldPaint || recurring) {
+      if (shouldPaint) {
         setInputValidity(editorEventCadenceTabs, cadenceValid);
       } else {
         setInputValidity(editorEventCadenceTabs, true);
