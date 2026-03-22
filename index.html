@@ -1065,6 +1065,14 @@
         align-items: stretch;
       }
 
+      .contribute-event-primary-row.is-period-mode {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .contribute-event-primary-row.is-period-mode #resource-event-end-date-wrap {
+        margin-bottom: 16px;
+      }
+
       .contribute-event-date-wrap {
         display: grid;
         gap: 8px;
@@ -6879,7 +6887,10 @@
                         </label>
                       </div>
                     </fieldset>
-                    <div class="contribute-event-primary-row">
+                    <div
+                      id="resource-event-primary-row"
+                      class="contribute-event-primary-row"
+                    >
                       <fieldset
                         id="resource-event-end-date-wrap"
                         class="contribute-event-fieldset contribute-event-date-wrap"
@@ -9177,6 +9188,9 @@
       );
       const resourceEventEndDateWrap = document.getElementById(
         "resource-event-end-date-wrap",
+      );
+      const resourceEventPrimaryRow = document.getElementById(
+        "resource-event-primary-row",
       );
       const resourceEventEndDateInput = document.getElementById(
         "resource-event-end-date",
@@ -11609,6 +11623,9 @@
         }
         if (resourceEventEndDateWrap) {
           resourceEventEndDateWrap.hidden = !advancedEnabled || !periodMode;
+        }
+        if (resourceEventPrimaryRow) {
+          resourceEventPrimaryRow.classList.toggle("is-period-mode", periodMode);
         }
         if (resourceEventRecurrenceShell) {
           resourceEventRecurrenceShell.hidden = !advancedEnabled || periodMode;
