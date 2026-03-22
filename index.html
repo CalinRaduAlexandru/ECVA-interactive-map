@@ -1082,7 +1082,7 @@
 
       .contribute-event-choice-tabs {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(180px, 1fr));
         gap: 8px;
         min-width: 0;
         width: 100%;
@@ -1115,13 +1115,13 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 0 10px;
+        padding: 0 18px;
         font-size: 13px;
         line-height: 1.05;
         text-align: center;
         white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        overflow: visible;
+        text-overflow: clip;
         font-weight: 800;
         color: #2f4c59;
         cursor: pointer;
@@ -1592,9 +1592,13 @@
           grid-template-columns: 1fr;
         }
 
+        .contribute-event-choice-tabs {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         .contribute-event-choice-tab span {
           font-size: 12px;
-          padding: 0 8px;
+          padding: 0 12px;
         }
 
         .contribute-event-choice-tabs.is-compact {
