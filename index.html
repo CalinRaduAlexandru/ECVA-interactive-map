@@ -1041,6 +1041,7 @@
         border-radius: 12px;
         border: 1px solid rgba(132, 153, 165, 0.42);
         background: rgba(250, 253, 255, 0.88);
+        box-sizing: border-box;
         display: grid;
         gap: 10px;
       }
@@ -1061,8 +1062,13 @@
       .contribute-event-primary-row {
         display: grid;
         grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1.4fr);
-        gap: 10px;
-        align-items: stretch;
+        gap: 12px;
+        align-items: start;
+      }
+
+      .contribute-event-primary-row > .contribute-event-fieldset {
+        min-width: 0;
+        align-self: start;
       }
 
       .contribute-event-primary-row.is-period-mode {
@@ -1076,8 +1082,9 @@
       .contribute-event-date-wrap {
         display: grid;
         gap: 8px;
-        min-height: 100%;
-        width: min(420px, 100%);
+        min-height: 0;
+        width: 100%;
+        max-width: 420px;
         justify-self: start;
       }
 
