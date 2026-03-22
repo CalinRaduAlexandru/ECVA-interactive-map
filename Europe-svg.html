@@ -1995,11 +1995,18 @@
               ];
             }
 
-            function getLanguageCounts(entries) {
+            function getLanguageCounts(entries, fallbackFlag) {
               const counts = new Map();
               entries.forEach((entry) => {
                 const uniqueLangs = getEntryLanguageFlags(entry);
-                uniqueLangs.forEach((lang) => {
+                const langsToCount =
+                  uniqueLangs.length > 0
+                    ? uniqueLangs
+                    : String(fallbackFlag || "").trim() &&
+                        hasRenderableEntryContent(entry)
+                      ? [String(fallbackFlag || "").trim()]
+                      : [];
+                langsToCount.forEach((lang) => {
                   counts.set(lang, (counts.get(lang) || 0) + 1);
                 });
               });
@@ -2475,7 +2482,10 @@
                   const config = getPillarConfig(countryId, pillar.id);
                   const pillarThemeClass = `is-${pillar.id}`;
                   const symbolIcon = pillarSymbolIcons[pillar.id] || pillarSymbolIcons.resources;
-                  const languageCounts = getLanguageCounts(config.entries);
+                  const countryFlag = String(
+                    ((ensureCountryData(countryId) || {}).flag) || "",
+                  ).trim();
+                  const languageCounts = getLanguageCounts(config.entries, countryFlag);
                   const dotTextHtml = config.active
                     ? `
                     <span class="country-modal-pillar-symbol" aria-hidden="true"><img src="${escapeHtml(symbolIcon)}" alt="" loading="eager" decoding="async" /></span>
