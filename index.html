@@ -1063,12 +1063,12 @@
         display: grid;
         grid-template-columns: minmax(220px, 0.6fr) minmax(0, 1.4fr);
         gap: 12px;
-        align-items: start;
+        align-items: stretch;
       }
 
       .contribute-event-primary-row > .contribute-event-fieldset {
         min-width: 0;
-        align-self: start;
+        height: 100%;
       }
 
       .contribute-event-primary-row.is-period-mode {
@@ -1086,6 +1086,10 @@
         width: 100%;
         max-width: 420px;
         justify-self: start;
+      }
+
+      .contribute-event-date-wrap > input {
+        min-height: 42px;
       }
 
       .contribute-event-date-wrap legend {
