@@ -377,7 +377,13 @@
     titleHelper: "Title will be displayed publicly.",
     descriptionHelper: "Write a short and clear description of the resource.",
     eventScheduleTitle: "Event schedule",
+    eventScheduleFixedDate: "Fixed date",
+    eventSchedulePeriod: "Period",
     eventDate: "Date",
+    eventDateStart: "Start date",
+    eventDateEnd: "End date",
+    eventFormatOnline: "Online",
+    eventFormatPhysical: "Physical",
     eventRecurrence: "Recurrence",
     eventRecurrenceSingle: "Non-recurrent",
     eventRecurrenceRepeating: "Recurrent",
@@ -452,7 +458,13 @@
       titleHelper: "Titlul va fi afișat public.",
       descriptionHelper: "Scrie o descriere scurtă și clară a resursei.",
       eventScheduleTitle: "Program eveniment",
+      eventScheduleFixedDate: "Dată fixă",
+      eventSchedulePeriod: "Perioadă",
       eventDate: "Dată",
+      eventDateStart: "Dată început",
+      eventDateEnd: "Dată final",
+      eventFormatOnline: "Online",
+      eventFormatPhysical: "Fizic",
       eventRecurrence: "Recurență",
       eventRecurrenceSingle: "Non-recurent",
       eventRecurrenceRepeating: "Recurent",
@@ -6525,6 +6537,196 @@
     return parsed.toLocaleString();
   }
 
+  function formatEventPillDate(rawValue) {
+    const value = String(rawValue || "").trim();
+    if (!value) return "";
+    const isoMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (isoMatch) {
+      const [, year, month, day] = isoMatch;
+      return `${day}.${month}.${year}`;
+    }
+    return value;
+  }
+
+  function normalizeSubmissionEventMeta(item) {
+    const safe = item && typeof item === "object" ? item : {};
+    const details =
+      safe.eventDetails && typeof safe.eventDetails === "object"
+        ? safe.eventDetails
+        : {};
+    const rawMode = String(
+      details.mode ||
+        safe.eventScheduleMode ||
+        (details.startDate || details.endDate || safe.eventEndDate
+          ? "period"
+          : "fixed_date"),
+    )
+      .trim()
+      .toLowerCase();
+    const mode = rawMode === "period" ? "period" : "fixed_date";
+    const rawFormat = String(details.format || safe.eventFormat || "physical")
+      .trim()
+      .toLowerCase();
+    const format = rawFormat === "online" ? "online" : "physical";
+    const rawDate = String(
+      details.date || safe.eventDate || details.startDate || "",
+    ).trim();
+    const startDate = String(
+      details.startDate || (mode === "period" ? rawDate : ""),
+    ).trim();
+    const date = mode === "period" ? startDate || rawDate : rawDate;
+    const endDate =
+      mode === "period" ? String(details.endDate || safe.eventEndDate || "").trim() : "";
+    const rawRecurrence = String(
+      details.recurrence || safe.eventRecurrence || "non_recurrent",
+    )
+      .trim()
+      .toLowerCase();
+    const recurrence =
+      mode === "period"
+        ? "non_recurrent"
+        : rawRecurrence === "recurrent"
+          ? "recurrent"
+          : "non_recurrent";
+    const rawCadence = String(details.cadence || safe.eventCadence || "")
+      .trim()
+      .toLowerCase();
+    const cadenceAllowed =
+      rawCadence === "daily" ||
+      rawCadence === "weekly" ||
+      rawCadence === "monthly" ||
+      rawCadence === "yearly";
+    const cadence = recurrence === "recurrent" && cadenceAllowed ? rawCadence : "";
+    return { mode, format, date, startDate, endDate, recurrence, cadence };
+  }
+
+  function isLikelyImageAsset(url, fileName) {
+    const source = `${String(url || "").trim()} ${String(fileName || "").trim()}`.toLowerCase();
+    if (!source) return false;
+    if (source.includes("data:image/")) return true;
+    return /\.(png|jpe?g|gif|webp|svg|avif|bmp)(\?|#|$)/i.test(source);
+  }
+
+  function buildSubmissionEventPillsHtml(item) {
+    const pillarId = String(item && item.pillarId ? item.pillarId : "")
+      .trim()
+      .toLowerCase();
+    if (pillarId !== "events") return "";
+    const copy = getEditorUiCopy(editorUiCopyLang);
+    const meta = normalizeSubmissionEventMeta(item);
+    const pills = [];
+    const pushPill = (variantClass, iconText, text) => {
+      const label = String(text || "").trim();
+      if (!label) return;
+      const icon = String(iconText || "").trim();
+      pills.push(
+        `<span class="ecva-inbox-event-pill${variantClass ? ` ${variantClass}` : ""}">${
+          icon
+            ? `<span class="ecva-inbox-event-pill-icon" aria-hidden="true">${icon}</span>`
+            : ""
+        }<span>${escapeHtml(label)}</span></span>`,
+      );
+    };
+
+    if (meta.mode === "period") {
+      pushPill("is-mode", "🧭", copy.eventSchedulePeriod || "Period");
+      if (meta.startDate) {
+        pushPill(
+          "is-calendar",
+          renderResourcePricingIconSvg("calendar"),
+          `${copy.eventDateStart || "Start date"}: ${formatEventPillDate(meta.startDate)}`,
+        );
+      }
+      if (meta.endDate) {
+        pushPill(
+          "is-calendar",
+          renderResourcePricingIconSvg("calendar"),
+          `${copy.eventDateEnd || "End date"}: ${formatEventPillDate(meta.endDate)}`,
+        );
+      }
+    } else {
+      pushPill("is-mode", "🧭", copy.eventScheduleFixedDate || "Fixed date");
+      if (meta.date) {
+        pushPill(
+          "is-calendar",
+          renderResourcePricingIconSvg("calendar"),
+          `${copy.eventDate || "Date"}: ${formatEventPillDate(meta.date)}`,
+        );
+      }
+    }
+
+    pushPill(
+      "is-format",
+      meta.format === "online" ? "🖥" : "📍",
+      meta.format === "online"
+        ? copy.eventFormatOnline || "Online"
+        : copy.eventFormatPhysical || "Physical",
+    );
+
+    if (meta.mode !== "period") {
+      if (meta.recurrence === "recurrent") {
+        pushPill(
+          "is-recurrence",
+          "🔁",
+          copy.eventRecurrenceRepeating || "Recurrent",
+        );
+      } else {
+        pushPill(
+          "is-recurrence",
+          "•",
+          copy.eventRecurrenceSingle || "Non-recurrent",
+        );
+      }
+      if (meta.recurrence === "recurrent" && meta.cadence) {
+        const cadenceLabel =
+          meta.cadence === "daily"
+            ? copy.eventCadenceDaily || "Daily"
+            : meta.cadence === "weekly"
+              ? copy.eventCadenceWeekly || "Weekly"
+              : meta.cadence === "monthly"
+                ? copy.eventCadenceMonthly || "Monthly"
+                : copy.eventCadenceYearly || "Yearly";
+        pushPill("is-cadence", "⏱", cadenceLabel);
+      }
+    }
+
+    if (!pills.length) return "";
+    return `<div class="ecva-inbox-event-pills">${pills.join("")}</div>`;
+  }
+
+  function buildSubmissionEventPhotosHtml(item) {
+    const pillarId = String(item && item.pillarId ? item.pillarId : "")
+      .trim()
+      .toLowerCase();
+    if (pillarId !== "events") return "";
+    const attachments = Array.isArray(item && item.attachments)
+      ? item.attachments
+          .filter((next) => next && typeof next === "object")
+          .map((next) => ({
+            url: String(next.url || "").trim(),
+            name: String(next.name || "").trim(),
+          }))
+          .filter((next) => next.url && isLikelyImageAsset(next.url, next.name))
+      : [];
+    if (!attachments.length) return "";
+    const maxVisible = 6;
+    const visible = attachments.slice(0, maxVisible);
+    const more = attachments.length - visible.length;
+    const thumbs = visible
+      .map(
+        (file, index) =>
+          `<a class="ecva-inbox-event-photo" href="${escapeHtml(file.url)}" target="_blank" rel="noopener noreferrer" aria-label="Event photo ${index + 1}">
+            <img src="${escapeHtml(file.url)}" alt="${escapeHtml(file.name || `Event photo ${index + 1}`)}" loading="lazy" decoding="async" />
+          </a>`,
+      )
+      .join("");
+    const moreBadge =
+      more > 0
+        ? `<span class="ecva-inbox-event-photo-more" aria-hidden="true">+${more}</span>`
+        : "";
+    return `<div class="ecva-inbox-event-photos">${thumbs}${moreBadge}</div>`;
+  }
+
   function getSubmissionTypeLabel(item) {
     const mode = String(item && item.type ? item.type : "")
       .trim()
@@ -7313,6 +7515,12 @@
       .filter(Boolean)
       .join(" • ");
     const compactPillClass = getSubmissionCompactPillClass(item);
+    const eventPillsHtml = !isRepresentative
+      ? buildSubmissionEventPillsHtml(item)
+      : "";
+    const eventPhotosHtml = !isRepresentative
+      ? buildSubmissionEventPhotosHtml(item)
+      : "";
     return `
       <article class="ecva-inbox-card ecva-inbox-item" data-submission-id="${escapeHtml(item.id)}">
         <div class="ecva-inbox-summary">
@@ -7328,6 +7536,7 @@
           </button>
         </div>
         <div class="ecva-inbox-details" hidden>
+          ${eventPillsHtml}
           ${
             isRepresentative
               ? `<div class="ecva-inbox-rep-layout">
@@ -7368,6 +7577,7 @@
               ? `<p class="ecva-inbox-description">${escapeHtml(description)}</p>`
               : ""
           }
+          ${eventPhotosHtml}
           ${
             !isRepresentative
               ? renderSubmissionResourceVersions(item)
